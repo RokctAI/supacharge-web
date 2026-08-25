@@ -1,0 +1,19 @@
+{
+  "name": "supacharge_web_composer",
+  "version": "1.0.0",
+  "description": "Active Next.js SDK list for the supacharge-web shell (composed by The-Rokct-Protocol core/utils/nextjs/sdk_composer.py)",
+  "_comment": "Registry templates are canonical: when core/utils/frappe/composer/supacharge.json carries an 'sdks' array, the composer materializes composer.json from it and that wins over this committed copy (same clobber semantics as the flutter lane). Today that template declares no 'sdks' key, so this committed list records this shell's Next.js composition floor per SDK_ECOSYSTEM.md hard invariant 9; mirror any change here into the registry template.",
+  "sdks": [
+    {
+      "name": "telemetry_sdk",
+      "enabled": true,
+      "source": "git",
+      "git": "https://github.com/RokctAI/core",
+      "path": "../core/telemetry/nextjs",
+      "ref": "main",
+      "sha256": "e5b23d1e8ee80b8c9bd964a0aa02049e75ecbd7a90d8a66ddd5b3eb6d54e5c6f",
+      "_sha256_comment": "SHA-256 of telemetry/nextjs/install.py at core as bootstrapped; required by the composer's unpinned-installer gate. Update when upstream install.py changes.",
+      "_comment": "Mandatory in every Next.js composition (SDK_ECOSYSTEM.md hard invariant 9, mirroring the flutter templates' telemetry_sdk entries). Empty-manifest seam owner: installs nothing; base_sdk's kernel carries the TelemetryClient."
+    }
+  ]
+}
