@@ -4,6 +4,15 @@ __pycache__/
 node_modules/
 dist/
 build/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.vercel/
+.env.local
+.env*.local
 .env
 .venv/
 .DS_Store
