@@ -22,10 +22,15 @@ export function Header({
   loginUrl = "/login",
   signupUrl = "/register",
   session = null,
+  openLoginPopup,
+  openSignupPopup,
 }: {
   loginUrl?: string;
   signupUrl?: string;
   session?: any;
+  /** auth_sdk's login/register pages pass these instead of URLs. */
+  openLoginPopup?: () => void;
+  openSignupPopup?: () => void;
 }) {
   const user = session?.user;
 
@@ -45,12 +50,14 @@ export function Header({
             <>
               <Link
                 href={loginUrl}
+                onClick={openLoginPopup}
                 className="text-black/70 dark:text-white/70"
               >
                 {t("auth.login")}
               </Link>
               <Link
                 href={signupUrl}
+                onClick={openSignupPopup}
                 className="rounded-full bg-black px-4 py-2 font-semibold text-white dark:bg-white dark:text-black"
               >
                 {t("auth.signup")}

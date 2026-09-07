@@ -21,17 +21,19 @@ bolted on. It commits the **host layer** the Next.js SDKs in its
 `composer.json` require — `components/ui/*` (shadcn primitives mirrored from
 [`RokctAI/rokctai_frontend`](https://github.com/RokctAI/rokctai_frontend)),
 `lib/utils.ts`, `hooks/use-mobile.tsx`, `app/config/*`, `app/lib/*` and the
-`components/custom/*` seams named in `base_sdk`'s manifest `requires` — so
-that `telemetry_sdk` + `base_sdk` compose and **build**. Composing adds the
-`/admin`, `/manager` and `/landing` trees those SDKs own; nothing composed is
-ever committed, so none of it is served from this repo's `main`.
+`components/custom/*` seams named in `base_sdk`'s and `auth_sdk`'s manifest
+`requires` — so that `telemetry_sdk` + `base_sdk` + `auth_sdk` compose and
+**build**. Composing adds the `/admin`, `/manager` and `/landing` trees and
+the `/login`, `/register`, `/forgot-password` and `/api/auth/[...nextauth]`
+routes those SDKs own; nothing composed is ever committed, so none of it is
+served from this repo's `main`.
 
 Two builds are therefore expected to be green at all times, and CI runs both:
 
 | build | what it is | routes |
 | --- | --- | --- |
 | bare | `npm ci && npm run build` on `main` as committed | 5 |
-| composed | compose from the registry template, then build | 29 |
+| composed | compose from the registry template, then build | 33 |
 
 The full brief lives in [docs/spec.md](docs/spec.md); the build instructions
 for the agent live in [AGENTS.md](AGENTS.md).
@@ -98,7 +100,11 @@ and merges their npm dependencies into `package.json`. The committed
 `composer.json` is the offline mirror of that template's `sdks` block — change
 the registry template first, then mirror it here so the two do not drift.
 
-The composed SDKs are `telemetry_sdk` and `base_sdk`. The composer does not
+The composed SDKs are `telemetry_sdk`, `base_sdk` and `auth_sdk`. The
+composed build needs `POSTGRES_URL` set (any syntactically valid URL — see
+`.env.example`); `auth_sdk`'s `db/index.ts` throws at import when it is
+unset, and `next build` imports it while collecting page data for
+`/api/auth/[...nextauth]`. The composer does not
 generate the application shell itself: everything listed under **Status**
 above is host-owned, and the installer skips any file a developer has edited
 rather than clobbering it. Each host seam file says in its own header which
