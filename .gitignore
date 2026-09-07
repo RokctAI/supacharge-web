@@ -20,3 +20,11 @@ next-env.d.ts
 # Protocol working state — installed by .rokct/initiate.py, not committed.
 .rokct/skills/
 .rokct/tmp/
+
+# Composer working state — written by core/utils/nextjs/sdk_composer.py on
+# every compose, never committed. The shell stays thin: composed output is
+# regenerated at build time from the registry template named by
+# .rokct/config/app_type.
+.rokct/cache/
+.rokct/sdk_installer_base.py
+.rokct/install_state.json
