@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/app/site";
+import { SessionProvider } from "@/components/custom/session-provider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -56,7 +57,7 @@ export default function RootLayout({
           WebkitFontSmoothing: "antialiased",
         }}
       >
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );
