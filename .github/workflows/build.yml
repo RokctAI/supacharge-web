@@ -9,6 +9,15 @@ on:
     branches: [ main, develop ]
     paths-ignore:
       - '**.md'
+  # Pre-merge signal (Vercel previews are off, #10). The pipeline's release
+  # job and every other side-effecting job in shared-workflows skip on
+  # pull_request, so a PR run is lint + security + node build + compose
+  # canary only; nothing is tagged or published until the merge lands on
+  # main. Same paths-ignore as push so a docs-only PR is not built either.
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
   repository_dispatch:
     types: [schema_updated]
   workflow_dispatch:
