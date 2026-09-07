@@ -29,8 +29,7 @@ import { cn } from "@/lib/utils";
  * kept in the prop type so callers written against that copy still type-check;
  * it is ignored here. Restore the overlay if agent_sdk is ever composed in.
  */
-export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   enableAi?: boolean;
 }
 

@@ -43,7 +43,10 @@ export function Header({
             </span>
           ) : (
             <>
-              <Link href={loginUrl} className="text-black/70 dark:text-white/70">
+              <Link
+                href={loginUrl}
+                className="text-black/70 dark:text-white/70"
+              >
                 {t("auth.login")}
               </Link>
               <Link
