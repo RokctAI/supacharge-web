@@ -33,6 +33,9 @@ interface MenuItem {
 // the marker on the next line inside the array.
 const sdkNavItems: { href: string; label: string }[] = [
   // @rokct-sdk-nav-start
+  { href: "/handson/all/lms", label: "Learning" },
+  { href: "/handson/all/lms/me/profile", label: "My Profile" },
+  { href: "/handson/all/lms/me/batches", label: "My Batches" },
   // @rokct-sdk-nav-end
 ];
 

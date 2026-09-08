@@ -1,0 +1,381 @@
+/*
+ * Copyright (c) 2026 ROKCT INTELLIGENCE (PTY) LTD
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/*
+ * Supacharge's look for the Next.js landing - the Dart app's AppStyle tokens
+ * (core/base/dart/lib/src/presentation/theme/app_style.dart: the palette
+ * lms_sdk, Supacharge's home SDK, renders every screen with) as CSS custom
+ * properties, plus the handful of recurring pieces the landing sections
+ * share (card, chip, badge, button). Scoped to the `sc-landing` class that
+ * lms-theme.tsx puts on <html> while the landing is mounted, so nothing here
+ * leaks into the handson pages. Plain CSS, no Tailwind directives: it works
+ * in a shell with or without Tailwind. Token sheet: agent PR #242 (feel/tokens.md).
+ *
+ * Dark-first, like every Dart capture; the light set (AppStyle's light
+ * counterparts) applies under html[data-sc-theme="light"].
+ */
+
+.sc-landing {
+  --sc-primary: #ff6600;
+  --sc-primary-tint: #4c260c;
+  --sc-surface: #101010;
+  --sc-card: #1c1c1c;
+  --sc-card-alt: #181818;
+  --sc-stroke: #2e2e2e;
+  --sc-stroke-subtle: #282828;
+  --sc-ink: #ffffff;
+  --sc-ink-2: #8c8c8c;
+  --sc-ink-3: #7c7c7c;
+  --sc-success: #16aa16;
+  --sc-danger: #ff3d00;
+  --sc-star: #ffb800;
+  --sc-lit: #17a398;
+  --sc-radius-card: 14px;
+  --sc-radius-panel: 16px;
+  --sc-radius-btn: 12px;
+  /* next/font/google sets --sc-font-inter / --sc-font-montserrat (lms-fonts.ts). */
+  --sc-font-sans: var(--sc-font-inter, "Inter"), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --sc-font-brand: var(--sc-font-montserrat, "Montserrat"), var(--sc-font-sans);
+  --sc-glow: radial-gradient(
+    60% 55% at 50% 40%,
+    rgba(255, 102, 0, 0.45) 0%,
+    rgba(255, 102, 0, 0.12) 45%,
+    rgba(255, 102, 0, 0) 75%
+  );
+  color-scheme: dark;
+}
+
+.sc-landing[data-sc-theme="light"] {
+  --sc-primary-tint: #ffe7d6;
+  --sc-surface: #ececef;
+  --sc-card: #f9f9fb;
+  --sc-card-alt: #f1f1f4;
+  --sc-stroke: #d9d9de;
+  --sc-stroke-subtle: #e4e4e9;
+  --sc-ink: #1b1b20;
+  --sc-ink-2: #5b5b62;
+  --sc-ink-3: #8c8c94;
+  --sc-glow: radial-gradient(
+    60% 55% at 50% 40%,
+    rgba(255, 102, 0, 0.28) 0%,
+    rgba(255, 102, 0, 0.08) 45%,
+    rgba(255, 102, 0, 0) 75%
+  );
+  color-scheme: light;
+}
+
+/* The shell's layout paints its own inline body colours; the landing paints the app's. */
+.sc-landing body {
+  background: var(--sc-surface) !important;
+  color: var(--sc-ink) !important;
+  font-family: var(--sc-font-sans) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sc-landing h1,
+.sc-landing h2,
+.sc-landing h3,
+.sc-landing h4 {
+  letter-spacing: -0.02em;
+}
+
+/* Recurring pieces (the Dart card/chip/button shapes). */
+.sc-card {
+  background: var(--sc-card);
+  border: 1px solid var(--sc-stroke);
+  border-radius: var(--sc-radius-card);
+  color: var(--sc-ink);
+}
+.sc-card-alt {
+  background: var(--sc-card-alt);
+}
+.sc-card-primary {
+  background: var(--sc-primary-tint);
+  border-color: var(--sc-primary);
+}
+.sc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--sc-stroke);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-weight: 600;
+  color: var(--sc-ink);
+  background: transparent;
+}
+.sc-chip-primary {
+  border-color: var(--sc-primary);
+  color: var(--sc-primary);
+}
+.sc-badge-primary {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--sc-primary);
+}
+.sc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--sc-radius-btn);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.25;
+  text-align: center;
+  transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+.sc-btn-primary {
+  background: var(--sc-primary);
+  color: #ffffff;
+  border: 1px solid var(--sc-primary);
+}
+.sc-btn-primary:hover {
+  opacity: 0.9;
+}
+.sc-btn-outline {
+  background: transparent;
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-ink);
+}
+.sc-btn-outline:hover {
+  background: var(--sc-card);
+}
+.sc-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sc-ink-2);
+}
+.sc-brand {
+  font-family: var(--sc-font-brand);
+  font-style: italic;
+  font-weight: 900;
+}
+
+/*
+ * base_sdk's hero frame (components/custom/hero.tsx, 1.7.0) paints its own
+ * colours - `bg-white dark:bg-[#0a0a0a]`, a yellow serif rotating word, a
+ * fixed 250 px wordmark slot that clips "Supacharge" - and exposes no
+ * className or CSS-variable hook yet. Until it does, the landing's home SDK
+ * re-paints it here from OUTSIDE the file, through the `#hero` id the frame
+ * gets from LANDING_CONFIG.nav.hero and the frame's own element order:
+ * hero > column > [brand row, headline, form, badges]. See the follow-up in
+ * agent PR #242: the frame should take `--hero-accent`, `--hero-bg` and a
+ * `brandClassName`, and drop the fixed wordmark width.
+ */
+.sc-landing #hero {
+  background: var(--sc-glow), var(--sc-surface) !important;
+  color: var(--sc-ink);
+}
+/* Brand row: hide the shell's letter tile, let the wordmark slot size itself. */
+.sc-landing #hero > div > div:first-child > div > div:first-child > div:first-child {
+  display: none !important;
+}
+.sc-landing #hero > div > div:first-child > div > div:last-child {
+  width: auto !important;
+}
+.sc-landing #hero > div > div:first-child > div > div:last-child span > span {
+  font-family: var(--sc-font-brand) !important;
+  font-style: italic !important;
+  font-weight: 900 !important;
+  font-size: clamp(40px, 9vw, 72px) !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1 !important;
+  color: var(--sc-ink) !important;
+}
+.sc-landing #hero > div > div:first-child > div > div:last-child span > span::after {
+  content: "\00ae";
+  font-size: 0.3em;
+  font-style: normal;
+  font-weight: 700;
+  vertical-align: top;
+  margin-left: 0.08em;
+  position: relative;
+  top: 0.15em;
+}
+/* Headline: ink for the sentence, the brand italic in primary for the rotating word. */
+.sc-landing #hero h1 {
+  color: var(--sc-ink) !important;
+}
+.sc-landing #hero h1 > div:first-child span {
+  font-family: var(--sc-font-brand) !important;
+  font-weight: 900 !important;
+  color: var(--sc-primary) !important;
+}
+
+/*
+ * The deck (landing/lms-card-deck.tsx): lms/dart's CardDeck as one
+ * swipeable row.
+ *
+ * Everything the deck needs to READ as a deck is here rather than in
+ * utility classes: how wide a card is, how much of the next one shows, the
+ * position dots and the two controls. The row's whole point is the
+ * arithmetic between the card width and the gap - a card that misses by a
+ * few rem stops peeking and the deck stops looking swipeable - so the two
+ * numbers live in one place, next to each other, and the deck carries its
+ * own look into whatever shell composes it.
+ *
+ * Snapping is what makes a swipe LAND on a card rather than anywhere, and
+ * `always` means a fling cannot skip one - the Flutter deck deals exactly
+ * one card per swipe. The scrollbar is hidden because the app's deck has
+ * none: the cards' own edges and the dots are the "there is more" signal.
+ */
+.sc-deck-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.sc-deck {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.5rem 0;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sc-deck::-webkit-scrollbar {
+  display: none;
+}
+.sc-deck > * {
+  flex-grow: 0;
+  flex-shrink: 0;
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  /* One card, and 1.75rem of the next one - the sliver the app's mockup
+     asks for ("the next card's edge stays slightly visible at the screen
+     edge"), near enough the 13 px the Flutter deck fans its second card
+     out by. */
+  flex-basis: calc(100% - 1.75rem);
+}
+@media (min-width: 640px) {
+  .sc-deck > * {
+    flex-basis: calc(50% - 1.25rem);
+  }
+}
+@media (min-width: 1024px) {
+  .sc-deck > * {
+    flex-basis: calc(33.3333% - 1.25rem);
+  }
+}
+@media (min-width: 1280px) {
+  .sc-deck > * {
+    flex-basis: calc(25% - 1.25rem);
+  }
+}
+/* A row of three (the session assistants): two across with the third's
+   edge showing, then all three at once with nothing left to swipe to. */
+@media (min-width: 1024px) {
+  .sc-deck-trio > * {
+    flex-basis: calc(33.3333% - 0.6667rem);
+  }
+}
+
+/* A mouse has nothing to throw the row with, so it drags it instead. */
+@media (hover: hover) and (pointer: fine) {
+  .sc-deck {
+    cursor: grab;
+  }
+}
+/* Mid-drag the deck follows the pointer; letting go hands snapping back. */
+.sc-deck.is-dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
+}
+/* A card must not turn over just because the drag passed across it: the
+   Flutter deck ignores the card entirely while a swipe is in flight
+   (CardDeck's pan handlers own the gesture), and the flip card turns on
+   hover for a fine pointer. Taking the cards out of hit-testing for the
+   duration is the same rule - the drag itself is tracked on the window. */
+.sc-deck.is-dragging > * {
+  pointer-events: none;
+}
+
+/* PageDots and the two controls, under the row as the app puts them. */
+.sc-deck-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.sc-deck-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc-deck-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin: 0 3px;
+  border-radius: 999px;
+  background: var(--sc-ink-3);
+  opacity: 0.45;
+  transition: width 250ms ease, background-color 250ms ease, opacity 250ms ease;
+}
+.sc-deck-dot.is-current {
+  width: 20px;
+  background: var(--sc-primary);
+  opacity: 1;
+}
+.sc-deck-arrow {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  border: 1px solid var(--sc-stroke);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sc-ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+@media (min-width: 640px) {
+  .sc-deck-arrow {
+    display: inline-flex;
+  }
+}
+.sc-deck-arrow:hover:not(:disabled) {
+  border-color: var(--sc-primary);
+  color: var(--sc-primary);
+}
+.sc-deck-arrow:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.sc-deck-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--sc-ink-3);
+}
