@@ -20,7 +20,9 @@
 // with. No product copy lives here: every section of the page - its words,
 // images, links and prices - belongs to the home SDK that registers it in
 // ./page-sections.ts (agent_sdk for rokctapp), the way a Dart home SDK
-// holds its own profile screens. The hero's copy stays in ./hero-config.ts.
+// holds its own profile screens. The hero's copy stays in ./hero-config.ts,
+// and the plans query a home SDK substitutes for the default below stays in
+// ./plans-query.ts.
 
 /** One entry of the floating section nav: the DOM id it scrolls to and its tooltip. */
 export interface LandingNavItem {
@@ -32,6 +34,10 @@ export interface LandingNavItem {
  * How app/actions/base/landing.ts fetches the plans the page hands every
  * registered section: a gateway command and its payload, sent without
  * credentials.
+ *
+ * The value below is the GENERIC default. A home SDK whose product sells a
+ * catalog of its own registers its query in ./plans-query.ts instead of
+ * editing this installed file, which the next compose regenerates.
  */
 export interface LandingPlansQuery {
   cmd: string;
@@ -48,7 +54,14 @@ export interface LandingConfig {
     hero: LandingNavItem;
     footer: LandingNavItem;
   };
-  /** `null` prefetches no plans; the page then hands every section an empty list. */
+  /**
+   * The default plans query: the platform's own `Subscription Plan`
+   * catalog - the plans on which someone RUNS a rokct app. It is what
+   * rokctai_frontend's pricing sells, and it is NOT what a product whose
+   * visitors are its end users sells; such a product registers its own
+   * query in ./plans-query.ts, which wins over this value. `null`
+   * prefetches no plans; the page then hands every section an empty list.
+   */
   plansQuery: LandingPlansQuery | null;
 }
 

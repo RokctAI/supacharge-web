@@ -151,6 +151,22 @@ export interface CardLabels {
   flipBack: string;
 }
 
+/**
+ * The words the swipeable deck needs (landing/lms-card-deck.tsx). One
+ * block per row, because a deck names what it holds: "Next tutor" on the
+ * tutor row reads as nonsense over the assistants'.
+ */
+export interface DeckLabels {
+  /** Accessible name of the row itself. */
+  label: string;
+  /** Accessible name of the back control. */
+  previous: string;
+  /** Accessible name of the forward control. */
+  next: string;
+  /** The caption under the row; empty prints none. */
+  hint: string;
+}
+
 export interface TutorsConfig {
   eyebrow: string;
   heading: string;
@@ -159,6 +175,10 @@ export interface TutorsConfig {
   assistantsHeading: string;
   assistants: Assistant[];
   cards: CardLabels;
+  /** The tutor row, which is one deck rather than a grid that wraps. */
+  deck: DeckLabels;
+  /** The assistants' row, the same deck. */
+  assistantsDeck: DeckLabels;
 }
 
 export interface Feature {
@@ -470,6 +490,18 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       rating: "Rating",
       flip: "Turn the card over",
       flipBack: "Back to the photo",
+    },
+    deck: {
+      label: "Tutors, as a deck you can swipe",
+      previous: "Previous tutor",
+      next: "Next tutor",
+      hint: "Swipe for the rest of the roster",
+    },
+    assistantsDeck: {
+      label: "Session assistants, as a deck you can swipe",
+      previous: "Previous assistant",
+      next: "Next assistant",
+      hint: "",
     },
   },
 

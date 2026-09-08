@@ -151,6 +151,7 @@ next-env.d.ts
 /components/custom/landing/hero-form.ts
 /components/custom/landing/hero-sections.ts
 /components/custom/landing/landing-config.ts
+/components/custom/landing/lms-card-deck.tsx
 /components/custom/landing/lms-flip-card.tsx
 /components/custom/landing/lms-fonts.ts
 /components/custom/landing/lms-hero-copy.ts
@@ -162,6 +163,7 @@ next-env.d.ts
 /components/custom/landing/lms-tutor-card.tsx
 /components/custom/landing/lms-wordmark.tsx
 /components/custom/landing/page-sections.ts
+/components/custom/landing/plans-query.ts
 /components/custom/landing/team-assets.ts
 /components/custom/lms-faq-section.tsx
 /components/custom/lms-features-section.tsx

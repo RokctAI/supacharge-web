@@ -19,7 +19,7 @@
 // Server data for the generic landing page (app/landing/page.tsx).
 
 import { platformCall } from "@/app/services/base/platform-gateway";
-import { LANDING_CONFIG } from "@/components/custom/landing/landing-config";
+import { loadLandingPlansQuery } from "@/components/custom/landing/plans-query";
 
 /** A plan row as a registered pricing section reads it; extra fields pass through. */
 export interface LandingPlan {
@@ -40,14 +40,16 @@ export interface LandingPlan {
 }
 
 /**
- * The plans the page hands every registered section, fetched with
- * `LANDING_CONFIG.plansQuery` through the platform gateway as a
- * guest (no credentials). Empty when no query is configured, when the
+ * The plans the page hands every registered section, fetched through the
+ * platform gateway as a guest (no credentials) with the query
+ * `loadLandingPlansQuery()` resolves: the home SDK's own query when one is
+ * registered in components/custom/landing/plans-query.ts, else the generic
+ * `LANDING_CONFIG.plansQuery`. Empty when no query is configured, when the
  * gateway has no base URL, or when the call fails - a pricing section then
  * hides itself rather than the page failing.
  */
 export async function getLandingPlans(): Promise<LandingPlan[]> {
-  const query = LANDING_CONFIG.plansQuery;
+  const query = await loadLandingPlansQuery();
   if (!query) return [];
   try {
     const response = await platformCall<unknown>(query.cmd, query.payload, {

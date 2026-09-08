@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.9.0
+
+* Gives the landing host's PLANS QUERY the seam its sections, its hero copy
+  and its hero form already have. The host prefetches one plan list and
+  hands it to every registered section; which plans those are was fixed in
+  `components/custom/landing/landing-config.ts` as the platform's
+  `Subscription Plan` catalog - the plans on which someone RUNS a rokct app
+  (the tenant fixtures price them USD 20 monthly / USD 200 yearly). That is
+  exactly right for rokctai_frontend, whose visitors buy an LMS to run, and
+  exactly wrong for a product whose landing page sells to its own end users:
+  Supacharge's visitors are learners, and the plans they buy are that
+  tenant's own catalog. A thin shell cannot fix that by editing the
+  installed `landing-config.ts`, because the next compose regenerates it.
+  * `components/custom/landing/plans-query.ts` is a fifth one-marker
+    registry on the same contract as `page-sections.ts`, `hero-sections.ts`,
+    `hero-copy.ts` and `hero-form.ts`: a home SDK contributes its query by
+    injecting ONE line at `// @rokct-sdk-plans-query-start` through its
+    manifest `integrations`,
+    `{ id: "<sdk>-plans", load: () => import("@/components/custom/landing/<file>") }`,
+    naming a module it installs whose default export is a
+    `LandingPlansQuery` (`{cmd, payload}`) or `null`. A separate file for
+    the same reason the others are: `update_integrations()` anchors
+    successive entries per target file, so one file carries one marker and
+    an entry is a single self-contained line with a dynamic import.
+  * `loadLandingPlansQuery()` answers the FIRST entry that loads - one
+    page, one plan list, exactly as `hero-form.ts` picks one form. An entry
+    that throws is logged and skipped in favour of the next; a registered
+    module whose default is `null` is a deliberate "prefetch no plans" and
+    is honoured. With NOTHING registered the loop does not run and the
+    answer is `LANDING_CONFIG.plansQuery` verbatim.
+  * `app/actions/base/landing.ts` reads the query through that loader
+    instead of `LANDING_CONFIG.plansQuery` directly. Nothing else about the
+    fetch changes: still one guest `platformCall` through the single
+    gateway, still `plan_category` mirrored onto `category`, still an empty
+    list on any failure.
+  * Engineering only for rokctapp: composed with nothing registered at the
+    marker, `getLandingPlans()` sends the identical `frappe.client.get_list`
+    of `Subscription Plan`, so rokctai_frontend's pricing shows the same
+    tenant catalog it shows today. `landing-config.ts` keeps that query as
+    the documented generic default.
+
 ## 1.8.0
 
 * Carries the platform scrollbar. Ray, 2026-09-08: "rokctai_frontend has

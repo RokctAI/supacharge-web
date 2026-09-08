@@ -224,3 +224,158 @@
   font-weight: 900 !important;
   color: var(--sc-primary) !important;
 }
+
+/*
+ * The deck (landing/lms-card-deck.tsx): lms/dart's CardDeck as one
+ * swipeable row.
+ *
+ * Everything the deck needs to READ as a deck is here rather than in
+ * utility classes: how wide a card is, how much of the next one shows, the
+ * position dots and the two controls. The row's whole point is the
+ * arithmetic between the card width and the gap - a card that misses by a
+ * few rem stops peeking and the deck stops looking swipeable - so the two
+ * numbers live in one place, next to each other, and the deck carries its
+ * own look into whatever shell composes it.
+ *
+ * Snapping is what makes a swipe LAND on a card rather than anywhere, and
+ * `always` means a fling cannot skip one - the Flutter deck deals exactly
+ * one card per swipe. The scrollbar is hidden because the app's deck has
+ * none: the cards' own edges and the dots are the "there is more" signal.
+ */
+.sc-deck-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.sc-deck {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.5rem 0;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sc-deck::-webkit-scrollbar {
+  display: none;
+}
+.sc-deck > * {
+  flex-grow: 0;
+  flex-shrink: 0;
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  /* One card, and 1.75rem of the next one - the sliver the app's mockup
+     asks for ("the next card's edge stays slightly visible at the screen
+     edge"), near enough the 13 px the Flutter deck fans its second card
+     out by. */
+  flex-basis: calc(100% - 1.75rem);
+}
+@media (min-width: 640px) {
+  .sc-deck > * {
+    flex-basis: calc(50% - 1.25rem);
+  }
+}
+@media (min-width: 1024px) {
+  .sc-deck > * {
+    flex-basis: calc(33.3333% - 1.25rem);
+  }
+}
+@media (min-width: 1280px) {
+  .sc-deck > * {
+    flex-basis: calc(25% - 1.25rem);
+  }
+}
+/* A row of three (the session assistants): two across with the third's
+   edge showing, then all three at once with nothing left to swipe to. */
+@media (min-width: 1024px) {
+  .sc-deck-trio > * {
+    flex-basis: calc(33.3333% - 0.6667rem);
+  }
+}
+
+/* A mouse has nothing to throw the row with, so it drags it instead. */
+@media (hover: hover) and (pointer: fine) {
+  .sc-deck {
+    cursor: grab;
+  }
+}
+/* Mid-drag the deck follows the pointer; letting go hands snapping back. */
+.sc-deck.is-dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
+}
+/* A card must not turn over just because the drag passed across it: the
+   Flutter deck ignores the card entirely while a swipe is in flight
+   (CardDeck's pan handlers own the gesture), and the flip card turns on
+   hover for a fine pointer. Taking the cards out of hit-testing for the
+   duration is the same rule - the drag itself is tracked on the window. */
+.sc-deck.is-dragging > * {
+  pointer-events: none;
+}
+
+/* PageDots and the two controls, under the row as the app puts them. */
+.sc-deck-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.sc-deck-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc-deck-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin: 0 3px;
+  border-radius: 999px;
+  background: var(--sc-ink-3);
+  opacity: 0.45;
+  transition: width 250ms ease, background-color 250ms ease, opacity 250ms ease;
+}
+.sc-deck-dot.is-current {
+  width: 20px;
+  background: var(--sc-primary);
+  opacity: 1;
+}
+.sc-deck-arrow {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  border: 1px solid var(--sc-stroke);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sc-ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+@media (min-width: 640px) {
+  .sc-deck-arrow {
+    display: inline-flex;
+  }
+}
+.sc-deck-arrow:hover:not(:disabled) {
+  border-color: var(--sc-primary);
+  color: var(--sc-primary);
+}
+.sc-deck-arrow:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.sc-deck-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--sc-ink-3);
+}

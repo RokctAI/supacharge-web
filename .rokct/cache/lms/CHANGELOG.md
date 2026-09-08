@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.3.0
+
+* The tutors section is a swipeable deck, not a grid that wraps (Ray,
+  2026-09-08: "the tutor cards can still be a deck that take one row and
+  can be swipped like in dart"). `landing/lms-card-deck.tsx` is lms/dart's
+  `CardDeck` (`presentation/widgets/card_deck.dart`) as the web reads it:
+  ONE row, the next card's edge always in view - the sliver the approved
+  mockup asks for in as many words ("the next card's edge stays slightly
+  visible at the screen edge", `lms/docs/ui-reference/subscription_cards.html`)
+  and the 13 px the Flutter deck fans its second card out by; exactly one
+  card per swipe (`scroll-snap-stop: always`, the deck's own
+  onNext/onPrevious past a 30%-of-width threshold); `PageDots` under the
+  row, the live card a stretched pill and the rest dots over 250 ms, the
+  same signal onboarding, tutor discovery and the plans sheet all use; and
+  the deal's swipe hint, a 46 px nudge over 420 ms the first time the row
+  is seen, "showing it's swipeable without the student having to guess"
+  (`CardDeck._hint`), skipped under `prefers-reduced-motion` or once the
+  reader has scrolled it. Twelve tutors held three or four grid rows and
+  the three assistants another; each is one row now. Web rather than
+  Flutter: touch and trackpad are the browser's own scrolling, a mouse
+  drags the row and a press that turned into a drag is swallowed so a drag
+  never flips a card, the arrows and the Arrow / Home / End keys move it a
+  card at a time on a desktop, and the scrollbar is hidden (`.sc-deck` in
+  `landing/lms-theme.css`). The deck does not wrap the way the Flutter one
+  does - a scrolled row has real ends, so the arrows disable there. The
+  cards are untouched: the deck owns the row and never the card, so the
+  flip still turns exactly as it did. `TutorsConfig` gains `deck` and
+  `assistantsDeck` (`DeckLabels`: the row's accessible name, its two
+  controls and the caption under it).
+
 ## 1.2.0
 
 * The tutors and pricing sections render the app's cards, flip included
