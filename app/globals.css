@@ -29,7 +29,10 @@
  * Scrollbar block - base_sdk 1.9.0 ships that as app/styles/rokct-scroll.css
  * and app/landing/page.tsx imports it, so importing it here as well would
  * duplicate it AND make this file depend on composed output that a bare
- * checkout does not have.
+ * checkout does not have. What this file DOES own about the scrollbar is
+ * its colour: base_sdk leaves the thumb as CSS variables so each shell can
+ * retheme it, and the block below does (Ray, 2026-09-08: "scroll need to
+ * use colors of supacharge, its not using primary color?").
  *
  * `--primary` is Supacharge's orange (#ff6600, lms_sdk's --sc-primary),
  * where rokctai_frontend's is its wealth-green. The landing sections paint
@@ -97,6 +100,37 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+}
+
+/*
+ * The platform scrollbar, in Supacharge's colours.
+ *
+ * base_sdk 1.8.0 moved rokctai_frontend's scroll thumb into
+ * app/styles/rokct-scroll.css and left its colours as custom properties
+ * (--rokct-scroll-width / -track / -thumb / -thumb-hover) so a shell can
+ * retheme it; the SDK's own default is rokctai_frontend's yellow
+ * (#facc15 / #eab308), which is the wrong brand here. The thumb reads the
+ * shadcn --primary token, so it follows the theme instead of pinning a
+ * second copy of #ff6600; the hover is that primary one step darker, the
+ * same relationship the SDK's yellow-400 -> yellow-500 pair has (there is
+ * no token for a "primary, darker", and both rokct-scroll.css and
+ * lms-theme.css state such shades literally, so this one does too).
+ *
+ * --primary is the same orange in both token blocks above, so this holds
+ * on the dark landing (lms-theme.tsx puts `dark` on <html> while it is
+ * mounted, and the SDK's `.dark ::-webkit-scrollbar-thumb` rule reads the
+ * same variable) and on the light admin/manager/auth routes.
+ *
+ * `html:root` rather than `:root` on purpose: rokct-scroll.css declares its
+ * defaults on `:root`, and it is imported by a PAGE (app/landing/page.tsx)
+ * while this file is imported by the root LAYOUT, so which of the two
+ * stylesheets Next.js emits last is its business, not ours. One extra
+ * element in the selector settles it by specificity instead, in either
+ * order.
+ */
+html:root {
+  --rokct-scroll-thumb: hsl(var(--primary));
+  --rokct-scroll-thumb-hover: hsl(24 100% 40%);
 }
 
 @layer base {
