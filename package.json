@@ -46,7 +46,9 @@
     "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.5.2",
-    "zod": "^4.1.13"
+    "zod": "^4.1.13",
+    "@editorjs/editorjs": "^2.31.0",
+    "react-player": "^3.4.0"
   },
   "devDependencies": {
     "@types/node": "^20",

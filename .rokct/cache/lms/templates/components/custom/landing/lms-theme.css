@@ -1,0 +1,226 @@
+/*
+ * Copyright (c) 2026 ROKCT INTELLIGENCE (PTY) LTD
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/*
+ * Supacharge's look for the Next.js landing - the Dart app's AppStyle tokens
+ * (core/base/dart/lib/src/presentation/theme/app_style.dart: the palette
+ * lms_sdk, Supacharge's home SDK, renders every screen with) as CSS custom
+ * properties, plus the handful of recurring pieces the landing sections
+ * share (card, chip, badge, button). Scoped to the `sc-landing` class that
+ * lms-theme.tsx puts on <html> while the landing is mounted, so nothing here
+ * leaks into the handson pages. Plain CSS, no Tailwind directives: it works
+ * in a shell with or without Tailwind. Token sheet: agent PR #242 (feel/tokens.md).
+ *
+ * Dark-first, like every Dart capture; the light set (AppStyle's light
+ * counterparts) applies under html[data-sc-theme="light"].
+ */
+
+.sc-landing {
+  --sc-primary: #ff6600;
+  --sc-primary-tint: #4c260c;
+  --sc-surface: #101010;
+  --sc-card: #1c1c1c;
+  --sc-card-alt: #181818;
+  --sc-stroke: #2e2e2e;
+  --sc-stroke-subtle: #282828;
+  --sc-ink: #ffffff;
+  --sc-ink-2: #8c8c8c;
+  --sc-ink-3: #7c7c7c;
+  --sc-success: #16aa16;
+  --sc-danger: #ff3d00;
+  --sc-star: #ffb800;
+  --sc-lit: #17a398;
+  --sc-radius-card: 14px;
+  --sc-radius-panel: 16px;
+  --sc-radius-btn: 12px;
+  /* next/font/google sets --sc-font-inter / --sc-font-montserrat (lms-fonts.ts). */
+  --sc-font-sans: var(--sc-font-inter, "Inter"), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --sc-font-brand: var(--sc-font-montserrat, "Montserrat"), var(--sc-font-sans);
+  --sc-glow: radial-gradient(
+    60% 55% at 50% 40%,
+    rgba(255, 102, 0, 0.45) 0%,
+    rgba(255, 102, 0, 0.12) 45%,
+    rgba(255, 102, 0, 0) 75%
+  );
+  color-scheme: dark;
+}
+
+.sc-landing[data-sc-theme="light"] {
+  --sc-primary-tint: #ffe7d6;
+  --sc-surface: #ececef;
+  --sc-card: #f9f9fb;
+  --sc-card-alt: #f1f1f4;
+  --sc-stroke: #d9d9de;
+  --sc-stroke-subtle: #e4e4e9;
+  --sc-ink: #1b1b20;
+  --sc-ink-2: #5b5b62;
+  --sc-ink-3: #8c8c94;
+  --sc-glow: radial-gradient(
+    60% 55% at 50% 40%,
+    rgba(255, 102, 0, 0.28) 0%,
+    rgba(255, 102, 0, 0.08) 45%,
+    rgba(255, 102, 0, 0) 75%
+  );
+  color-scheme: light;
+}
+
+/* The shell's layout paints its own inline body colours; the landing paints the app's. */
+.sc-landing body {
+  background: var(--sc-surface) !important;
+  color: var(--sc-ink) !important;
+  font-family: var(--sc-font-sans) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sc-landing h1,
+.sc-landing h2,
+.sc-landing h3,
+.sc-landing h4 {
+  letter-spacing: -0.02em;
+}
+
+/* Recurring pieces (the Dart card/chip/button shapes). */
+.sc-card {
+  background: var(--sc-card);
+  border: 1px solid var(--sc-stroke);
+  border-radius: var(--sc-radius-card);
+  color: var(--sc-ink);
+}
+.sc-card-alt {
+  background: var(--sc-card-alt);
+}
+.sc-card-primary {
+  background: var(--sc-primary-tint);
+  border-color: var(--sc-primary);
+}
+.sc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--sc-stroke);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-weight: 600;
+  color: var(--sc-ink);
+  background: transparent;
+}
+.sc-chip-primary {
+  border-color: var(--sc-primary);
+  color: var(--sc-primary);
+}
+.sc-badge-primary {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--sc-primary);
+}
+.sc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--sc-radius-btn);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.25;
+  text-align: center;
+  transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+.sc-btn-primary {
+  background: var(--sc-primary);
+  color: #ffffff;
+  border: 1px solid var(--sc-primary);
+}
+.sc-btn-primary:hover {
+  opacity: 0.9;
+}
+.sc-btn-outline {
+  background: transparent;
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-ink);
+}
+.sc-btn-outline:hover {
+  background: var(--sc-card);
+}
+.sc-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sc-ink-2);
+}
+.sc-brand {
+  font-family: var(--sc-font-brand);
+  font-style: italic;
+  font-weight: 900;
+}
+
+/*
+ * base_sdk's hero frame (components/custom/hero.tsx, 1.7.0) paints its own
+ * colours - `bg-white dark:bg-[#0a0a0a]`, a yellow serif rotating word, a
+ * fixed 250 px wordmark slot that clips "Supacharge" - and exposes no
+ * className or CSS-variable hook yet. Until it does, the landing's home SDK
+ * re-paints it here from OUTSIDE the file, through the `#hero` id the frame
+ * gets from LANDING_CONFIG.nav.hero and the frame's own element order:
+ * hero > column > [brand row, headline, form, badges]. See the follow-up in
+ * agent PR #242: the frame should take `--hero-accent`, `--hero-bg` and a
+ * `brandClassName`, and drop the fixed wordmark width.
+ */
+.sc-landing #hero {
+  background: var(--sc-glow), var(--sc-surface) !important;
+  color: var(--sc-ink);
+}
+/* Brand row: hide the shell's letter tile, let the wordmark slot size itself. */
+.sc-landing #hero > div > div:first-child > div > div:first-child > div:first-child {
+  display: none !important;
+}
+.sc-landing #hero > div > div:first-child > div > div:last-child {
+  width: auto !important;
+}
+.sc-landing #hero > div > div:first-child > div > div:last-child span > span {
+  font-family: var(--sc-font-brand) !important;
+  font-style: italic !important;
+  font-weight: 900 !important;
+  font-size: clamp(40px, 9vw, 72px) !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1 !important;
+  color: var(--sc-ink) !important;
+}
+.sc-landing #hero > div > div:first-child > div > div:last-child span > span::after {
+  content: "\00ae";
+  font-size: 0.3em;
+  font-style: normal;
+  font-weight: 700;
+  vertical-align: top;
+  margin-left: 0.08em;
+  position: relative;
+  top: 0.15em;
+}
+/* Headline: ink for the sentence, the brand italic in primary for the rotating word. */
+.sc-landing #hero h1 {
+  color: var(--sc-ink) !important;
+}
+.sc-landing #hero h1 > div:first-child span {
+  font-family: var(--sc-font-brand) !important;
+  font-weight: 900 !important;
+  color: var(--sc-primary) !important;
+}
