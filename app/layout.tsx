@@ -6,6 +6,7 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/app/site";
 import { SessionProvider } from "@/components/custom/session-provider";
+import { ThemeProvider } from "@/components/custom/theme-provider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -39,7 +40,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0B0B0F",
-  colorScheme: "dark",
+  // Dark first, but light is reachable through the header's theme toggle, so
+  // the UA must not be told this page is dark-only.
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({
@@ -48,13 +51,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: next-themes writes the theme class onto <html>
+    // in a blocking script before hydration, so the server markup and the
+    // first client render differ here by design.
+    <html lang="en" suppressHydrationWarning>
       <body
+        // The ground is painted by globals.css's `body { @apply bg-background
+        // text-foreground }` — NOT by an inline colour. The inline
+        // `background: #0B0B0F` that used to live here won over every
+        // `bg-background` beneath it, which is why the composed auth card
+        // rendered its light palette on a permanently black page.
         style={{
           margin: 0,
           minHeight: "100dvh",
-          background: "#0B0B0F",
-          color: "#F5F5F7",
           // System font stack only: no webfont is fetched at build or run time,
           // so this page has no external dependency to fail on.
           fontFamily:
@@ -62,7 +71,14 @@ export default function RootLayout({
           WebkitFontSmoothing: "antialiased",
         }}
       >
-        <SessionProvider>{children}</SessionProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <SessionProvider>{children}</SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
