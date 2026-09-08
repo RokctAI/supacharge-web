@@ -196,7 +196,12 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Compose from the committed cache (no network, no token)
-        run: bash scripts/compose.sh
+        run: |
+          set -euo pipefail
+          env -u POSTGRES_URL -u POSTGRES_URL_NON_POOLING -u AUTH_SECRET \
+              -u ROKCT_BASE_URL -u NEXT_PUBLIC_ROKCT_BASE_URL \
+              -u MONOREPO_PAT -u GH_TOKEN -u GITHUB_TOKEN \
+              bash scripts/compose.sh
 
       - name: Zero-drift check (a compose must reproduce HEAD)
         run: |
@@ -216,16 +221,49 @@ jobs:
           fi
           echo "HEAD is clean: composing from the committed cache changed nothing tracked."
 
-      - name: Build the composed tree
-        env:
-          # auth_sdk's db/index.ts constructs a postgres client at import
-          # time, so `next build` needs the variable to exist. It is never
-          # connected to during the build; the real value lives in Vercel's
-          # project environment.
-          POSTGRES_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
+      # Vercel parity means the BUILD ENVIRONMENT matches too, not just the
+      # command. This step used to inject
+      # `POSTGRES_URL: postgres://placeholder:...@localhost:5432/placeholder`
+      # because auth_sdk's db/index.ts constructed its postgres client at
+      # import time and `next build` loads that module while collecting page
+      # data for /api/auth/[...nextauth]. That placeholder is exactly what
+      # made this job miss the failure it exists to catch: POSTGRES_URL is a
+      # RUNTIME value that Vercel does not put in the build environment, so
+      # the job went green on a variable production never has and
+      # supacharge.app's deploy died on `Failed to collect page data for
+      # /api/auth/[...nextauth]` (main @ 15767d3).
+      #
+      # Nothing is injected now, and the runtime-only variables are actively
+      # unset so a value leaking in from the runner, a repo/org variable or a
+      # future `env:` block cannot quietly restore the blind spot. A build
+      # that needs any of these is a build that would fail on Vercel, and this
+      # job must go red for it:
+      #
+      #   POSTGRES_URL / POSTGRES_URL_NON_POOLING  auth_sdk's drizzle client;
+      #                                            runtime + `npm run
+      #                                            db:migrate` only, and this
+      #                                            shell's build script does
+      #                                            not migrate.
+      #   AUTH_SECRET                              NextAuth signing key; read
+      #                                            per-request at runtime.
+      #   ROKCT_BASE_URL / NEXT_PUBLIC_ROKCT_BASE_URL
+      #                                            platform gateway origin;
+      #                                            every call through it is
+      #                                            request-scoped.
+      #   MONOREPO_PAT / GH_TOKEN / GITHUB_TOKEN   never present on Vercel;
+      #                                            an offline compose must not
+      #                                            reach the network at all.
+      #
+      # `env -u` is used rather than `env: VAR: ""` because an empty string is
+      # still a set variable, and code that only checks presence would read it
+      # as configured.
+      - name: Build the composed tree (no runtime env, exactly like Vercel)
         run: |
           set -euo pipefail
-          npm run build 2>&1 | tee build.log
+          env -u POSTGRES_URL -u POSTGRES_URL_NON_POOLING -u AUTH_SECRET \
+              -u ROKCT_BASE_URL -u NEXT_PUBLIC_ROKCT_BASE_URL \
+              -u MONOREPO_PAT -u GH_TOKEN -u GITHUB_TOKEN \
+              npm run build 2>&1 | tee build.log
 
       - name: Assert the composed routes are there
         run: |

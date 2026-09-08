@@ -18,15 +18,23 @@
 
 // The landing page's plan cards. The plans come from the page
 // (app/landing/page.tsx prefetches them through app/actions/base/landing.ts
-// with LANDING_CONFIG.plansQuery - the platform's Subscription Plan rows,
-// read as a guest through the single platform gateway); with none the
-// section renders nothing, so no price is ever hard-coded here. Labels and
-// the partner note come from LMS_LANDING_CONFIG.pricing. Prices show in the
-// row's own currency (the platform prices Supacharge in ZAR). Each plan is
-// the app's plan card as a flip card (landing/lms-plan-card.tsx): price
-// front, the row's feature list and the Choose action on the back; the
-// middle plan carries the "Most popular" badge, as the app's plan deck
-// does.
+// with the query this SDK registers in the host's plans-query seam -
+// landing/lms-plans-query.ts, the tenant's own LMS Plan catalog read as a
+// guest through the single platform gateway); with none the section renders
+// nothing, so no price is ever hard-coded here. Labels and the partner note
+// come from LMS_LANDING_CONFIG.pricing. Prices show in the row's own
+// currency (the learner catalog is priced in ZAR). Each plan is the app's
+// plan card as a flip card (landing/lms-plan-card.tsx): price front, the
+// row's feature list and the Choose action on the back; the middle plan
+// carries the "Most popular" badge, as the app's plan deck does.
+//
+// Three periods, exactly as the Flutter plan sheet reads them
+// (plans_sheet.dart / lesson_plans.dart): monthly, yearly, and a ONE-OFF
+// that is neither. The monthly/yearly switch only ever moves between the
+// two recurring terms; a one-off plan (the R449 Holiday Programme) is not a
+// term of anything, so it stands in both positions and is quoted "once off"
+// rather than being mislabelled "/month" by the term it happens to sit next
+// to.
 
 import React, { useMemo, useState } from "react";
 
@@ -41,6 +49,13 @@ import type {
 
 const isYearly = (interval?: string) =>
   ["year", "yearly"].includes((interval ?? "").toLowerCase());
+
+const isMonthly = (interval?: string) =>
+  ["month", "monthly"].includes((interval ?? "").toLowerCase());
+
+/** Neither a monthly nor a yearly term: a once-off purchase, priced whole. */
+const isOneOff = (interval?: string) =>
+  !isYearly(interval) && !isMonthly(interval);
 
 /** "Standard (Legacy) Monthly" -> "Standard": the name shared by a plan's monthly and yearly rows. */
 function cleanPlanName(name: unknown): string {
@@ -86,7 +101,11 @@ export function LmsPricing({
     () =>
       plans
         .filter((plan) =>
-          hasYearly ? isYearly(plan.billing_interval) === isAnnual : true,
+          // A one-off is not a term, so the switch never hides it; only the
+          // recurring rows answer to it.
+          !hasYearly ||
+          isOneOff(plan.billing_interval) ||
+          isYearly(plan.billing_interval) === isAnnual,
         )
         .sort((a, b) => (a.cost || 0) - (b.cost || 0)),
     [plans, hasYearly, isAnnual],
@@ -133,13 +152,15 @@ export function LmsPricing({
             const isFree = !!plan.is_free_plan || plan.cost === 0;
             const perSeat = !!plan.is_per_seat_plan;
             const yearly = isYearly(plan.billing_interval);
-            const period = yearly
-              ? perSeat
-                ? labels.perUserYear
-                : labels.perYear
-              : perSeat
-                ? labels.perUserMonth
-                : labels.perMonth;
+            const period = isOneOff(plan.billing_interval)
+              ? labels.onceOff
+              : yearly
+                ? perSeat
+                  ? labels.perUserYear
+                  : labels.perYear
+                : perSeat
+                  ? labels.perUserMonth
+                  : labels.perMonth;
             // The app badges the middle family (the second of two); never a lone plan.
             const highlighted =
               displayedPlans.length > 1 && index === Math.floor(displayedPlans.length / 2);
