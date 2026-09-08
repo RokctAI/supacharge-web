@@ -89,7 +89,10 @@ export function Branding({
         }`}
         style={
           fit
-            ? { transform: `scale(${fit.scale})`, transformOrigin: "left center" }
+            ? {
+                transform: `scale(${fit.scale})`,
+                transformOrigin: "left center",
+              }
             : undefined
         }
       >
