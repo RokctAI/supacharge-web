@@ -3,16 +3,16 @@
  * `requires`; read by the SDK-installed team switcher, hero config and by
  * this shell's `components/custom/branding.tsx` / `brand-logo.tsx`.
  *
- * Deliberately NEUTRAL. `PLATFORM_NAME` is derived from `app/site.ts`, the
- * single source of truth this shell already ships, so composing SDKs cannot
- * change what the public site calls itself. The remote-branding resolver in
+ * Deliberately NEUTRAL. `PLATFORM_NAME` comes from `./constants` (auth_sdk's
+ * seam, re-exported here the way rokctai_frontend does), which derives it
+ * from `app/site.ts`, the single source of truth this shell already ships,
+ * so composing SDKs cannot change what the public site calls itself. The remote-branding resolver in
  * RokctAI/rokctai_frontend's copy of this file is not mirrored: it depends
  * on `@/app/actions/branding`, a control-plane server action this shell does
  * not compose. Both resolvers therefore answer with the local name.
  */
-import { SITE_NAME } from "@/app/site";
-
-export const PLATFORM_NAME = SITE_NAME;
+import { PLATFORM_NAME } from "./constants";
+export * from "./constants";
 
 /** Shape the SDK-installed branding consumers read. */
 export interface PlatformBranding {
