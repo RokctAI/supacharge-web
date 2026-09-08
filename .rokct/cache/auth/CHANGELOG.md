@@ -1,3 +1,33 @@
+## 1.4.1
+
+* **`db/index.ts` no longer needs a database to BUILD.** The module read
+  `POSTGRES_URL` and constructed the postgres client at import time, throwing
+  `POSTGRES_URL environment variable is not set` from module scope. `next build`
+  imports it while collecting page data for the auth handler
+  (`app/(auth)/api/auth/[...nextauth]/route.ts` -> `app/(auth)/auth.ts` ->
+  `@/db`), so any host composing auth_sdk without `POSTGRES_URL` in its BUILD
+  environment died with `Failed to collect page data for
+  /api/auth/[...nextauth]` - even though nothing needs a database to compile.
+  This took supacharge-web's production deploy red on Vercel, where the
+  variable is a runtime value and is not present at build time.
+  The connection is now created lazily on first use and memoised, so the client
+  is still constructed exactly once per process and pooling is unchanged. The
+  exported `db` is a transparent proxy around it: callers keep writing
+  `db.select()...` / `db.insert()...` with no change at any call site
+  (`app/(auth)/auth.ts`, `app/(auth)/actions.ts`,
+  `app/services/control/global_settings.ts`).
+  **Runtime behaviour is deliberately identical:** the guard still exists and
+  still throws the same `Error` with the same message - on the first query
+  instead of on import. There is no default connection string and no silent
+  fallback; a request that touches the database with `POSTGRES_URL` unset fails
+  exactly as loudly as before. Hosts no longer need to feed the build a
+  throwaway connection string to get a green build, which is what was masking
+  the missing variable in the first place.
+* Auth logic, the install surface and `install.py` are untouched (`install.py`
+  sha256 is unchanged, so the protocol's `supacharge.json` / `rokctapp.json`
+  pins still hold). The only changed file is
+  `auth/nextjs/templates/db/index.ts`.
+
 ## 1.4.0
 
 * **The templates type-check under a host that does not set

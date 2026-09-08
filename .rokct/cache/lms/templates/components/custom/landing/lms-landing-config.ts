@@ -222,6 +222,8 @@ export interface PricingConfig {
     perYear: string;
     perUserMonth: string;
     perUserYear: string;
+    /** The period on a one-off plan (the Holiday Programme), as the app's plan card puts it: "R449 . once off". */
+    onceOff: string;
     /** Front CTA on a plan card; flips it to the features. */
     seeIncluded: string;
     /** Heading over the feature list on the back. */
@@ -596,6 +598,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       perYear: "/year",
       perUserMonth: "/student/month",
       perUserYear: "/student/year",
+      onceOff: "· once off",
       seeIncluded: "See what's included",
       included: "What's included",
       mostPopular: "Most popular",

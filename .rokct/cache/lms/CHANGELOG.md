@@ -1,5 +1,47 @@
 # Changelog
 
+## 1.4.0
+
+* The pricing section shows SUPACHARGE's plans. It rendered nothing at all:
+  `lms-pricing.tsx` hides itself on an empty list, and the list was always
+  empty because base_sdk's landing host prefetched
+  `LANDING_CONFIG.plansQuery` - the platform's `Subscription Plan` catalog,
+  the plans on which someone RUNS an LMS (USD 20 a month, USD 200 a year;
+  `lms/frappe/src/tenant/fixtures/Subscription_Plan/LMS-*.json`). Right for
+  rokctai_frontend, wrong for a learner, and unreadable as a guest either
+  way.
+  * `components/custom/landing/lms-plans-query.ts` registers this tenant's
+    own catalog into base_sdk 1.9.0's plans-query seam
+    (`// @rokct-sdk-plans-query-start`), one line through this manifest's
+    `integrations`. The query is a gateway `cmd` like every other call this
+    SDK makes - `api.lms.public_plans`, the rlms module's own
+    whitelisted-method alias (`lms/frappe/manifest.json`) for
+    `rlms.api.billing.public_plans` - never a dotted method URL.
+  * `rlms.api.billing.public_plans` is the new guest-readable half, and it
+    is deliberately NOT `plans()` opened up: that answer carries the partner
+    monthly rate, the programme window dates and the `assistant_chat` /
+    `holiday_access` entitlement flags, and it SEEDS records on the way
+    through. The public read writes nothing and returns only the six fields
+    the cards display, for ACTIVE, PRICED plans. No doctype permission is
+    widened - a guest still cannot read `LMS Plan` generically, only this
+    projection of it.
+  * The plans are the seeded launch catalog, unchanged and un-invented:
+    R299 a month, R2,990 a year (two months free) and R449 for the Holiday
+    Programme. They arrive as records, so the owner's edits show on the page.
+  * `lms-pricing.tsx` now reads three periods, exactly as the Flutter plan
+    sheet does (`plans_sheet.dart` / `lesson_plans.dart`): monthly, yearly,
+    and a ONE-OFF that is neither. The monthly/yearly switch moves between
+    the recurring terms only; the Holiday Programme stands in both positions
+    and is quoted "· once off" (`LMS_LANDING_CONFIG.pricing.labels.onceOff`,
+    the app's own wording) instead of being mislabelled "/month" by whatever
+    term it sits beside.
+  * A misaimed base URL can no longer misprice the page. `ROKCT_BASE_URL`
+    pointed at the CONTROL site used to answer the generic query with the
+    control plane's tenant plans - a learner quoted USD 20 to run an LMS. A
+    control site serves only `control:`-prefixed cmds, so this cmd cannot be
+    answered there: the call fails, the plan list is empty and the section
+    hides. The worst case is now no prices, never someone else's.
+
 ## 1.3.0
 
 * The tutors section is a swipeable deck, not a grid that wraps (Ray,

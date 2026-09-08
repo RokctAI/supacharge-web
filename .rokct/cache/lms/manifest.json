@@ -1,6 +1,6 @@
 {
   "name": "lms_sdk",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "installs": [
     {
       "from": "templates/app/handson/all/lms",
@@ -29,6 +29,10 @@
     {
       "from": "templates/components/custom/landing/lms-hero-copy.ts",
       "to": "components/custom/landing/lms-hero-copy.ts"
+    },
+    {
+      "from": "templates/components/custom/landing/lms-plans-query.ts",
+      "to": "components/custom/landing/lms-plans-query.ts"
     },
     {
       "from": "templates/components/custom/landing/lms-theme.css",
@@ -158,6 +162,11 @@
       "replacement": "  { id: \"lms-hero\", load: () => import(\"@/components/custom/landing/lms-hero-copy\") },"
     },
     {
+      "target": "components/custom/landing/plans-query.ts",
+      "placeholder": "// @rokct-sdk-plans-query-start",
+      "replacement": "  { id: \"lms-plans\", load: () => import(\"@/components/custom/landing/lms-plans-query\") },"
+    },
+    {
       "target": "components/custom/landing/page-sections.ts",
       "placeholder": "// @rokct-sdk-page-sections-start",
       "replacement": "  { id: \"lms-theme-section\", load: () => import(\"@/components/custom/lms-theme-section\") },"
@@ -225,6 +234,7 @@
     "components/custom/landing/hero-form.ts",
     "components/custom/landing/landing-config.ts",
     "components/custom/landing/page-sections.ts",
+    "components/custom/landing/plans-query.ts",
     "components/ui/avatar.tsx",
     "components/ui/badge.tsx",
     "components/ui/button.tsx",
