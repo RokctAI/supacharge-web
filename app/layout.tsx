@@ -1,3 +1,8 @@
+// Tailwind and the shared token set for every route in this shell.
+// base_sdk's landing pulls its own extra sheets on top (the platform
+// scrollbar, lms_sdk's theme); this is the one the root layout owns.
+import "./globals.css";
+
 import type { Metadata, Viewport } from "next";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/app/site";
 import { SessionProvider } from "@/components/custom/session-provider";

@@ -57,16 +57,21 @@ wrapped as `components/ui/*`, `class-variance-authority`, `clsx` and
 `react-day-picker` and `frappe-js-sdk`. Versions are pinned to the specs
 `rokctai_frontend` and the SDK manifests already use.
 
-**No Tailwind build is configured yet.** The mirrored primitives and the
-composed SDK pages carry Tailwind class names because that is how they are
-written upstream, but this shell compiles them as plain strings, so the
-composed routes render with layout utilities inert. What does apply is plain
-CSS the SDKs ship themselves — `lms_sdk`'s `components/custom/landing/
-lms-theme.css` token sheet (written to work "in a shell with or without
-Tailwind") and `base_sdk`'s `app/styles/rokct-scroll.css`. Wiring Tailwind
-(`tailwind.config.ts`, `postcss.config.mjs`, a `globals.css` imported from the
-root layout, as `rokctai_frontend` has it) is the next piece of work on this
-shell and is deliberately not part of the compose-at-deploy change.
+**Tailwind is wired the way `rokctai_frontend` wires it** — the mirrored
+primitives and the composed SDK pages are written in Tailwind classes
+upstream, so without a Tailwind build every layout utility on those pages is
+an inert string. `tailwind.config.ts`, `postcss.config.mjs` and
+`app/globals.css` (imported by the root layout) mirror that shell's setup on
+the same versions: Tailwind v3 (`tailwindcss@^3.4.19`, `postcss@^8`,
+`tailwindcss-animate@^1.0.7`), `darkMode: ["class"]` — which is what
+`lms_sdk`'s `lms-theme.tsx` toggles on `<html>` — and the shadcn HSL token
+set `components/ui/*` reads through `hsl(var(--token))`. The content globs
+must cover every directory an SDK installer writes into (`app/`,
+`components/`, `lib/`, `hooks/`), or the composed pages' classes are purged
+out of the build. The plain CSS the SDKs ship themselves still applies on top:
+`lms_sdk`'s `components/custom/landing/lms-theme.css` token sheet (written to
+work "in a shell with or without Tailwind") and `base_sdk`'s
+`app/styles/rokct-scroll.css`.
 
 `.npmrc` sets `legacy-peer-deps=true`: `react-day-picker@8` (the version
 `components/ui/calendar.tsx` and `base_sdk`'s date-range picker are written
