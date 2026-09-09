@@ -33,7 +33,7 @@
 // line - with rokct.ai's wording pattern applied to a platform that has no
 // store: the small line says what the visitor does, the big line names the
 // destination ("GET IT ON" over "Google Play", "Download for" over
-// "Windows"), never a file format. The marks are the SVG files this SDK installs under
+// "Windows"), never a file format. The marks are SVG files under
 // public/brand/marks/, handed to the frame through its {src, alt} icon
 // slot. Since 1.16.0 they are the store marks every visitor already knows
 // (Ray, 2026-09-09: "we use what these platforms use for familiarity"):
@@ -42,10 +42,13 @@
 // entry and the Huawei flower in Huawei red for the AppGallery one, each
 // under its store's own badge wording from the entry's `badge` field
 // ("GET IT ON" / "Google Play"; "but eventually we getting in those stores
-// except windows"). The two monochrome marks (Apple, Windows:
-// "keep it black and white") are black on the light pill and white on the
-// dark one through lms-theme.css; the coloured ones are never touched. No
-// CDN.
+// except windows"). Since 1.17.0 the files are base_sdk 1.26.0's: base
+// installs them on every host and this SDK only names their paths, which
+// is how a home SDK opts in; the literals below are unchanged. The two
+// monochrome marks (Apple, Windows: "keep it black and white") are black
+// on the light pill and white on the dark one, and base does that itself,
+// keyed on the file name; the coloured ones are never touched. No CSS for
+// them here, no CDN.
 
 import type { HeroCopy } from "@/components/custom/landing/hero-copy";
 import type { HeroBadge } from "@/components/custom/landing/hero-config";
@@ -56,7 +59,7 @@ import {
 
 /**
  * The store mark the frame draws in each badge, by app id: the SVG files
- * this SDK installs under public/brand/marks/. The Android entry wears the
+ * base_sdk 1.26.0 installs under public/brand/marks/. The Android entry wears the
  * Google Play mark, the iOS entry the Apple mark, the Huawei entry the
  * AppGallery flower - the stores the app is, or will be, listed in (Ray,
  * 2026-09-09) - and the desktop entry the Windows panes, the one platform

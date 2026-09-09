@@ -298,16 +298,16 @@ class TestSurfaces(unittest.TestCase):
             self.assertNotIn(word, form)
         self.assertNotRegex(form, r"(?i)sign in")
 
-    def test_hero_badge_marks_are_the_store_marks_installed_locally(self):
+    def test_hero_badge_marks_are_base_sdks_files(self):
         """1.16.0 (Ray, 2026-09-09: "we already have nice icons in buttons
         in hero of rokct but supacharge is getting bad ones. we use what
-        these platforms use for familiarity"): the four marks are Ray's
-        picks, installed under public/brand/marks as clean standalone SVGs
-        - parse as XML, a viewBox, no width/height, no script, no style, no
-        metadata, no external reference, no raster, no CDN - and mapped so
-        the Android download wears Google Play, the desktop one Windows and
-        the iOS entry the Apple mark and the Huawei entry the AppGallery
-        flower; which are drawn is LMS_SHOWN_APPS's business."""
+        these platforms use for familiarity"): the Android download wears
+        Google Play, the desktop one Windows, the iOS entry the Apple mark
+        and the Huawei entry the AppGallery flower; which are drawn is
+        LMS_SHOWN_APPS's business. 1.17.0: the files are base_sdk 1.26.0's,
+        installed under public/brand/marks on every host, so this SDK ships
+        none of them and only names their paths; the public/brand mapping
+        stays for the wordmarks and the social still."""
         copy = code_of(HERO_COPY)
         mapping = {
             "android": ("/brand/marks/google-play.svg", "Google Play"),
@@ -320,59 +320,38 @@ class TestSurfaces(unittest.TestCase):
                 self.assertIn(f'{app_id}: {{ src: "{src}", alt: "{alt}" }}', copy)
         self.assertNotIn('"app-store"', copy)
         self.assertNotIn("android.svg", copy)
-        self.assertEqual(
-            sorted(os.listdir(MARKS)),
-            ["app-gallery.svg", "app-store.svg", "google-play.svg", "windows.svg"],
-        )
-        for name in os.listdir(MARKS):
-            with self.subTest(mark=name):
-                svg = read(os.path.join(MARKS, name))
-                root = ET.fromstring(svg)
-                self.assertEqual(root.tag, "{http://www.w3.org/2000/svg}svg")
-                self.assertRegex(root.get("viewBox") or "", r"^0 0 \d+ \d+$")
-                self.assertIsNone(root.get("width"))
-                self.assertIsNone(root.get("height"))
-                tags = {el.tag.split("}")[-1] for el in root.iter()}
-                self.assertTrue(tags <= {"svg", "path", "g", "defs", "linearGradient", "stop"}, tags)
-                self.assertNotRegex(svg, r"(?i)<script|<style|<image|<metadata|xlink:href|\bhref=|data:|<!--")
-                for value in re.findall(r'xmlns(?::\w+)?="([^"]*)"', svg):
-                    self.assertTrue(value.startswith("http://www.w3.org/"), value)
-                self.assertNotRegex(re.sub(r'xmlns(?::\w+)?="[^"]*"', "", svg), r"(?i)http")
+        # Every mark named is one of base's files under /brand/marks/.
+        for value in re.findall(r'src: "([^"]+)"', copy):
+            self.assertRegex(value, r"^/brand/marks/[a-z-]+\.svg$")
+        self.assertNotRegex(copy, r"(?i)https?://|cdn\.")
+        # This SDK ships no mark: base owns the directory.
+        self.assertFalse(os.path.exists(MARKS), MARKS)
+        brand = os.path.join(TEMPLATES, "public", "brand")
+        self.assertTrue(os.path.isdir(brand))
+        self.assertFalse([f for f in os.listdir(brand) if f.endswith(".svg") and "wordmark" not in f], os.listdir(brand))
+        installs = load_manifest()["installs"]
+        self.assertIn(("templates/public/brand", "public/brand"), [(i["from"], i["to"]) for i in installs])
+        self.assertNotIn("marks", json.dumps(installs))
         self.assertFalse(os.path.exists(os.path.join(LANDING, "lms-app-glyphs.tsx")))
-        self.assertNotIn("lms-app-glyphs", json.dumps(load_manifest()["installs"]))
+        self.assertNotIn("lms-app-glyphs", json.dumps(installs))
 
-    def test_marks_carry_the_colours_ray_ruled(self):
-        """Ray, 2026-09-09: "you will change colors"; "apple is black could
-        be white, huawei is black should be red or meroon"; "keep it black
-        and white" (Windows). A file that already carries its brand colours
-        (Google Play) is kept exactly; the Huawei flower is Huawei red; the
-        Apple and Windows marks are currentColor and nothing else."""
-        fills = lambda name: [f.lower() for f in re.findall(r'fill="([^"]+)"', read(os.path.join(MARKS, name)))]
-        self.assertEqual(sorted(fills("google-play.svg")), sorted(["#ea4335", "#fbbc04", "#4285f4", "#34a853"]))
-        self.assertEqual(set(fills("app-gallery.svg")), {"#cf0a2c"})
-        for name in ("app-store.svg", "windows.svg"):
-            with self.subTest(mark=name):
-                self.assertEqual(set(fills(name)), {"currentcolor"})
-                self.assertNotRegex(read(os.path.join(MARKS, name)), r"#[0-9a-fA-F]{3,8}")
-
-    def test_only_the_two_monochrome_marks_are_inverted_in_dark_mode(self):
-        """The frame draws a mark as an <img>, where currentColor cannot
-        follow the badge text, so the stylesheet inverts the Apple and
-        Windows marks under the `dark` class and nothing else: the 1.15.0
-        rule that inverted every badge image is gone, and no rule reaches
-        the coloured marks."""
+    def test_no_lms_stylesheet_filters_a_mark(self):
+        """1.17.0: base_sdk 1.26.0 applies the dark-mode treatment for the
+        two monochrome marks (app-store.svg, windows.svg) itself, keyed on
+        the src basename, and never touches a coloured one, so the 1.16.0
+        rule that did that under #hero is gone and no lms stylesheet
+        reaches a mark: no invert, no filter, no /brand/marks/ selector."""
         css = read(THEME_CSS)
         self.assertNotRegex(css, r'a\[href\^="/download/"\]')
-        rules = re.findall(r"([^{}]+)\{([^}]*)\}", css)
-        inverting = [sel.strip() for sel, body in rules if "invert(" in body]
-        self.assertEqual(len(inverting), 1, inverting)
-        selector = inverting[0]
-        for mark in ("app-store.svg", "windows.svg"):
-            self.assertIn(f'html.sc-landing.dark #hero img[src="/brand/marks/{mark}"]', selector)
-        for mark in ("google-play.svg", "app-gallery.svg", "android.svg"):
-            self.assertNotIn(mark, css)
-        self.assertEqual(css.count("filter:"), 1)
+        self.assertNotIn("invert", css)
+        self.assertNotIn("filter:", css)
+        self.assertNotIn("/brand/marks/", css)
         self.assertNotIn(".sc-app-badge", css)
+        for root, _dirs, files in os.walk(TEMPLATES):
+            for name in files:
+                if name.endswith(".css"):
+                    with self.subTest(css=os.path.relpath(os.path.join(root, name), TEMPLATES)):
+                        self.assertNotIn("invert", read(os.path.join(root, name)))
 
     def test_download_prompt_draws_the_same_marks(self):
         """1.16.0: the lesson prompt's buttons carry the hero's marks, read
@@ -519,6 +498,17 @@ class TestVersion(unittest.TestCase):
             with self.subTest(key=key):
                 self.assertIn(key, self.manifest["requires"])
                 self.assertIn("base_sdk >= 1.21.0", notes[key])
+
+    def test_manifest_names_the_base_floor_that_ships_the_marks(self):
+        """1.17.0: the mark files are base_sdk 1.26.0's, so the floor is
+        1.26.0 - stated in the manifest, on the hero-config note and at the
+        head of the changelog."""
+        notes = self.manifest["_comment"]
+        self.assertIn("1.26.0", notes["about"])
+        self.assertIn("components/custom/landing/hero-config.ts", self.manifest["requires"])
+        self.assertIn("base_sdk >= 1.26.0", notes["components/custom/landing/hero-config.ts"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        self.assertIn("base_sdk >= 1.26.0", changelog.split("## 1.16.0")[0])
 
 
 if __name__ == "__main__":
