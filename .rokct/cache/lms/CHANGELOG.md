@@ -1,5 +1,56 @@
 # Changelog
 
+## 1.7.0
+
+* Gives Supacharge's landing page a HEADER MENU, which answers the half of
+  Ray's "menus in header and footer are not injected" that was actually
+  missing. The footer menu was not: `lms-footer-section.tsx` has rendered
+  `LMS_LANDING_CONFIG.footer.links` - Sessions, Subjects, Tutors, Partners,
+  FAQ, plus the two auth links and the app link - since this SDK shipped its
+  footer. The HEADER carried only the wordmark, the theme toggle and the two
+  auth links, and this SDK could not change that: `components/custom/header.tsx`
+  is the host shell's own file (base_sdk `requires`), so no SDK may ship it.
+  base_sdk 1.13.0 added the seam and this registers into it.
+* `components/custom/landing/lms-header-menu.ts` is Supacharge's menu,
+  registered with one line at `// @rokct-sdk-header-menu-start`. It names
+  SECTION IDS and nothing else - `sessions`, `subjects`, `tutors`,
+  `features`, `partners`, `pricing`, `faq`, in the page order the sections'
+  own `meta.order` already puts them in, so reading down the menu is reading
+  down the page.
+  * No labels and no hrefs. base_sdk resolves each id against the page's live
+    nav, so the word on screen and the Partners `new` badge come from each
+    section's own `meta.nav` - one place to edit when a section stops being
+    new, and no second list to fall out of step.
+  * `pricing` is the entry that shows why ids beat hrefs: `lms-pricing.tsx`
+    declares `renders: ({ plans }) => showsPricing(plans)` and draws nothing
+    when the platform returns no plan rows. On such a render base_sdk drops
+    the header entry too, instead of offering a link to an anchor that is not
+    on the page.
+  * `testimonials` is deliberately left out while
+    `lms-testimonials-section.tsx` is still rendering
+    `[[TESTIMONIAL_n_QUOTE]]` placeholder copy. The header is the most
+    prominent thing on the page, so it points at finished sections only; the
+    section keeps its floating-nav stop in the meantime.
+  * No fixed `links`. Sign in and sign up are already in the host header
+    beside the row, and the app download - a real URL now, not the old
+    `[[PLAY_STORE_URL]]` token - points off-site to a GitHub releases page,
+    which the footer already carries. The header is where a visitor looks to
+    move around THIS page, so it stays in-page only.
+* Corrects what the session break step claims the assistant DOES. Ray, reading
+  the live page: "assistant doesnt answer questions but read them out to tutor
+  to answer before handing over to the next tutor". The step read "Thandi,
+  Bianca or Mandy keeps time, answers the questions you would rather not ask
+  out loud, and hands over", which is wrong about the product - the assistant
+  does not answer anything. It now reads "Thandi, Bianca or Mandy keeps time,
+  reads out the questions you would rather not ask out loud for your tutor to
+  answer, and hands over to the next tutor." Ray's words, one sentence of
+  `LMS_LANDING_CONFIG.sessions.steps`; the step number, the "about 5 minutes"
+  duration and the "Break - the assistant" heading are untouched.
+* `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` follows `manifest.json` to
+  1.7.0. Its own doc comment asks for the two to be kept in step, and 1.7.0's
+  header-menu work had moved the manifest without it, which would have printed
+  "VERSION 1.6.0" in the footer of a 1.7.0 landing.
+
 ## 1.6.0
 
 * The landing page's footer ended on a bare legal line while rokct.ai's

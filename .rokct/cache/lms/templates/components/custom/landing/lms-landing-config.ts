@@ -323,7 +323,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         who: "Break - the assistant",
         length: "about 5 minutes",
-        text: "Thandi, Bianca or Mandy keeps time, answers the questions you would rather not ask out loud, and hands over.",
+        text: "Thandi, Bianca or Mandy keeps time, reads out the questions you would rather not ask out loud for your tutor to answer, and hands over to the next tutor.",
       },
       {
         who: "Part 2 - the simplifier",

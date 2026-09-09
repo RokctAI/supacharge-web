@@ -149,9 +149,11 @@ next-env.d.ts
 /components/custom/auth-form.tsx
 /components/custom/beta-toggle.tsx
 /components/custom/footer-chrome.tsx
+/components/custom/header-menu.tsx
 /components/custom/hero.tsx
 /components/custom/landing-content.tsx
 /components/custom/landing/footer-chrome-config.ts
+/components/custom/landing/header-menu.ts
 /components/custom/landing/hero-config.ts
 /components/custom/landing/hero-copy.ts
 /components/custom/landing/hero-form.ts
@@ -161,6 +163,7 @@ next-env.d.ts
 /components/custom/landing/lms-flip-card.tsx
 /components/custom/landing/lms-fonts.ts
 /components/custom/landing/lms-footer-chrome.ts
+/components/custom/landing/lms-header-menu.ts
 /components/custom/landing/lms-hero-copy.ts
 /components/custom/landing/lms-hero-form.tsx
 /components/custom/landing/lms-landing-config.ts
