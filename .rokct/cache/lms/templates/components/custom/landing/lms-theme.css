@@ -448,3 +448,35 @@ html.sc-landing:not(.dark) {
     scroll-snap-stop: always;
   }
 }
+
+/*
+ * The testimonials marquee (base_sdk >= 1.14.0's components/custom/landing/
+ * testimonials-marquee.tsx, which lms-testimonials-section.tsx renders
+ * since 1.10.0). The marquee owns the card's frame through its
+ * `cardClassName` prop, so the surface, border and radius are `sc-card`
+ * from above - but the words inside the card carry the marquee's own zinc
+ * classes, with no prop to re-theme them. As with the hero frame, they are
+ * re-painted from outside: `sc-marquee` is the class the section puts on
+ * the row and `sc-marquee-card` the one it puts on the card, and the rules
+ * here give the quote, the author and the role the card's ink.
+ */
+.sc-marquee .sc-marquee-card p,
+.sc-marquee .sc-marquee-card h4 {
+  color: var(--sc-ink);
+}
+.sc-marquee .sc-marquee-card h4:empty {
+  display: none;
+}
+.sc-marquee .sc-marquee-card > div:last-child {
+  border-color: var(--sc-stroke-subtle);
+}
+.sc-marquee .sc-marquee-card > div:last-child > div:first-child {
+  background: var(--sc-card-alt);
+  border-color: var(--sc-stroke);
+}
+.sc-marquee .sc-marquee-card > div:last-child span:first-child {
+  color: var(--sc-ink);
+}
+.sc-marquee .sc-marquee-card > div:last-child span:last-child {
+  color: var(--sc-ink-2);
+}

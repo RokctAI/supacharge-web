@@ -25,13 +25,17 @@
 // what makes the two copies worth keeping apart: rokctapp's ticks and
 // tooltip are zinc, Supacharge's are --sc-* tokens. An entry that carries
 // base_sdk's optional `badge` ("new" / "soon") gets the same little pill
-// rokct.ai wears in its header menu, painted --sc-primary here because
-// Supacharge's accent is orange where rokct's is yellow.
+// the header menu wears: since 1.10.0 that pill is base_sdk >= 1.14.0's
+// ONE shared components/custom/menu-label.tsx (bg-primary with black text,
+// Ray, 2026-09-09: "use primary color and text in black"), which paints the
+// shell's own --primary token - Supacharge's orange here, rokct's yellow
+// there - so the nav and the header can never show two different pills.
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 import type { LandingNavItem } from "@/components/custom/landing/landing-config";
+import { MenuLabel } from "@/components/custom/menu-label";
 import type {
   PageSectionMeta,
   PageSectionProps,
@@ -86,9 +90,7 @@ export function LmsFloatingNav({ items }: { items: LandingNavItem[] }) {
             <span className="absolute left-full ml-4 inline-flex items-center gap-1.5 px-2 py-1 bg-[var(--sc-card)] border border-[var(--sc-stroke)] text-[var(--sc-ink)] text-[10px] rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none font-medium">
               {item.label}
               {item.badge ? (
-                <span className="shrink-0 rounded-full bg-[var(--sc-primary)] px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none tracking-tighter text-white">
-                  {item.badge}
-                </span>
+                <MenuLabel badge={item.badge} />
               ) : null}
             </span>
           </button>

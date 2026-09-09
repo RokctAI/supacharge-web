@@ -1,5 +1,75 @@
 # Changelog
 
+## 1.15.0
+
+* Ships the LINK-PREVIEW shell: what a pasted link to a rokct shell unfurls
+  into - the `<title>`, the meta description, the Open Graph and Twitter
+  cards and a 1200x630 preview image. Ray, 2026-09-09: each home SDK
+  provides its link-preview details, the shell lives in base_sdk. The
+  audit that prompted it: `app/layout.tsx` is host-owned and in no SDK's
+  `installs` or `requires`, which is exactly how the two live shells drifted
+  - one unfurls with copy hand-written into its layout and `app/site.ts`
+  that describes a product it is not, the other with a starter template's
+  leftovers (`metadataBase` pointing at the template author's domain, the
+  template's description, and a template card as its only preview image).
+  Neither had a real 1200x630 image of its own.
+  * `components/custom/landing/site-metadata.ts` is a seventh one-marker
+    registry, `// @rokct-sdk-site-metadata-start`, alongside
+    `hero-sections.ts`, `hero-copy.ts`, `hero-form.ts`, `plans-query.ts`,
+    `page-sections.ts` and `header-menu.ts`. A home SDK registers one line,
+    `{ id: "<sdk>-site-metadata", load: () => import("@/components/custom/landing/<file>") },`
+    whose module default-exports a `SiteMetadataCopy` or any subset of
+    one: `title`, `description`, `tagline`, and optional `siteName`, `url`,
+    `keywords`, `ogImage`, `logo`, `locale`. `loadSiteMetadata()` merges the
+    entries in registry order (later wins per field, an `undefined` field
+    keeps the earlier value) over `{ title: PLATFORM_NAME, siteName:
+    PLATFORM_NAME, description: "", tagline: "" }`, and a module that fails
+    to load is logged and skipped, exactly as `loadHeroCopy()` does.
+  * `ogImage` and `logo` are two fields on purpose. `ogImage` is a
+    READY-MADE preview and counts only when it ends in `.png`, `.jpg`,
+    `.jpeg` or `.webp`; an SVG mark is not a preview image because the
+    crawlers that unfurl a link do not draw it. `logo` is that mark, and it
+    is what the generated image draws - so a home SDK with only a logo
+    still gets a proper card, and one with a designed 1200x630 asset gets
+    its own.
+  * `app/lib/site-metadata.ts` is the shell: `buildSiteMetadata(overrides?)`
+    loads the copy and returns the Next `Metadata` - `metadataBase` from
+    `NEXT_PUBLIC_SITE_URL` or the copy's `url` (absent, Next falls back to
+    `VERCEL_PROJECT_PRODUCTION_URL`), `title: { default, template: "%s — <siteName>" }`,
+    `description`, `applicationName`, `keywords`, `alternates.canonical`,
+    an Open Graph `website` block (`siteName`, `locale` defaulting to
+    `en_ZA`, the preview at 1200x630) and a `summary_large_image` Twitter
+    card. `overrides` are shallow-merged last, so the host keeps `icons`
+    and anything else that is its own.
+  * `app/opengraph-image.tsx` is the generated preview, drawn with the
+    `ImageResponse` that ships in `next/og` from the same copy: the
+    registered `logo` fetched from the site origin and inlined as a data
+    URI (SVG allowed), the site name large, the tagline under it, the host
+    small at the foot, on a dark neutral ground, in the bundled sans face -
+    no font fetch, no filesystem read. `app/twitter-image.tsx` is the same
+    picture. Next gives a file at this path priority over any config-based
+    image, so the route also HONOURS a ready-made `ogImage`: when one is a
+    real raster it fetches it and answers with those bytes instead of
+    drawing. Every fetch is best-effort - a logo that will not load leaves
+    a text-only card, never an error.
+  * `app/landing/page.tsx` exports `generateMetadata()` from
+    `buildPageMetadata()` - the same Metadata with the title absolute, so a
+    layout that already applies the `%s — <siteName>` template does not
+    suffix it twice - and the page anonymous visitors are redirected to
+    unfurls right on its own, before the host layout is touched. Nothing
+    else on the page changes.
+  * Two host steps, because `app/layout.tsx` is the host's and no SDK may
+    ship it (it is now a `requires` entry, with the reason in the manifest):
+    the layout replaces its literal `metadata` with the one-liner
+    `export const generateMetadata = () => buildSiteMetadata({ icons: {...} })`
+    (from `@/app/lib/site-metadata`, host-only keys as overrides); and
+    Supacharge neutralises `SITE_DESCRIPTION` in `app/site.ts` (and the
+    layout copy that reads it) so the words its home SDK registers are the
+    only words the shell speaks. With NOTHING registered a shell is named
+    after `PLATFORM_NAME` and unfurls with a card that says so and no
+    description - honest rather than wrong - so a shell composed before its
+    home SDK registers is no worse off than it was.
+
 ## 1.14.0
 
 * SHIPS the header. Ray, 2026-09-09, on the two live shells: rokct.ai and

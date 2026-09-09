@@ -3,40 +3,25 @@
 // scrollbar, lms_sdk's theme); this is the one the root layout owns.
 import "./globals.css";
 
-import type { Metadata, Viewport } from "next";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/app/site";
+import type { Viewport } from "next";
+import { buildSiteMetadata } from "@/app/lib/site-metadata";
+import { SITE_URL } from "@/app/site";
 import { SessionProvider } from "@/components/custom/session-provider";
 import { ThemeProvider } from "@/components/custom/theme-provider";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: `${SITE_NAME} — the super app for everyday money`,
-    template: `%s — ${SITE_NAME}`,
-  },
-  description: SITE_DESCRIPTION,
-  applicationName: SITE_NAME,
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    type: "website",
-    url: SITE_URL,
-    siteName: SITE_NAME,
-    title: `${SITE_NAME} — the super app for everyday money`,
-    description: SITE_DESCRIPTION,
-    locale: "en_ZA",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${SITE_NAME} — the super app for everyday money`,
-    description: SITE_DESCRIPTION,
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
+// The link preview (title, description, Open Graph and Twitter cards, the
+// 1200x630 image) comes from the copy the home SDK registered at
+// components/custom/landing/site-metadata.ts, through base_sdk's shell.
+// Only host-owned keys are passed as overrides: the canonical origin from
+// app/site.ts and the robots directive. No product copy lives here.
+export const generateMetadata = () =>
+  buildSiteMetadata({
+    metadataBase: new URL(SITE_URL),
+    robots: {
+      index: true,
+      follow: true,
+    },
+  });
 
 export const viewport: Viewport = {
   themeColor: "#0B0B0F",

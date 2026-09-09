@@ -15,8 +15,10 @@
  */
 
 // Supacharge's header menu, for base_sdk's header-menu registry
-// (components/custom/landing/header-menu.ts, base_sdk >= 1.13.0), which the
-// landing host renders as a row under the shell's own header.
+// (components/custom/landing/header-menu.ts, base_sdk >= 1.13.0). Since
+// base_sdk 1.14.0 the header itself is base's and the menu renders INSIDE
+// it - inline beside the wordmark from the `lg` breakpoint up, behind a
+// burger below it - rather than as a row under the shell's own header.
 //
 // Ray, looking at the live site: "menus in header and footer are not
 // injected". The footer menu was already here - lms-footer-section.tsx
@@ -52,10 +54,14 @@ import type { HeaderMenu } from "@/components/custom/landing/header-menu";
  * lms-*-section.tsx `meta.order` already puts them in, so reading down the
  * menu is reading down the page.
  *
- * `testimonials` is deliberately absent: lms-testimonials-section.tsx is
- * still rendering [[TESTIMONIAL_n_QUOTE]] placeholder copy, and the header
- * is the most prominent thing on the page - it points at finished sections
- * only. It stays a floating-nav stop in the meantime.
+ * `testimonials` is deliberately absent. The section no longer shows
+ * [[TOKEN]] copy - since 1.8.0 its five quotes read as finished, and since
+ * 1.10.0 they run in the shared auto-scrolling marquee - but all five are
+ * still PLACEHOLDER stand-ins, not real customers (LMS_LANDING_PLACEHOLDERS
+ * says so and asks for all five to be replaced). The header is the most
+ * prominent thing on the page and points at sections whose words are
+ * real; the row stays a floating-nav stop in the meantime. Add the id here
+ * when the quotes are.
  */
 const LMS_HEADER_MENU: HeaderMenu = {
   anchors: [

@@ -123,9 +123,11 @@ next-env.d.ts
 /app/handson/all/lms/page.tsx
 /app/landing/page.tsx
 /app/lib/session.ts
+/app/lib/site-metadata.ts
 /app/manager/layout.tsx
 /app/manager/page.tsx
 /app/manager/reports/page.tsx
+/app/opengraph-image.tsx
 /app/page.tsx
 /app/services/all/lms/assignments.ts
 /app/services/all/lms/batches.ts
@@ -145,6 +147,7 @@ next-env.d.ts
 /app/services/control/global_settings.ts
 /app/styles/rokct-marquee.css
 /app/styles/rokct-scroll.css
+/app/twitter-image.tsx
 /components/admin/GenericReport.tsx
 /components/custom/app-sidebar.tsx
 /components/custom/auth-form.tsx
@@ -171,12 +174,14 @@ next-env.d.ts
 /components/custom/landing/lms-landing-config.ts
 /components/custom/landing/lms-plan-card.tsx
 /components/custom/landing/lms-plans-query.ts
+/components/custom/landing/lms-site-metadata.ts
 /components/custom/landing/lms-theme.css
 /components/custom/landing/lms-theme.tsx
 /components/custom/landing/lms-tutor-card.tsx
 /components/custom/landing/lms-wordmark.tsx
 /components/custom/landing/page-sections.ts
 /components/custom/landing/plans-query.ts
+/components/custom/landing/site-metadata.ts
 /components/custom/landing/team-assets.ts
 /components/custom/landing/testimonials-marquee.tsx
 /components/custom/lms-faq-section.tsx
