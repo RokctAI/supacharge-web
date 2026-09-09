@@ -348,10 +348,10 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
   },
 
   subjects: {
-    eyebrow: "Subjects built on CAPS",
+    eyebrow: "Built for CAPS and IEB",
     heading: "Every subject, term by term.",
     blurb:
-      "Lessons follow the CAPS annual teaching plan, subject by subject and term by term, so what you learn tonight is what your teacher marks this term.",
+      "Lessons follow the CAPS annual teaching plan — the same national curriculum IEB schools teach — subject by subject and term by term, so what you learn tonight is what your teacher marks this term.",
     grades: "Grades 10, 11 and 12",
     subjects: [
       { name: "Mathematics", tutors: ["Sifiso Zulu", "John Petersen"] },
@@ -535,7 +535,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       },
       {
         name: "Subjects",
-        text: "Browse every CAPS-aligned subject you take, term by term.",
+        text: "Browse every subject you take, term by term.",
         icon: BookOpenCheck,
       },
       {
@@ -631,12 +631,17 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         question: "What is Supacharge?",
         answer:
-          "Live tutoring that fits around school. Sessions run on a schedule, follow the CAPS teaching plan for your grade, and every one is taught twice - once the way the exam marks it, once from the ground up.",
+          "Live tutoring that fits around school. Sessions run on a schedule, follow the CAPS teaching plan for your grade — the curriculum CAPS and IEB schools share — and every one is taught twice - once the way the exam marks it, once from the ground up.",
       },
       {
         question: "Which subjects and grades?",
         answer:
           "Mathematics, Physical Sciences, Accounting, Economics, Geography and Mathematical Literacy, for Grades 10, 11 and 12.",
+      },
+      {
+        question: "Does this work for IEB?",
+        answer:
+          "Yes. IEB schools teach the same national curriculum as CAPS schools — what differs is how the IEB assesses it. Our lessons cover that shared content, so IEB students are on the right material. We don't include IEB past papers.",
       },
       {
         question: "What happens if I miss a session?",

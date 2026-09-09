@@ -143,6 +143,7 @@ next-env.d.ts
 /app/services/base/telemetry.ts
 /app/services/base/tenant-hosts.ts
 /app/services/control/global_settings.ts
+/app/styles/rokct-marquee.css
 /app/styles/rokct-scroll.css
 /components/admin/GenericReport.tsx
 /components/custom/app-sidebar.tsx
@@ -150,6 +151,7 @@ next-env.d.ts
 /components/custom/beta-toggle.tsx
 /components/custom/footer-chrome.tsx
 /components/custom/header-menu.tsx
+/components/custom/header.tsx
 /components/custom/hero.tsx
 /components/custom/landing-content.tsx
 /components/custom/landing/footer-chrome-config.ts
@@ -176,6 +178,7 @@ next-env.d.ts
 /components/custom/landing/page-sections.ts
 /components/custom/landing/plans-query.ts
 /components/custom/landing/team-assets.ts
+/components/custom/landing/testimonials-marquee.tsx
 /components/custom/lms-faq-section.tsx
 /components/custom/lms-features-section.tsx
 /components/custom/lms-floating-nav.tsx
@@ -187,6 +190,7 @@ next-env.d.ts
 /components/custom/lms-testimonials-section.tsx
 /components/custom/lms-theme-section.tsx
 /components/custom/lms-tutors-section.tsx
+/components/custom/menu-label.tsx
 /components/custom/nav/admin-nav.tsx
 /components/custom/nav/client-nav.tsx
 /components/custom/nav/nav-user.tsx

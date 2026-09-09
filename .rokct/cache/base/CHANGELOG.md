@@ -1,5 +1,122 @@
 # Changelog
 
+## 1.14.0
+
+* SHIPS the header. Ray, 2026-09-09, on the two live shells: rokct.ai and
+  supacharge.app must use ONE header - the same component - with the menu
+  INSIDE it, links inline on desktop, and on a phone nothing in the bar but
+  a burger. `components/custom/header.tsx` is therefore an `installs` entry
+  now (`templates/components/custom/header.tsx`), no longer a `requires`
+  file the host shell had to write itself, and the composer lands it on
+  every shell. Its public API is the one both shells' own headers had -
+  `loginUrl`, `signupUrl`, `session`, and the `openLoginPopup` /
+  `openSignupPopup` handlers auth_sdk's login and register pages pass - so
+  the pages that already render `<Header>` compile unchanged; the menu
+  props (`menuItems`, `groups`, `actions`, `nav`) are new and all optional.
+  * A caller that passes none of `menuItems`/`groups`/`actions` gets the
+    registered menu loaded by the header itself (`loadHeaderMenu()`,
+    resolved with `resolveHeaderMenu(menu, nav ?? [])`), because rokct.ai
+    mounts the header on /login, /register, /careers and /status without
+    the landing host: the fixed links, the groups and the actions render on
+    every such page, and an anchor only where a `nav` with its section was
+    given. The landing host passes the menu it resolved against its live
+    nav; props win when present.
+  * An entry with `badge: "soon"` is not out yet, so it is not a link: it
+    renders as a span with `aria-disabled` and the not-allowed cursor,
+    label and `MenuLabel` intact, in the inline nav, the dropdowns and the
+    mobile panel alike (rokct.ai's own header treats a coming-soon feature
+    the same way). An action with `external: true` opens in a new tab with
+    `rel="noreferrer"`.
+  * From the `lg` breakpoint up the bar is logo, then
+    `nav[aria-label="Sections"]` with the flat links and the dropdown
+    groups (open on hover, focus and click; Escape and an outside click
+    close them), then the actions, the theme toggle and the auth links
+    (Dashboard when signed in, else Log in and the Sign up pill).
+  * Below `lg` the bar is logo and a burger (`aria-expanded`,
+    `aria-controls`), nothing else: every link, each group as a headed
+    list, the actions, the theme toggle and the auth buttons sit in a
+    full-screen panel under the bar. The panel closes on a tap on any of
+    its links, on Escape, on a route change and on the burger; the page
+    behind it does not scroll while it is open. A header with no menu
+    still shows the burger, because the auth links are behind it.
+  * The chrome is rokctai_frontend's (64px bar, blurred translucent
+    ground, bottom hairline) painted in the shell's theme tokens -
+    `bg-background/80`, `border-border`, `text-foreground`, `bg-primary` -
+    so rokct.ai renders it in its palette and Supacharge in its own. The
+    host still owns the brand mark, the wordmark and the theme control:
+    `brand-logo.tsx`, `branding.tsx` and `theme-toggle.tsx` stay
+    `requires` files (the last is newly listed; both shells carry it at
+    that path with the same `className` prop).
+  * It is `sticky`, not `fixed`, so no page under it needs a top padding
+    and the hero's own `pt-16` is unchanged from 1.13.0.
+* `HeaderMenu` (`components/custom/landing/header-menu.ts`) may now name
+  `groups` and `actions` beside `anchors` and `links`, which are exactly as
+  they were - lms_sdk's registration keeps working untouched.
+  * A `HeaderMenuGroup` is `{ id, label, badge?, items }`, a label that
+    opens a dropdown; each item is a fixed `HeaderMenuLink` or
+    `{ anchor: "<section id>" }`, resolved against the live nav by the
+    same drop-missing rule as a top-level anchor. A group whose every item
+    was dropped is dropped with them, so a label never opens an empty list.
+  * A `HeaderMenuAction` is `{ id, label, href, variant?: "primary" |
+    "ghost", external? }`, a call-to-action button at the right-hand end
+    of the bar (rokct.ai's Chrome-extension button is the model).
+  * `resolveHeaderMenu(menu, nav)` answers `{ items, groups, actions }`;
+    `resolveHeaderMenuItems` is still exported and unchanged. The marker
+    line is the same text. `HeaderMenuLink` carries an optional `id`, the
+    React key when present (the href stands in when absent).
+* ONE menu label. Every badge beside a menu word - the NEW on Supacharge's
+  Partners, a SOON - is `components/custom/menu-label.tsx` (`MenuLabel`,
+  `{ badge, className? }`): a `bg-primary` pill with `text-black` (Ray:
+  "use primary color and text in black" - not `text-primary-foreground`,
+  which a shell may set to white), the word uppercased by CSS from the
+  declared `"new"`/`"soon"` vocabulary. The header uses it in all three
+  places (inline nav, dropdown groups, mobile panel) and it is the label
+  for any footer link row a home SDK builds from the same nav entries. The
+  only badge base_sdk painted before this was `header-menu.tsx`'s neutral
+  black/white `HeaderMenuBadge`; it is gone.
+* `components/custom/header-menu.tsx` is the header's menu partials now:
+  `HeaderMenuNav` (the inline desktop list), `HeaderMenuList` (the stacked
+  mobile list) and `HeaderMenuActions`. `HeaderMenuRow`, the 1.13.0 bar
+  that sat UNDER the host's header, is kept as a thin wrapper around
+  `HeaderMenuNav` so an existing import still compiles, but the landing
+  host NO LONGER RENDERS IT: `components/custom/landing-content.tsx`
+  passes the resolved menu straight into `<Header>` and the sticky wrapper
+  with the row under the header is gone - one element tree whether or not
+  a menu is registered.
+* Carries the platform marquee, additive only (Ray, 2026-09-09: Supacharge
+  is to inherit rokct.ai's auto-scrolling testimonials).
+  * `app/styles/rokct-marquee.css`: the `.rokct-marquee` keyframes (60s
+    linear infinite, `translateX(0)` to `translateX(-33.333%)`, the
+    duration in `--rokct-marquee-duration`), paused under `.group:hover`,
+    and off under `prefers-reduced-motion: reduce` with the
+    `.rokct-marquee-track` left scrollable by hand. Until now that motion
+    existed only as `animate-marquee` in rokctai_frontend's own
+    `tailwind.config.ts`; no SDK ships a Tailwind config, so no other shell
+    could run it. Installed and importable exactly like `rokct-scroll.css`.
+  * `components/custom/landing/testimonials-marquee.tsx`:
+    `TestimonialsMarquee({ items, className?, fadeClassName?,
+    cardClassName? })`, agent_sdk's testimonials row element for element
+    (tripled list, `.group` wrapper, two edge fades, `w-max` track, 350px
+    cards with title, four-line quote, 40px portrait or initial, author and
+    role) with its class strings as the defaults, so with no overrides it
+    is DOM-identical to rokct.ai's row apart from `animate-marquee`
+    becoming `rokct-marquee`. It imports the stylesheet itself, so a
+    section that renders it needs no host edit. No consumer in base; a home
+    SDK's own testimonials section renders it.
+
+* Hero: a rotating headline phrase that wraps to two lines on a phone no
+  longer pushes the suffix down onto the primary button. The phrase sits in
+  a fixed `h-[1.2em]` box (`components/custom/hero.tsx`) that `items-center`
+  let overflow both ways, so the second line landed on the suffix; the box
+  is `items-end md:items-center` now, so below `md` the wrap grows upward
+  into the gap under the brand block and the suffix stays put. Desktop is
+  unchanged.
+* Hero: the rotating headline word is `text-primary`, not `text-yellow-400`
+  (Ray: the brand colour lives in the primary token, never hard-coded), so
+  each shell's word is its own primary. rokct.ai's `--primary` must be its
+  yellow for the word to stay yellow there; `rokct-scroll.css` is already
+  variable-driven and is untouched.
+
 ## 1.13.0
 
 * Adds a HEADER MENU seam, and with it the half of Ray's report that nothing

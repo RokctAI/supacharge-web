@@ -1,5 +1,62 @@
 # Changelog
 
+## 1.9.0
+
+* The landing page now says it is for IEB students as well as CAPS students.
+  Ray, 2026-09-09: "its joining it. though i havent added tutors and
+  assistants of IEB but since ieb extends caps i can use same team" - IEB
+  joins CAPS rather than sitting beside it, and the same team serves both.
+* What makes that true is the curriculum, and only the curriculum. IEB schools
+  sit the National Senior Certificate on the same DBE CAPS curriculum
+  (`factory/lessons/curriculum/IEB/README.md`: "the IEB teaches the same CAPS
+  content"); what differs is how the IEB assesses it - its own Subject
+  Assessment Guidelines, its own papers, its own pacing. So every line here
+  claims shared CONTENT and nothing about assessment.
+  * `subjects.eyebrow`: "Subjects built on CAPS" -> "Built for CAPS and IEB".
+  * `subjects.blurb` and the "What is Supacharge?" FAQ answer keep the CAPS
+    teaching plan they already named and add, in the same breath, that it is
+    the curriculum IEB schools teach too. Neither drops CAPS: the annual
+    teaching plan is a CAPS document, and pretending otherwise would trade one
+    inaccuracy for another.
+  * The Subjects feature card loses one word - "Browse every CAPS-aligned
+    subject you take" -> "Browse every subject you take". A card that only
+    lists what the student takes never needed to name a curriculum, and the
+    shortest honest line is the one that claims nothing.
+* One new FAQ item, "Does this work for IEB?", carries the whole answer rather
+  than stretching the other lines to imply it: the shared curriculum, then
+  "We don't include IEB past papers."
+  * That last sentence is not a caveat to be tidied away later. It is what
+    keeps the rest of the section true, because there is no IEB assessment
+    layer in the product to point at: the published lesson indexes carry zero
+    IEB rows, the index builders read the CAPS root, and `lms_course` has no
+    curriculum field, so a student who picks IEB today gets CAPS lessons under
+    an IEB badge.
+  * It says the papers are NOT INCLUDED, not "not yet". Ray, 2026-09-09: "we
+    cant do practice as we dont have permission for past papers for IEB". The
+    block is permission the company does not hold, so a line that hinted at a
+    future would be its own untruth - a different one from the one this change
+    removes.
+* Deliberately absent, and each one for a reason: no "IEB-aligned", no "built
+  for the IEB exam", no IEB past papers offered, no IEB mark, weighting or
+  paper-structure figure, and nothing implying a selectable IEB lesson set.
+  The repository contradicts all of them today, and IEB assessment material
+  additionally cannot be reproduced commercially without written permission
+  (`factory/lessons/curriculum/IEB/SOURCES.md`).
+* The team is untouched. `lms/team/**/CAPS/` and `public/team/**/CAPS/` are
+  identifiers, not copy - read by `sync_team_assets.dart`,
+  `build_tutor_catalog.py`, the manifests, CI and the live `/team/...` image
+  URLs - and Ray has confirmed the CAPS team serves IEB, so renaming them
+  would break served assets for nothing a visitor can see.
+* The Dart half moves with this one. `lms/dart/templates/tour/lms.tour.yaml`
+  carried two of these strings verbatim on the `courses` step; both are
+  reworded to the web's new wording (Dart manifest 1.16.7 -> 1.16.8) so the
+  guided tour, its stills and the site do not drift apart. Step key and route
+  are unchanged.
+* Version-only side effects: `manifest.json` 1.8.0 -> 1.9.0 and
+  `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` follows it, as it must. No
+  new `base_sdk` seam and no new floor - the highest this SDK already requires
+  is base_sdk >= 1.13.0 (the header-menu registry), which core `main` carries.
+
 ## 1.8.0
 
 * Cuts the Supacharge landing's height on a phone by laying most of its card
