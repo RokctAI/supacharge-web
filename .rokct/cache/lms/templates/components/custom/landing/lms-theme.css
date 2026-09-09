@@ -174,16 +174,18 @@ html.sc-landing:not(.dark) {
   background: var(--sc-card);
 }
 /*
- * The hero's download badges (lms-hero-copy.ts, 1.15.0) are base_sdk's own
- * store badges, so the frame's pill, mark and two lines are untouched here.
- * The frame draws a {src, alt} mark as an <img>, which cannot take the
- * badge's text colour the way its built-in marks do, and the marks this
- * SDK installs under /brand/marks/ are black on transparent: in dark mode
- * (the `dark` class next-themes writes on <html>, the one signal
- * lms-theme.tsx and Tailwind's `dark:` variants read) they invert to white,
- * the colour the frame gives the text beside them.
+ * The hero's download badges (lms-hero-copy.ts) are base_sdk's own store
+ * badges and their marks are the platforms' own logos under /brand/marks/
+ * (1.16.0). The frame draws a {src, alt} mark as an <img>, an isolated
+ * document, so `currentColor` inside it cannot follow the badge's text:
+ * it resolves to black in both themes. The two monochrome marks - Apple
+ * and Windows (Ray, 2026-09-09: "keep it black and white") - are therefore
+ * inverted to white under the `dark` class, and ONLY those two: the marks
+ * that carry their brand colours (Google Play, AppGallery) are never
+ * touched.
  */
-html.sc-landing.dark #hero a[href^="/download/"] img {
+html.sc-landing.dark #hero img[src="/brand/marks/app-store.svg"],
+html.sc-landing.dark #hero img[src="/brand/marks/windows.svg"] {
   filter: invert(1);
 }
 .sc-eyebrow {

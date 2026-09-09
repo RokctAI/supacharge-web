@@ -38,10 +38,12 @@
 // the host's chrome, not Supacharge's landing.
 
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Monitor, Smartphone, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { LMS_APP_MARKS } from "@/components/custom/landing/lms-hero-copy";
 import {
   LMS_LANDING_CONFIG,
   LMS_SHOWN_APPS,
@@ -55,11 +57,18 @@ export const LMS_DOWNLOAD_APP_COPY = {
   body: "Lessons are attended in the app. Download the app on your phone or download the desktop app.",
 };
 
-/** The glyph beside each button: a phone for the phone builds, a monitor for the desktop one. */
+/**
+ * The mark beside each button: the platform's own logo from LMS_APP_MARKS
+ * (1.16.0, the same files the hero badges draw - Ray, 2026-09-09: "we use
+ * what these platforms use for familiarity"); the lucide glyph below stands
+ * in only for an entry whose mark is one of the frame's named glyphs rather
+ * than a file, which no entry is today.
+ */
 const APP_GLYPHS: Record<LandingApp["id"], LucideIcon> = {
   android: Smartphone,
   desktop: Monitor,
   ios: Smartphone,
+  huawei: Smartphone,
 };
 
 export interface LmsDownloadAppPromptProps {
@@ -90,6 +99,7 @@ export function LmsDownloadAppPrompt({
 
       <ul className="mt-6 flex flex-col items-stretch gap-4 sm:flex-row sm:justify-center">
         {LMS_SHOWN_APPS.map((app, index) => {
+          const mark = LMS_APP_MARKS[app.id];
           const Glyph = APP_GLYPHS[app.id];
           return (
             <li key={app.id} className="flex flex-col items-center gap-1">
@@ -103,7 +113,18 @@ export function LmsDownloadAppPrompt({
                   target={app.external ? "_blank" : undefined}
                   rel={app.external ? "noopener noreferrer" : undefined}
                 >
-                  <Glyph aria-hidden="true" className="h-4 w-4" />
+                  {typeof mark === "object" ? (
+                    <Image
+                      src={mark.src}
+                      alt=""
+                      aria-hidden="true"
+                      width={16}
+                      height={16}
+                      className="h-4 w-4"
+                    />
+                  ) : (
+                    <Glyph aria-hidden="true" className="h-4 w-4" />
+                  )}
                   {app.label}
                 </a>
               </Button>

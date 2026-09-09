@@ -1,5 +1,67 @@
 # Changelog
 
+## 1.16.0
+
+* The hero badges carry the store marks every visitor already knows, in
+  their own colours. Ray, 2026-09-09: "we already have nice icons in
+  buttons in hero of rokct but supacharge is getting bad ones. we use what
+  these platforms use for familiarity"; the four files are Ray's own picks
+  ("you will change colors"; "apple is black could be white, huawei is
+  black should be red or meroon"; on Windows: "keep it black and white").
+  * `public/brand/marks/` now holds `google-play.svg` (the Google Play
+    triangle in Google's four colours, `#EA4335` `#FBBC04` `#4285F4`
+    `#34A853`, kept exactly as they are; the triangle is centred in a
+    square frame so the mark is 24x24 like the others), `windows.svg` (the current
+    Windows logo, four equal panes), `app-store.svg` (the Apple mark) and
+    `app-gallery.svg` (the Huawei flower in Huawei red, `#CF0A2C`).
+    `android.svg` (the robot) is gone. Each is a clean standalone SVG: a
+    `viewBox`, plain paths, no width or height, no script, no style, no
+    metadata, no external reference, no raster. Served through the same
+    `public/brand` mapping; no CDN, no new dependency.
+  * The badges say what the stores say. Ray, 2026-09-09: "but eventually
+    we getting in those stores except windows". Each `LandingApp`
+    (`lms-landing-config.ts`) now carries `badge: { eyebrow, label }` in
+    place of `eyebrow` - the store's official badge wording over that
+    store's mark: "GET IT ON" / "Google Play" (Android), "Download on the"
+    / "App Store" (iOS), "EXPLORE IT ON" / "AppGallery" (the new `huawei`
+    entry), and "Download for" / "Windows" for the one platform with no
+    store - and `storeUrl`, a string that is empty until the listing
+    exists. `LMS_SHOWN_APPS` is every entry shown on its direct download
+    plus every entry whose `storeUrl` is set, linked to that listing in
+    place of its `href`, so one config line flips a store on and every
+    surface (header cards, hero badges, footer links, lesson prompt)
+    follows. Shown today, left to right: Android (Play wording, the direct
+    download until its `storeUrl` is set), the new `huawei` entry
+    (AppGallery wording over the Huawei mark, on the same direct Android
+    download until its listing exists - Ray, 2026-09-09: "yes though we
+    havent built for huawei yet though we have hms sdk") and Windows. The
+    iOS entry sits in the list with its mark, `shown: false` and an empty
+    `storeUrl`, pointing at the releases page, and a test proves that
+    setting one `storeUrl` shows an entry and relinks it. No hard-coded
+    store URL anywhere; no rendered word says APK. `lms-hero-copy.ts`
+    maps each entry to its mark (`LMS_APP_MARKS`: Google Play, Windows,
+    App Store in place of the frame's built-in `"app-store"` glyph, and
+    AppGallery).
+  * The two monochrome marks (Apple, Windows) are `fill="currentColor"`
+    files, black on the white pill. The frame draws a mark as an `<img>`,
+    an isolated document in which `currentColor` cannot follow the badge
+    text, so `lms-theme.css` inverts exactly those two images under the
+    `dark` class (white on the zinc-900 pill) and never the coloured ones.
+    The 1.15.0 rule that inverted every badge image is gone.
+  * The lesson download prompt (`components/custom/lms-download-app.tsx`,
+    1.12.0) draws the same marks beside its buttons, through the same
+    `LMS_APP_MARKS` table, in place of lucide's generic phone and monitor.
+    The header's app cards still take base's named icons
+    (`HeaderMenuIcon`), which have no image slot - a base_sdk change if
+    they are to carry the marks too.
+  * Tests: every mark parses as XML, carries a `viewBox`, has no width or
+    height, no script, no style, no external reference, no raster; the
+    colour rule is asserted per file (Google's four, Huawei red,
+    `currentColor` and nothing else on Apple and Windows); the mapping,
+    the scoped dark rule and the absence of the blanket 1.15.0 rule are
+    checked; the prompt is checked to read the one table. No base_sdk
+    change; the base floor stays 1.21.0.
+
 ## 1.15.0
 
 * The hero's download buttons are store badges, say the platform and not

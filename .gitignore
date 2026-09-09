@@ -233,7 +233,9 @@ next-env.d.ts
 /lib/drizzle/meta/0001_snapshot.json
 /lib/drizzle/meta/_journal.json
 /middleware.ts
-/public/brand/marks/android.svg
+/public/brand/marks/app-gallery.svg
+/public/brand/marks/app-store.svg
+/public/brand/marks/google-play.svg
 /public/brand/marks/windows.svg
 /public/brand/social-still.png
 /public/brand/supacharge-wordmark-ink.svg

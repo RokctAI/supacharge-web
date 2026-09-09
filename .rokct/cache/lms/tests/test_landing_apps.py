@@ -38,6 +38,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SDK_ROOT = os.path.abspath(os.path.join(HERE, os.pardir))
@@ -97,19 +98,33 @@ def load_manifest():
         return json.load(f)
 
 
-def lift_apps():
+def lift_apps(overrides=None, shown=False):
     """LMS_APPS as node reads it: the literal lifted out of the config.
 
     The array is a plain literal by design (its doc comment says so) so no
     bundler or path alias is needed - the export line is rewritten to a
-    const, the type annotation dropped, and node prints it as JSON.
+    const, the type annotation dropped, and node prints it as JSON. With
+    `shown` the LMS_SHOWN_APPS expression is lifted too and its result is
+    what comes back; `overrides` ({id: {field: value}}) are applied to the
+    literal first, so a test can set one storeUrl the way a maintainer
+    would.
     """
     source = read(CONFIG)
     match = re.search(r"^export const LMS_APPS: LandingApp\[\] = \[\n.*?^\];", source, re.S | re.M)
     if not match:
         raise AssertionError("LMS_APPS literal not found in lms-landing-config.ts")
     literal = match.group(0).replace("export const LMS_APPS: LandingApp[] =", "const LMS_APPS =", 1)
-    script = literal + "\nconsole.log(JSON.stringify(LMS_APPS));\n"
+    script = literal + "\n"
+    for app_id, fields in (overrides or {}).items():
+        for field, value in fields.items():
+            script += f"LMS_APPS.find((app) => app.id === {json.dumps(app_id)})[{json.dumps(field)}] = {json.dumps(value)};\n"
+    if shown:
+        shown_match = re.search(r"^export const LMS_SHOWN_APPS: LandingApp\[\] = (.*?);$", source, re.M)
+        if not shown_match:
+            raise AssertionError("LMS_SHOWN_APPS expression not found in lms-landing-config.ts")
+        script += "const LMS_SHOWN_APPS = " + shown_match.group(1) + ";\nconsole.log(JSON.stringify(LMS_SHOWN_APPS));\n"
+    else:
+        script += "console.log(JSON.stringify(LMS_APPS));\n"
     node = shutil.which("node")
     if not node:
         raise unittest.SkipTest("node is not installed")
@@ -133,36 +148,80 @@ class TestApps(unittest.TestCase):
         cls.by_id = {app["id"]: app for app in cls.apps}
 
     def test_shown_apps_are_the_android_and_the_desktop_build_in_that_order(self):
-        shown = [app["id"] for app in self.apps if app["shown"]]
-        self.assertEqual(shown, ["android", "desktop"])
+        """Ray, 2026-09-09: Google Play, AppGallery, Windows, left to right;
+        the AppGallery badge on the Android download until it is listed."""
+        shown = lift_apps(shown=True)
+        self.assertEqual([app["id"] for app in shown], ["android", "huawei", "desktop"])
+        by_id = {app["id"]: app for app in shown}
+        self.assertEqual(by_id["huawei"]["href"], "/download/android")
+        self.assertEqual(by_id["huawei"]["href"], by_id["android"]["href"])
 
-    def test_ios_is_kept_in_code_and_not_shown(self):
+    def test_ios_is_kept_in_code_and_not_shown_and_appgallery_is_shown_unlisted(self):
         self.assertIn("ios", self.by_id, "the iOS entry is demoted, not removed")
         self.assertIs(self.by_id["ios"]["shown"], False)
+        self.assertEqual(self.by_id["ios"]["storeUrl"], "")
+        # AppGallery is shown on the Android download, unlisted as yet.
+        self.assertIs(self.by_id["huawei"]["shown"], True)
+        self.assertEqual(self.by_id["huawei"]["storeUrl"], "")
         source = read(CONFIG)
         self.assertIn("demoted for now", source)
+
+    def test_one_store_url_flips_a_store_entry_on_and_relinks_it(self):
+        """1.16.0 (Ray, 2026-09-09: "but eventually we getting in those
+        stores except windows"): setting an entry's storeUrl - one config
+        line - shows it and links every surface to the listing in place of
+        the direct download; nothing else changes."""
+        listing = "https://store.example/supacharge"
+        for app_id in ("ios", "huawei", "android"):
+            with self.subTest(app=app_id):
+                shown = lift_apps(overrides={app_id: {"storeUrl": listing}}, shown=True)
+                by_id = {app["id"]: app for app in shown}
+                self.assertIn(app_id, by_id)
+                self.assertEqual(by_id[app_id]["href"], listing)
+                self.assertEqual(
+                    [app["id"] for app in shown if app["id"] != app_id],
+                    [app["id"] for app in self.apps if app["shown"] and app["id"] != app_id],
+                )
+                for other in shown:
+                    if other["id"] != app_id:
+                        self.assertEqual(other["href"], self.by_id[other["id"]]["href"])
+        # Windows has no store, ever: its storeUrl is documented empty.
+        self.assertEqual(self.by_id["desktop"]["storeUrl"], "")
 
     def test_labels_are_the_words_ray_asked_for(self):
         self.assertEqual(self.by_id["android"]["label"], "Android app")
         self.assertEqual(self.by_id["desktop"]["label"], "Desktop app")
 
-    def test_badges_name_the_platform(self):
-        """1.15.0: the hero badge reads "<eyebrow> <platform>"."""
+    def test_badges_say_what_the_stores_say(self):
+        """1.16.0: the hero badge reads the store's own badge wording over
+        the store's mark, and "Download for / Windows" for the platform
+        with no store; the platform names stay for the descriptions."""
+        self.assertEqual(self.by_id["android"]["badge"], {"eyebrow": "GET IT ON", "label": "Google Play"})
+        self.assertEqual(self.by_id["ios"]["badge"], {"eyebrow": "Download on the", "label": "App Store"})
+        self.assertEqual(self.by_id["huawei"]["badge"], {"eyebrow": "EXPLORE IT ON", "label": "AppGallery"})
+        self.assertEqual(self.by_id["desktop"]["badge"], {"eyebrow": "Download for", "label": "Windows"})
         self.assertEqual(self.by_id["android"]["platform"], "Android")
         self.assertEqual(self.by_id["desktop"]["platform"], "Windows")
         self.assertEqual(self.by_id["ios"]["platform"], "iOS")
+        self.assertEqual(self.by_id["huawei"]["platform"], "Huawei")
+
+    def test_no_hard_coded_store_url(self):
+        source = code_of(CONFIG)
+        self.assertNotRegex(source, r"(?i)play\.google\.com|apps\.apple\.com|appgallery\.huawei|appgallery\.cloud")
         for app in self.apps:
             with self.subTest(app=app["id"]):
-                self.assertTrue(app["eyebrow"].strip())
+                self.assertIsInstance(app["storeUrl"], str)
+                self.assertNotRegex(app["href"], r"(?i)play\.google|apple\.com|huawei")
 
     def test_no_rendered_word_says_apk(self):
         """1.15.0 (Ray, 2026-09-09: "its saying apk which it should not"):
         the platform is the word, never the file format - on every field a
         surface renders, and in the code of every surface."""
         for app in self.apps:
-            for field in ("label", "platform", "eyebrow", "description"):
+            fields = {"label": app["label"], "platform": app["platform"], "description": app["description"], **{f"badge.{k}": v for k, v in app["badge"].items()}}
+            for field, value in fields.items():
                 with self.subTest(app=app["id"], field=field):
-                    self.assertNotRegex(app[field], r"(?i)apk")
+                    self.assertNotRegex(value, r"(?i)apk")
         for name, path in {**APP_SURFACES, "hero form": HERO_FORM}.items():
             with self.subTest(surface=name):
                 self.assertNotRegex(code_of(path), r"(?i)apk")
@@ -198,7 +257,10 @@ class TestApps(unittest.TestCase):
 
     def test_shown_list_is_the_filter_of_the_full_list(self):
         source = read(CONFIG)
-        self.assertIn("export const LMS_SHOWN_APPS: LandingApp[] = LMS_APPS.filter((app) => app.shown);", source)
+        self.assertIn(
+            'export const LMS_SHOWN_APPS: LandingApp[] = LMS_APPS.filter((app) => app.shown || app.storeUrl !== "").map((app) => (app.storeUrl ? { ...app, href: app.storeUrl } : app));',
+            source,
+        )
 
     def test_the_single_app_link_is_flagged_and_kept(self):
         source = read(CONFIG)
@@ -226,7 +288,7 @@ class TestSurfaces(unittest.TestCase):
         {src, alt} icon slot."""
         copy = code_of(HERO_COPY)
         self.assertIn("LMS_SHOWN_APPS.map(", copy)
-        for field in ("eyebrow: app.eyebrow", "label: app.platform", "icon: LMS_APP_MARKS[app.id]"):
+        for field in ("eyebrow: app.badge.eyebrow", "label: app.badge.label", "icon: LMS_APP_MARKS[app.id]"):
             self.assertIn(field, copy)
         self.assertIn("badges: LMS_HERO_BADGES,", copy)
         # The hero form draws no button of its own any more.
@@ -236,45 +298,90 @@ class TestSurfaces(unittest.TestCase):
             self.assertNotIn(word, form)
         self.assertNotRegex(form, r"(?i)sign in")
 
-    def test_hero_badge_marks_are_installed_files_and_no_cdn(self):
-        """The Android and Windows marks are SVG files this SDK installs
-        under public/brand/marks (the Simple Icons tracings, CC0) - no CDN,
-        no inline glyph module - and the demoted iOS entry keeps the frame's
-        own Apple glyph for the day it is shown again."""
+    def test_hero_badge_marks_are_the_store_marks_installed_locally(self):
+        """1.16.0 (Ray, 2026-09-09: "we already have nice icons in buttons
+        in hero of rokct but supacharge is getting bad ones. we use what
+        these platforms use for familiarity"): the four marks are Ray's
+        picks, installed under public/brand/marks as clean standalone SVGs
+        - parse as XML, a viewBox, no width/height, no script, no style, no
+        metadata, no external reference, no raster, no CDN - and mapped so
+        the Android download wears Google Play, the desktop one Windows and
+        the iOS entry the Apple mark and the Huawei entry the AppGallery
+        flower; which are drawn is LMS_SHOWN_APPS's business."""
         copy = code_of(HERO_COPY)
-        marks = {
-            "android": ("/brand/marks/android.svg", "Android"),
+        mapping = {
+            "android": ("/brand/marks/google-play.svg", "Google Play"),
             "desktop": ("/brand/marks/windows.svg", "Windows"),
+            "ios": ("/brand/marks/app-store.svg", "App Store"),
+            "huawei": ("/brand/marks/app-gallery.svg", "AppGallery"),
         }
-        for app_id, (src, alt) in marks.items():
+        for app_id, (src, alt) in mapping.items():
             with self.subTest(app=app_id):
                 self.assertIn(f'{app_id}: {{ src: "{src}", alt: "{alt}" }}', copy)
-                path = os.path.join(TEMPLATES, "public", src.lstrip("/").replace("/", os.sep))
-                self.assertTrue(os.path.isfile(path), path)
-                svg = read(path)
-                self.assertEqual(svg.count("<path"), 1)
-                self.assertNotRegex(svg, r"https?://(?!www\.w3\.org/2000/svg)")
-                self.assertNotIn("fill=", svg)
-        self.assertIn('ios: "app-store"', copy)
+        self.assertNotIn('"app-store"', copy)
+        self.assertNotIn("android.svg", copy)
+        self.assertEqual(
+            sorted(os.listdir(MARKS)),
+            ["app-gallery.svg", "app-store.svg", "google-play.svg", "windows.svg"],
+        )
+        for name in os.listdir(MARKS):
+            with self.subTest(mark=name):
+                svg = read(os.path.join(MARKS, name))
+                root = ET.fromstring(svg)
+                self.assertEqual(root.tag, "{http://www.w3.org/2000/svg}svg")
+                self.assertRegex(root.get("viewBox") or "", r"^0 0 \d+ \d+$")
+                self.assertIsNone(root.get("width"))
+                self.assertIsNone(root.get("height"))
+                tags = {el.tag.split("}")[-1] for el in root.iter()}
+                self.assertTrue(tags <= {"svg", "path", "g", "defs", "linearGradient", "stop"}, tags)
+                self.assertNotRegex(svg, r"(?i)<script|<style|<image|<metadata|xlink:href|\bhref=|data:|<!--")
+                for value in re.findall(r'xmlns(?::\w+)?="([^"]*)"', svg):
+                    self.assertTrue(value.startswith("http://www.w3.org/"), value)
+                self.assertNotRegex(re.sub(r'xmlns(?::\w+)?="[^"]*"', "", svg), r"(?i)http")
         self.assertFalse(os.path.exists(os.path.join(LANDING, "lms-app-glyphs.tsx")))
-        self.assertNotIn(
-            "lms-app-glyphs",
-            json.dumps(load_manifest()["installs"]),
-        )
-        self.assertEqual(sorted(os.listdir(MARKS)), ["android.svg", "windows.svg"])
+        self.assertNotIn("lms-app-glyphs", json.dumps(load_manifest()["installs"]))
 
-    def test_hero_badge_marks_follow_the_frames_text_colour_in_dark_mode(self):
-        """The frame draws a {src, alt} mark as an <img>, which cannot take
-        the badge's text colour the way its built-in marks do, so the
-        stylesheet inverts the black marks under the `dark` class - the one
-        signal lms-theme.tsx and Tailwind's dark: variants read."""
+    def test_marks_carry_the_colours_ray_ruled(self):
+        """Ray, 2026-09-09: "you will change colors"; "apple is black could
+        be white, huawei is black should be red or meroon"; "keep it black
+        and white" (Windows). A file that already carries its brand colours
+        (Google Play) is kept exactly; the Huawei flower is Huawei red; the
+        Apple and Windows marks are currentColor and nothing else."""
+        fills = lambda name: [f.lower() for f in re.findall(r'fill="([^"]+)"', read(os.path.join(MARKS, name)))]
+        self.assertEqual(sorted(fills("google-play.svg")), sorted(["#ea4335", "#fbbc04", "#4285f4", "#34a853"]))
+        self.assertEqual(set(fills("app-gallery.svg")), {"#cf0a2c"})
+        for name in ("app-store.svg", "windows.svg"):
+            with self.subTest(mark=name):
+                self.assertEqual(set(fills(name)), {"currentcolor"})
+                self.assertNotRegex(read(os.path.join(MARKS, name)), r"#[0-9a-fA-F]{3,8}")
+
+    def test_only_the_two_monochrome_marks_are_inverted_in_dark_mode(self):
+        """The frame draws a mark as an <img>, where currentColor cannot
+        follow the badge text, so the stylesheet inverts the Apple and
+        Windows marks under the `dark` class and nothing else: the 1.15.0
+        rule that inverted every badge image is gone, and no rule reaches
+        the coloured marks."""
         css = read(THEME_CSS)
-        rule = re.search(
-            r'html\.sc-landing\.dark #hero a\[href\^="/download/"\] img \{([^}]*)\}', css
-        )
-        self.assertIsNotNone(rule, "dark-mode mark rule missing")
-        self.assertIn("filter: invert(1);", rule.group(1))
+        self.assertNotRegex(css, r'a\[href\^="/download/"\]')
+        rules = re.findall(r"([^{}]+)\{([^}]*)\}", css)
+        inverting = [sel.strip() for sel, body in rules if "invert(" in body]
+        self.assertEqual(len(inverting), 1, inverting)
+        selector = inverting[0]
+        for mark in ("app-store.svg", "windows.svg"):
+            self.assertIn(f'html.sc-landing.dark #hero img[src="/brand/marks/{mark}"]', selector)
+        for mark in ("google-play.svg", "app-gallery.svg", "android.svg"):
+            self.assertNotIn(mark, css)
+        self.assertEqual(css.count("filter:"), 1)
         self.assertNotIn(".sc-app-badge", css)
+
+    def test_download_prompt_draws_the_same_marks(self):
+        """1.16.0: the lesson prompt's buttons carry the hero's marks, read
+        from the one LMS_APP_MARKS table rather than a second list of
+        paths."""
+        source = code_of(PROMPT)
+        self.assertIn('import { LMS_APP_MARKS } from "@/components/custom/landing/lms-hero-copy";', source)
+        self.assertIn("LMS_APP_MARKS[app.id]", source)
+        self.assertNotIn("/brand/marks/", source)
 
     def test_header_menu_lists_the_apps_as_one_group_of_cards(self):
         source = read(HEADER_MENU)

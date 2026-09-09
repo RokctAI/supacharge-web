@@ -76,15 +76,30 @@ export interface LandingLink {
  */
 export interface LandingApp extends LandingLink {
   /** Stable key, unique among the apps. */
-  id: "android" | "desktop" | "ios";
+  id: "android" | "desktop" | "ios" | "huawei";
   /**
-   * The platform's own name - "Android", "Windows" - the hero badge shows
-   * under its eyebrow (1.15.0; Ray, 2026-09-09: the buttons must not say
-   * "APK", they say the platform). Never a file format.
+   * The platform's own name - "Android", "Windows" - the descriptions
+   * name (1.15.0; Ray, 2026-09-09: the buttons must not say "APK", they
+   * say the platform). Never a file format.
    */
   platform: string;
-  /** The small line above the platform name on the hero badge. */
-  eyebrow: string;
+  /**
+   * The hero badge's two lines (1.16.0; Ray, 2026-09-09: "but eventually
+   * we getting in those stores except windows"): the store's own badge
+   * wording where the app is, or will be, listed - "GET IT ON" over
+   * "Google Play", "Download on the" over "App Store", "EXPLORE IT ON"
+   * over "AppGallery" - over that store's mark; and "Download for" over
+   * "Windows" for the one platform that has no store.
+   */
+  badge: { eyebrow: string; label: string };
+  /**
+   * The app's listing in the store its badge names. Empty until the
+   * listing exists. Once set, every surface links to it in place of
+   * `href` (LMS_SHOWN_APPS resolves that), and a store-only entry that is
+   * `shown: false` appears - so one line flips a store on. Never a
+   * hard-coded store URL before the listing exists.
+   */
+  storeUrl: string;
   /** One line under the label - what the download is. */
   description: string;
   /**
@@ -93,10 +108,12 @@ export interface LandingApp extends LandingLink {
    */
   icon: HeaderMenuIcon;
   /**
-   * Whether the landing shows this app. `false` keeps the entry in code -
-   * its words and its destination - with no surface rendering it, so a
-   * demoted platform is one flag away from coming back rather than a
-   * rewrite. Every consumer reads LMS_SHOWN_APPS, never this list raw.
+   * Whether the landing shows this app today, on its direct download.
+   * `false` keeps the entry in code - its words, its mark and its
+   * destination - with no surface rendering it, so a demoted platform is
+   * one flag away from coming back rather than a rewrite; a store-only
+   * entry also comes back the moment its `storeUrl` is set. Every
+   * consumer reads LMS_SHOWN_APPS, never this list raw.
    */
   shown: boolean;
 }
@@ -390,7 +407,11 @@ export const LMS_APPS: LandingApp[] = [
     id: "android",
     label: "Android app",
     platform: "Android",
-    eyebrow: "Download for",
+    // Google Play's own badge wording over the Play mark (Ray, 2026-09-09:
+    // "we use what these platforms use for familiarity"); the link is the
+    // direct download until the listing exists.
+    badge: { eyebrow: "GET IT ON", label: "Google Play" },
+    storeUrl: "",
     href: "/download/android",
     external: true,
     description: "Direct download for Android from the latest release",
@@ -398,10 +419,29 @@ export const LMS_APPS: LandingApp[] = [
     shown: true,
   },
   {
+    // Shown now (Ray, 2026-09-09: "yes though we havent built for huawei
+    // yet though we have hms sdk"): AppGallery's own badge wording over the
+    // Huawei mark, on the same direct Android download until the
+    // AppGallery listing exists - set storeUrl to it then.
+    id: "huawei",
+    label: "Huawei app",
+    platform: "Huawei",
+    badge: { eyebrow: "EXPLORE IT ON", label: "AppGallery" },
+    storeUrl: "",
+    href: "/download/android",
+    external: true,
+    description: "Direct download for Huawei devices from the latest release",
+    icon: "smartphone",
+    shown: true,
+  },
+  {
     id: "desktop",
     label: "Desktop app",
     platform: "Windows",
-    eyebrow: "Download for",
+    // No store, ever (Ray, 2026-09-09: "except windows"): the platform's
+    // name over the Windows mark, and storeUrl stays empty.
+    badge: { eyebrow: "Download for", label: "Windows" },
+    storeUrl: "",
     href: "/download/windows",
     external: true,
     description: "Direct download for Windows from the latest release",
@@ -416,11 +456,14 @@ export const LMS_APPS: LandingApp[] = [
     id: "ios",
     label: "iOS app",
     platform: "iOS",
-    eyebrow: "Download for",
+    badge: { eyebrow: "Download on the", label: "App Store" },
+    // Set to the App Store listing when it exists: that one line shows
+    // the badge and links every surface to it.
+    storeUrl: "",
     // No iOS build lane exists in RokctAI/supacharge and there is no App
     // Store listing, so there is nothing for the download route to resolve:
     // this points at the releases page rather than at a URL nothing
-    // publishes. Swap in the listing when there is one.
+    // publishes.
     href: "https://github.com/RokctAI/supacharge/releases/latest",
     external: true,
     description: "Not published yet",
@@ -429,8 +472,13 @@ export const LMS_APPS: LandingApp[] = [
   },
 ];
 
-/** The apps the landing offers, in the order the header, hero and footer show them. */
-export const LMS_SHOWN_APPS: LandingApp[] = LMS_APPS.filter((app) => app.shown);
+/**
+ * The apps the landing offers, in the order the header, hero and footer
+ * show them: every entry shown on its direct download, plus every entry
+ * whose store listing exists - linked to that listing in place of its
+ * direct download, so setting `storeUrl` is the whole change.
+ */
+export const LMS_SHOWN_APPS: LandingApp[] = LMS_APPS.filter((app) => app.shown || app.storeUrl !== "").map((app) => (app.storeUrl ? { ...app, href: app.storeUrl } : app));
 
 export const LMS_LANDING_CONFIG: LmsLandingConfig = {
   home: {
