@@ -52,10 +52,14 @@ next-env.d.ts
 /app/(auth)/forgot-password/page.tsx
 /app/(auth)/login/page.tsx
 /app/(auth)/register/page.tsx
+/app/(auth)/tenant-link-database.ts
+/app/(auth)/tenant-link-single.ts
+/app/(auth)/tenant-link.ts
 /app/actions/base/admin/content.ts
 /app/actions/base/admin/settings.ts
 /app/actions/base/admin/system.ts
 /app/actions/base/landing.ts
+/app/actions/base/status.ts
 /app/actions/handson/all/lms/assignments/actions.ts
 /app/actions/handson/all/lms/assignments/types.ts
 /app/actions/handson/all/lms/batches/actions.ts
@@ -144,8 +148,10 @@ next-env.d.ts
 /components/custom/app-sidebar.tsx
 /components/custom/auth-form.tsx
 /components/custom/beta-toggle.tsx
+/components/custom/footer-chrome.tsx
 /components/custom/hero.tsx
 /components/custom/landing-content.tsx
+/components/custom/landing/footer-chrome-config.ts
 /components/custom/landing/hero-config.ts
 /components/custom/landing/hero-copy.ts
 /components/custom/landing/hero-form.ts
@@ -154,6 +160,7 @@ next-env.d.ts
 /components/custom/landing/lms-card-deck.tsx
 /components/custom/landing/lms-flip-card.tsx
 /components/custom/landing/lms-fonts.ts
+/components/custom/landing/lms-footer-chrome.ts
 /components/custom/landing/lms-hero-copy.ts
 /components/custom/landing/lms-hero-form.tsx
 /components/custom/landing/lms-landing-config.ts

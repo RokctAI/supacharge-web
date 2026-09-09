@@ -21,9 +21,10 @@
 // with the query this SDK registers in the host's plans-query seam -
 // landing/lms-plans-query.ts, the tenant's own LMS Plan catalog read as a
 // guest through the single platform gateway); with none the section renders
-// nothing, so no price is ever hard-coded here. Labels and the partner note
-// come from LMS_LANDING_CONFIG.pricing. Prices show in the row's own
-// currency (the learner catalog is priced in ZAR). Each plan is the app's
+// nothing and gives up its floating-nav stop with it (see `meta` below), so
+// no price is ever hard-coded here. Labels and the partner note come from
+// LMS_LANDING_CONFIG.pricing. Prices show in the row's own currency (the
+// learner catalog is priced in ZAR). Each plan is the app's
 // plan card as a flip card (landing/lms-plan-card.tsx): price front, the
 // row's feature list and the Choose action on the back; the middle plan
 // carries the "Most popular" badge, as the app's plan deck does.
@@ -82,6 +83,16 @@ function formatPrice(cost: number, currency?: string): string {
   }
 }
 
+/**
+ * Whether this section draws anything: its copy slot filled and at least one
+ * plan row back from the platform. `meta.renders` at the foot of the file
+ * asks exactly this, so the host adds the Pricing stop to the floating nav
+ * on the same terms as it renders the section, and a tick is never left
+ * pointing at a section that drew nothing.
+ */
+const showsPricing = (plans: LandingPlan[]) =>
+  !!LMS_LANDING_CONFIG.pricing && plans.length > 0;
+
 export function LmsPricing({
   id,
   plans,
@@ -111,7 +122,9 @@ export function LmsPricing({
     [plans, hasYearly, isAnnual],
   );
 
-  if (!config || plans.length === 0) return null;
+  // `!config` repeats what showsPricing() already asked: the compiler
+  // narrows `config` on this test, but not through a call.
+  if (!config || !showsPricing(plans)) return null;
   const { labels } = config;
 
   const buttonLabel = (plan: LandingPlan, baseName: string) =>
@@ -188,15 +201,20 @@ export function LmsPricing({
 
 /**
  * What this section adds to base_sdk's landing host when registered in
- * components/custom/landing/page-sections.ts: its place in the page order
- * and its DOM id. Not a floating-nav stop, because it hides itself when the
- * platform returns no plan rows and a nav tick must always have somewhere
- * to go.
+ * components/custom/landing/page-sections.ts: its place in the page order,
+ * its DOM id, and a Pricing stop on the floating nav. The stop is
+ * conditional because the section is - with no plan rows from the platform
+ * it draws nothing - so it is declared through `renders` (base_sdk >=
+ * 1.11.0), which the host asks once and then drops the section and its nav
+ * entry together. A nav tick must always have somewhere to go, and this is
+ * what makes that true without giving up the stop entirely. `anchor` still
+ * names the DOM id so it survives the entry ever being taken away again.
  */
 export const meta: PageSectionMeta = {
   order: 60,
-  nav: [],
+  nav: [{ id: "pricing", label: "Pricing" }],
   anchor: "pricing",
+  renders: ({ plans }) => showsPricing(plans),
 };
 
 /** The registered form: the plans the page prefetched. */

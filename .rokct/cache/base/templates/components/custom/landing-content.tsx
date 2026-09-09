@@ -19,12 +19,14 @@
 // The generic landing host's client orchestrator: the host header, the
 // hero, then every section the composed SDKs registered in
 // ./landing/page-sections.ts, loaded with a dynamic import and rendered in
-// ascending `meta.order`. This file names no section of its own - base_sdk
-// carries the host and the hero only; the sections of a product's landing
-// page belong to its home SDK - so a shell with nothing registered renders
-// the hero alone. A negative order renders before the hero (a fixed overlay
-// such as a floating nav) and stays visible while the hero shows search
-// results; everything else renders after the hero and hides with it.
+// ascending `meta.order`, skipping any whose `meta.renders` turns this page
+// down and leaving those out of the floating nav with it. This file names
+// no section of its own - base_sdk carries the host and the hero only; the
+// sections of a product's landing page belong to its home SDK - so a shell
+// with nothing registered renders the hero alone. A negative order renders
+// before the hero (a fixed overlay such as a floating nav) and stays visible
+// while the hero shows search results; everything else renders after the
+// hero and hides with it.
 
 import React, { useEffect, useMemo, useState } from "react";
 
@@ -135,19 +137,26 @@ export function LandingContent({
     };
   }, []);
 
-  const overlays = useMemo(
-    () => sections.filter((s) => s.order < 0),
-    [sections],
+  // The sections that belong on this page. A section's `meta.renders` is
+  // asked once, here, and everything below - what the page draws and what
+  // the floating nav lists - comes off the same answer, so the two can
+  // never disagree and a nav tick always has a section to scroll to.
+  // A section that declares no predicate always belongs.
+  const present = useMemo(
+    () => sections.filter((s) => s.meta.renders?.({ plans, session }) ?? true),
+    [sections, plans, session],
   );
-  const flow = useMemo(() => sections.filter((s) => s.order >= 0), [sections]);
+
+  const overlays = useMemo(() => present.filter((s) => s.order < 0), [present]);
+  const flow = useMemo(() => present.filter((s) => s.order >= 0), [present]);
 
   const navItems = useMemo<LandingNavItem[]>(
     () => [
       LANDING_CONFIG.nav.hero,
-      ...sections.flatMap((s) => s.nav),
+      ...present.flatMap((s) => s.nav),
       LANDING_CONFIG.nav.footer,
     ],
-    [sections],
+    [present],
   );
 
   return (

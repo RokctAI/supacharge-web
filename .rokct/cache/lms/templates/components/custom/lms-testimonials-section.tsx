@@ -17,10 +17,12 @@
 "use client";
 
 // The landing page's testimonials. Quotes: LMS_LANDING_CONFIG.testimonials,
-// which is null until real quotes exist (see LMS_LANDING_PLACEHOLDERS), so
-// the whole section renders nothing. The placeholder branch below stays for
-// the interim state where a token is filled one at a time: a token is shown
-// as such, never dressed up as somebody's words.
+// whose three items are PLACEHOLDER stand-ins rather than real customers
+// until genuine quotes exist (see LMS_LANDING_PLACEHOLDERS) - they render as
+// ordinary testimonials, which is the point. The isPlaceholder branch below
+// is for the `[[TOKEN]]` state this section used to be in, and still applies
+// if an entry is ever emptied back to a token: a token is shown as such,
+// never dressed up as somebody's words. A null config renders nothing.
 
 import React from "react";
 

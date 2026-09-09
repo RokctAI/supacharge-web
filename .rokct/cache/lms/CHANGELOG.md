@@ -1,5 +1,163 @@
 # Changelog
 
+## 1.6.0
+
+* The landing page's footer ended on a bare legal line while rokct.ai's
+  footer ends on a row: the copyright on the left, a status indicator and the
+  version string on the right. Ray asked for Supacharge to carry the same
+  row. It now does - and through base_sdk's shared `FooterChromeRow`
+  (base_sdk >= 1.12.0), not a copy of rokct's host file, which would have
+  made generic page chrome a third copy. `lms-footer-section.tsx` renders it
+  in place of `<p>{config.legal}</p>`, keeping the section's own divider and
+  spacing by handing them in as `className`.
+* `components/custom/landing/lms-footer-chrome.ts` is Supacharge's half of
+  that config, in its own file because `lms-landing-config.ts` holds product
+  COPY - the words of each section - and none of this is copy. It names the
+  legal entity the row puts in the copyright line (the same company
+  `LMS_LANDING_CONFIG.footer.legal` names, now rendered in the platform's own
+  `© Copyright <year> - <holder>` shape, which supersedes that field for
+  rendering) and the version, `NEXT_PUBLIC_APP_VERSION` first and this SDK's
+  own version otherwise - this SDK ships the page the row sits in, so keep
+  `LMS_LANDING_VERSION` in step with manifest.json on each release, the same
+  hand-maintained arrangement rokctai_frontend has with its version.json.
+* THE STATUS COMES FROM THE TENANT, with control as the fallback. Ray asked
+  for control "unless tenant can give status too", and it can: base_sdk's
+  `api.system.api_status` is `allow_guest=True` and Supacharge's backend
+  composes base_sdk's frappe half, so this tenant already answers
+  `{status: "ok" | "maintenance", version, user}` to a signed-out visitor -
+  and it can report ITS OWN maintenance window, which the control plane
+  cannot do on its behalf. base_sdk probes the tenant first and falls back to
+  `control:get_versions` (what rokct.ai reads today) when the tenant cannot
+  be reached, and `ROKCT_STATUS_SOURCE` pins either one per deployment.
+  Nothing here names a cmd: the probe order is base_sdk's and the shell's.
+* The dot speaks in Supacharge's own colours - `var(--sc-success)`,
+  `var(--sc-star)`, `var(--sc-danger)` from `lms-theme.css` - rather than
+  base_sdk's default green/amber/red literals. Deliberately NOT the brand
+  orange: an orange dot on an orange page carries no signal. Everything else
+  in the row (the copyright line, the pill, the version) inherits the
+  footer's own ink and ground, so the row is the same shape as rokct.ai's
+  without borrowing its yellow.
+
+## 1.5.2
+
+* The header's theme toggle flipped the header and nothing else. Ray
+  (2026-09-08): "theme toggle gets respected by header only". `lms-theme.tsx`
+  pinned the mode: its mount effect ended `else root.classList.add("dark")`,
+  so whatever the host had decided, the landing put `dark` back. The toggle
+  did work - next-themes swapped the class on `<html>`, the host-owned header
+  and every `dark:` utility followed it - and then the landing's own class won
+  the rest of the page back. It now only supplies a DEFAULT: `dark` goes on
+  when neither `dark` nor `light` is present, which is nobody having chosen,
+  and an existing choice is left alone. Supacharge's landing stays dark out of
+  the box; it is no longer dark against the visitor's wishes.
+* There were two theme mechanisms and only one of them was ever written. The
+  tokens' light set lived behind `.sc-landing[data-sc-theme="light"]`, and
+  nothing in any repo set `data-sc-theme` - not the shell, not base_sdk, not
+  this SDK, which only ever read it. So the attribute was unreachable and the
+  light tokens were dead CSS: flipping the toggle switched Tailwind's `dark`
+  class off, the header and base_sdk's chrome changed, and the landing held its
+  dark `--sc-*` values because the one selector that could have changed them
+  keyed on an attribute with no author. Two mechanisms that cannot agree is the
+  actual bug, so there is now one.
+* That one is Tailwind's `dark` class on `<html>`, which the host already owns:
+  `darkMode: ["class"]` reads it, next-themes writes it, and it is the only
+  theme signal that crosses the SDK boundary. The light set is keyed on
+  `html.sc-landing:not(.dark)`, so the `--sc-*` tokens and every `dark:`
+  variant in base_sdk's hero, nav and footer flip off the same class, in the
+  same paint. Being pure CSS, the sections re-theme the instant the toggle
+  fires rather than on the next reload, and there is no state to re-render or
+  keep in step.
+* `data-sc-theme` survives as a derived mirror of that class - written by
+  `lms-theme.tsx`, read by nothing - for anything that would rather match an
+  attribute than a class. A `MutationObserver` on `<html>`'s `class` keeps it
+  accurate while the landing is mounted; it watches `class` and writes only
+  `data-sc-theme`, so it cannot retrigger itself, and it is disconnected on
+  unmount with the attribute restored to whatever it was.
+* Light mode needed no recolouring to be legible: every `--sc-*` consumer
+  already goes through the tokens, and the ten literal `text-white` /
+  `bg-white` spots in the sections all sit on the orange primary or on the
+  black gradient over a tutor portrait, where white is correct in either mode.
+  No base_sdk change was needed either - its hero, nav and footer already
+  state both sides of every colour (`bg-white dark:bg-black`), and the `dark`
+  class they read is the seam, so the SDK boundary did not have to move.
+
+## 1.5.1
+
+* Pricing is a stop on the landing's floating nav again (Ray, 2026-09-08:
+  "pricing not injected so floating nav doesnt have it"). It had none
+  because `lms-pricing.tsx` carried `nav: []` on purpose: the section hides
+  itself when the platform returns no plan rows, `meta.nav` is static and
+  read before the section renders, and a fixed Pricing entry would then
+  have left a tick that scrolls nowhere - worse than no tick at all.
+* base_sdk >= 1.11.0 settles that with `PageSectionMeta.renders`, a
+  predicate over the page facts the section is handed anyway. So the
+  section now declares a real `{ id: "pricing", label: "Pricing" }` entry
+  together with `renders: ({ plans }) => showsPricing(plans)`, and the host
+  asks that once: with plans it renders the section AND lists the stop,
+  with none it drops both. The tick appears exactly when there is something
+  to scroll to.
+* `showsPricing()` is the section's own render guard, not a second copy of
+  the test - `LmsPricing` returns null on the same call - so the stop and
+  the section cannot drift apart. `anchor: "pricing"` stays, naming the DOM
+  id if the entry is ever taken away again.
+* Nothing here changes what the page shows today: the section is empty on
+  supacharge.app because the plans come back empty, which is an
+  environment matter on the deploy (`ROKCT_BASE_URL`) and not this file.
+  This is the half that was still wrong once the plans arrive - with them
+  present the nav now has its Pricing stop, and without them it still has
+  none.
+
+## 1.5.0
+
+* The floating nav can flag an entry NEW or coming SOON, and Partners is
+  flagged NEW. rokct.ai has worn those little pills in its header menu for
+  a long time and Supacharge had no way to say the same thing, because the
+  only nav vocabulary a section had was `{ id, label }`.
+  * base_sdk 1.10.0 adds `badge?: "new" | "soon"` to `LandingNavItem`, so a
+    section says it on the entry it already registers in `meta.nav`. This
+    SDK does two things with that: it renders it, and it sets exactly one.
+  * `lms-floating-nav.tsx` draws the pill inside the hover tooltip, beside
+    the label, because the label is the only text the nav has - the resting
+    state is a 2px tick. Same geometry as the rokct.ai header badge (9px,
+    bold, uppercase, tight tracking, full radius) but painted
+    `--sc-primary`, not the header's hard-coded `bg-yellow-400`: yellow is
+    a rokct accent and Supacharge is orange, so the badge reads from the
+    same token as every other accent on this landing and follows the light
+    theme with them. The badge word also joins the button's `aria-label`,
+    since the pill itself only appears on hover.
+  * `lms-partners-section.tsx` sets `badge: "new"` on its own entry (Ray,
+    2026-09-08: "new partners for now"). Nothing else on the page is
+    flagged, and no other file knows Partners is the flagged one - the
+    section drops the flag when it stops being true.
+* Requires base_sdk >= 1.10.0. Composed against an older base_sdk the field
+  does not exist and the section's `meta.nav` fails to typecheck, so
+  base_sdk 1.10.0 must land first.
+
+## 1.4.3
+
+* The testimonials section renders three testimonials. **They are placeholder
+  content - Naledi, Shireen and Sipho are stand-ins, not real customers.**
+  1.4.2 had switched the section off entirely; Ray ruled against that
+  (2026-09-08: "fake them", "its worse with placeholders than fake", "i want
+  it to look good will update testimonials later"), so it is back on with
+  copy that reads as finished, and he will replace the entries with genuine
+  quotes. No source carries a real quote yet.
+* They are written to the rule the rest of this file follows even so: each
+  describes experience of something the product actually does - the private
+  break the session assistant holds, the partner's weekly attendance report,
+  the same topic taught twice by two teachers - and none carries a mark, a
+  percentage or any measured outcome. There is no result claim in them for
+  the product to have to stand behind, which is the half of this that would
+  be hard to undo later.
+* `LMS_LANDING_PLACEHOLDERS` keeps its testimonial row rather than dropping
+  it, because the need for genuine quotes is real and still unmet. The row
+  now names the three stand-ins explicitly and says to replace all three and
+  then delete the row, so whoever picks this up knows exactly what is on the
+  page. The config comment above the entries says the same thing.
+* `lms-testimonials-section.tsx` needed no logic change - it renders whatever
+  the config carries - only an accurate header comment. Its `isPlaceholder`
+  branch stays for the `[[TOKEN]]` state the section used to be in.
+
 ## 1.4.2
 
 * The pricing section's partner line rendered the literal
@@ -13,17 +171,11 @@
   `supacharge-business.md` section 3 (R299 standard, R249 with a partner,
   "R50/month discount") and `supacharge-subscription-tiers-proposal.md:64`
   ("a flat R50 partner" discount, matching the backend's charging logic).
-* The testimonials section is now `null` and renders nothing, replacing the
-  three `[[TESTIMONIAL_n_*]]` triples. The heading is "From students,
-  parents and teachers", so whatever sits there reads as a named person
-  describing their own experience, and no source carries such a quote. Three
-  invented quotes signed with invented learner and parent names would be a
-  fabricated endorsement rather than placeholder copy - the CPA s.41 and the
-  ARB Code both require a testimonial to be genuine and verifiable - so the
-  section stays off the page instead. `lms-testimonials-section.tsx` already
-  returned null on a missing config, so no component change was needed
-  beyond correcting its header comment. One edit reverses it: a real
-  `TestimonialsConfig` back in that slot and the section returns.
+* The testimonials section is `null` and renders nothing, replacing the three
+  `[[TESTIMONIAL_n_*]]` triples. No source carries a real quote, and the
+  heading is "From students, parents and teachers", so the section stays off
+  the page rather than showing tokens. (Superseded in 1.4.3, which fills it
+  with placeholder copy on Ray's instruction.)
 * Assistant cards carried no bio, so Thandi, Bianca and Mandy read as bare
   names beside twelve tutors who each have one. The card was never the
   problem: `lms-tutor-card.tsx` already reads `bio` off either persona and
@@ -44,7 +196,7 @@
   AI (the same doc: "not marketed as AI"), and nothing carries a statistic.
 * `LMS_LANDING_PLACEHOLDERS` drops the `[[PARTNER_DISCOUNT]]` row now that it
   is answered. The testimonial row stays, because the need is real and still
-  unmet; it now records that the section renders nothing meanwhile.
+  unmet.
 
 ## 1.4.1
 

@@ -21,7 +21,12 @@
 // from the page (base_sdk's landing-content.tsx builds them from its config
 // and the registered sections), so this file names no section of its own.
 // Same behaviour as agent_sdk's floating-nav.tsx for rokctapp; this copy
-// lives in lms_sdk because lms_sdk is Supacharge's home SDK.
+// lives in lms_sdk because lms_sdk is Supacharge's home SDK - and it is
+// what makes the two copies worth keeping apart: rokctapp's ticks and
+// tooltip are zinc, Supacharge's are --sc-* tokens. An entry that carries
+// base_sdk's optional `badge` ("new" / "soon") gets the same little pill
+// rokct.ai wears in its header menu, painted --sc-primary here because
+// Supacharge's accent is orange where rokct's is yellow.
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -68,7 +73,7 @@ export function LmsFloatingNav({ items }: { items: LandingNavItem[] }) {
             key={item.id}
             onClick={() => scrollToSection(item.id)}
             className="group relative flex items-center py-1.5 px-2"
-            aria-label={`Scroll to ${item.label}`}
+            aria-label={`Scroll to ${item.label}${item.badge ? ` (${item.badge})` : ""}`}
           >
             <motion.div
               animate={{ width: isActive ? 32 : 16 }}
@@ -78,8 +83,13 @@ export function LmsFloatingNav({ items }: { items: LandingNavItem[] }) {
                   : "bg-[var(--sc-ink-3)] opacity-60 group-hover:opacity-100 group-hover:w-[24px]"
               }`}
             />
-            <span className="absolute left-full ml-4 px-2 py-1 bg-[var(--sc-card)] border border-[var(--sc-stroke)] text-[var(--sc-ink)] text-[10px] rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none font-medium">
+            <span className="absolute left-full ml-4 inline-flex items-center gap-1.5 px-2 py-1 bg-[var(--sc-card)] border border-[var(--sc-stroke)] text-[var(--sc-ink)] text-[10px] rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none font-medium">
               {item.label}
+              {item.badge ? (
+                <span className="shrink-0 rounded-full bg-[var(--sc-primary)] px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none tracking-tighter text-white">
+                  {item.badge}
+                </span>
+              ) : null}
             </span>
           </button>
         );
