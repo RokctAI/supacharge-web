@@ -50,8 +50,14 @@ next-env.d.ts
 /app/(auth)/auth.config.ts
 /app/(auth)/auth.ts
 /app/(auth)/forgot-password/page.tsx
+/app/(auth)/login/login-view.tsx
 /app/(auth)/login/page.tsx
+/app/(auth)/register-link.ts
+/app/(auth)/register-provision-default.ts
+/app/(auth)/register-provision.ts
 /app/(auth)/register/page.tsx
+/app/(auth)/register/register-view.tsx
+/app/(auth)/tenant-host.ts
 /app/(auth)/tenant-link-database.ts
 /app/(auth)/tenant-link-single.ts
 /app/(auth)/tenant-link.ts
@@ -108,6 +114,7 @@ next-env.d.ts
 /app/handson/all/lms/courses/\[courseName\]/assignment/\[assignmentId\]/page.tsx
 /app/handson/all/lms/courses/\[courseName\]/learn/\[lessonId\]/_components/discussions.tsx
 /app/handson/all/lms/courses/\[courseName\]/learn/\[lessonId\]/_components/editor-content.tsx
+/app/handson/all/lms/courses/\[courseName\]/learn/\[lessonId\]/_components/lesson-playback.tsx
 /app/handson/all/lms/courses/\[courseName\]/learn/\[lessonId\]/page.tsx
 /app/handson/all/lms/courses/\[courseName\]/learn/layout.tsx
 /app/handson/all/lms/courses/\[courseName\]/learn/sidebar.tsx
@@ -144,6 +151,7 @@ next-env.d.ts
 /app/services/base/platform-gateway.ts
 /app/services/base/session.ts
 /app/services/base/telemetry.ts
+/app/services/base/tenant-host-control.ts
 /app/services/base/tenant-hosts.ts
 /app/services/control/global_settings.ts
 /app/styles/rokct-marquee.css
@@ -152,6 +160,7 @@ next-env.d.ts
 /components/admin/GenericReport.tsx
 /components/custom/app-sidebar.tsx
 /components/custom/auth-form.tsx
+/components/custom/auth/register-registry.ts
 /components/custom/beta-toggle.tsx
 /components/custom/footer-chrome.tsx
 /components/custom/header-menu.tsx
@@ -173,6 +182,7 @@ next-env.d.ts
 /components/custom/landing/lms-hero-copy.ts
 /components/custom/landing/lms-hero-form.tsx
 /components/custom/landing/lms-landing-config.ts
+/components/custom/landing/lms-marquee.tsx
 /components/custom/landing/lms-plan-card.tsx
 /components/custom/landing/lms-plans-query.ts
 /components/custom/landing/lms-site-metadata.ts
@@ -185,6 +195,7 @@ next-env.d.ts
 /components/custom/landing/site-metadata.ts
 /components/custom/landing/team-assets.ts
 /components/custom/landing/testimonials-marquee.tsx
+/components/custom/lms-download-app.tsx
 /components/custom/lms-faq-section.tsx
 /components/custom/lms-features-section.tsx
 /components/custom/lms-floating-nav.tsx

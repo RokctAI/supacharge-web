@@ -40,14 +40,37 @@
 // entry instead of linking to an anchor that is not there.
 //
 // No fixed `links`, deliberately. Sign-in and sign-up are already in the
-// host header beside this row, so repeating them would be noise. The app
-// download (LMS_LANDING_CONFIG.app) is a real URL now rather than the old
-// [[PLAY_STORE_URL]] token, but it points off-site to a GitHub releases
-// page: the footer is the right place for that and already carries it, and
-// the header is where a visitor looks to move around THIS page. If Ray wants
-// it up here too it is one `links` entry away.
+// host header beside this row, so repeating them would be noise.
+//
+// Since 1.12.0 the apps are up here too, as ONE group (Ray, 2026-09-09:
+// "supacharge need to show these apps, ios is demoted for now. apk and
+// desktop app"). A group rather than flat `links` because base_sdk 1.18.0
+// draws an item that carries a `description` or an `icon` as a card - icon
+// box, label, one-line blurb - only inside the groups panel; a flat link is
+// a bare word. So the desktop bar leads with a single "Get the app" trigger
+// that opens the two cards, and the burger panel lists them under the same
+// heading. The entries are LMS_SHOWN_APPS from ./lms-landing-config.ts, the
+// one list the hero, the footer and the in-app download prompt also read:
+// iOS sits in LMS_APPS with shown: false and never reaches this menu.
+//
+// Since 1.13.0 the menu also says what the header's brand slot draws
+// (base_sdk >= 1.21.0, HeaderMenu.brand). Ray, 2026-09-09: "i saw
+// supacharge got a s logo in header, let home sdk declare if it needs logo
+// there or not. supacharge text is the logo right now until i design an
+// icon". The "S" was supacharge-web's own brand-logo.tsx, an asset-free
+// placeholder drawing the platform's first letter, which base's header
+// rendered beside the wordmark because nothing told it not to. `brand:
+// { logo: "none" }` tells it: no image, the wordmark alone. Against a
+// base_sdk older than 1.21.0 the field is unknown to the registry's
+// HeaderMenu type and the compose fails to type-check, which is the floor
+// the manifest names.
 
 import type { HeaderMenu } from "@/components/custom/landing/header-menu";
+
+import {
+  LMS_LANDING_CONFIG,
+  LMS_SHOWN_APPS,
+} from "@/components/custom/landing/lms-landing-config";
 
 /**
  * The sections Supacharge's header links to, in page order - the order
@@ -64,6 +87,8 @@ import type { HeaderMenu } from "@/components/custom/landing/header-menu";
  * when the quotes are.
  */
 const LMS_HEADER_MENU: HeaderMenu = {
+  // Supacharge text is the logo until an icon is designed (Ray, 2026-09-09).
+  brand: { logo: "none" },
   anchors: [
     "sessions",
     "subjects",
@@ -72,6 +97,23 @@ const LMS_HEADER_MENU: HeaderMenu = {
     "partners",
     "pricing",
     "faq",
+  ],
+  groups: [
+    {
+      id: "apps",
+      // "Get the app" - the landing's own label for the download.
+      label: LMS_LANDING_CONFIG.app.label,
+      items: LMS_SHOWN_APPS.map(
+        ({ id, label, href, external, description, icon }) => ({
+          id,
+          label,
+          href,
+          external,
+          description,
+          icon,
+        }),
+      ),
+    },
   ],
 };
 
