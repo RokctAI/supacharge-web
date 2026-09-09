@@ -57,12 +57,40 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import type { HeaderMenuIcon } from "@/components/custom/landing/header-menu";
+
 /** A link rendered as a call to action. */
 export interface LandingLink {
   label: string;
   href: string;
   /** Open in a new tab. */
   external?: boolean;
+}
+
+/**
+ * One downloadable build of the Supacharge app, as the landing offers it:
+ * a header card (lms-header-menu.ts), a hero call to action
+ * (lms-hero-form.tsx) and a footer link (lms-footer-section.tsx) all read
+ * the same entry, so the label, the blurb and the destination are said
+ * once.
+ */
+export interface LandingApp extends LandingLink {
+  /** Stable key, unique among the apps. */
+  id: "android" | "desktop" | "ios";
+  /** One line under the label - what the download is. */
+  description: string;
+  /**
+   * The header card's glyph, from the closed set base_sdk's header
+   * bundles (HeaderMenuIcon, base_sdk >= 1.18.0).
+   */
+  icon: HeaderMenuIcon;
+  /**
+   * Whether the landing shows this app. `false` keeps the entry in code -
+   * its words and its destination - with no surface rendering it, so a
+   * demoted platform is one flag away from coming back rather than a
+   * rewrite. Every consumer reads LMS_SHOWN_APPS, never this list raw.
+   */
+  shown: boolean;
 }
 
 export interface HomeConfig {
@@ -271,8 +299,23 @@ export interface FooterConfig {
 
 export interface LmsLandingConfig {
   home: HomeConfig;
-  /** Where "Get the app" goes: the app's own releases, not a store listing. */
+  /**
+   * Where "Get the app" goes: the app's own releases, not a store listing.
+   *
+   * FLAGGED, not removed (1.12.0): since the apps below carry their own
+   * destinations no surface renders this entry any more - the header,
+   * the hero and the footer all read `apps` - but it is the releases page
+   * every one of them points at today, and a shell that linked the single
+   * "Get the app" still resolves it. Remove only once nothing outside this
+   * SDK reads it.
+   */
   app: LandingLink;
+  /**
+   * The app's downloadable builds, one entry per platform; `shown` says
+   * which the landing offers (Ray, 2026-09-09: "supacharge need to show
+   * these apps, ios is demoted for now. apk and desktop app").
+   */
+  apps: LandingApp[];
   sessions: SessionsConfig | null;
   subjects: SubjectsConfig | null;
   tutors: TutorsConfig | null;
@@ -298,6 +341,75 @@ export const LMS_LANDING_PLACEHOLDERS: { token: string; needed: string }[] = [
 
 const SIGNUP_LABEL = "Start with Supacharge";
 
+/**
+ * The page every download points at: the app's GitHub releases, where the
+ * weekly release lane (RokctAI/supacharge .github/workflows/release.yml,
+ * `build_android: true` and `build_windows: true`) attaches each build.
+ *
+ * The releases PAGE, not a `releases/latest/download/<asset>` link, for the
+ * reason 1.4.1 gives: the lane names every asset for its version
+ * (`app-v1.2.9.apk`, `app-windows-v1.2.9.zip`), so no fixed filename
+ * resolves and a direct link would 404 on the next release. The page always
+ * shows the newest release and lets a visitor read the notes before a
+ * 127 MB download; the description on each entry says which file to take.
+ */
+const RELEASES_URL = "https://github.com/RokctAI/supacharge/releases/latest";
+
+/**
+ * Every build of the app the landing knows about, shown or not.
+ *
+ * Ray, 2026-09-09: "supacharge need to show these apps, ios is demoted for
+ * now. apk and desktop app". The two shown entries are the two the release
+ * lane actually publishes - an Android APK (`app-v<version>.apk`, beside
+ * the `.aab` the Play lane takes) and a Windows desktop build
+ * (`app-windows-v<version>.zip`); there is no macOS or Linux build and no
+ * store listing, so "Desktop app" means the Windows build and both
+ * destinations are the same releases page.
+ *
+ * Kept as a plain literal (no references) so tests/test_landing_apps.py can
+ * lift it out and read it under node without a bundler.
+ */
+export const LMS_APPS: LandingApp[] = [
+  {
+    id: "android",
+    label: "Android app (APK)",
+    href: "https://github.com/RokctAI/supacharge/releases/latest",
+    external: true,
+    description: "Direct APK download from the latest release",
+    icon: "smartphone",
+    shown: true,
+  },
+  {
+    id: "desktop",
+    label: "Desktop app",
+    href: "https://github.com/RokctAI/supacharge/releases/latest",
+    external: true,
+    description: "Windows build from the latest release",
+    // base_sdk's header bundles seven glyphs and none of them is a monitor;
+    // "box" (a product) is the nearest. A "monitor" glyph is a base_sdk
+    // change, not this SDK's.
+    icon: "box",
+    shown: true,
+  },
+  {
+    // demoted for now (Ray, 2026-09-09: "ios is demoted for now")
+    id: "ios",
+    label: "iOS app",
+    // No iOS build lane exists in RokctAI/supacharge and there is no App
+    // Store listing, so this points at the same releases page as the rest
+    // rather than at a URL nothing publishes. Swap in the listing when
+    // there is one.
+    href: "https://github.com/RokctAI/supacharge/releases/latest",
+    external: true,
+    description: "Not published yet",
+    icon: "smartphone",
+    shown: false,
+  },
+];
+
+/** The apps the landing offers, in the order the header, hero and footer show them. */
+export const LMS_SHOWN_APPS: LandingApp[] = LMS_APPS.filter((app) => app.shown);
+
 export const LMS_LANDING_CONFIG: LmsLandingConfig = {
   home: {
     url: "/handson/all/lms",
@@ -305,9 +417,11 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
 
   app: {
     label: "Get the app",
-    href: "https://github.com/RokctAI/supacharge/releases/latest",
+    href: RELEASES_URL,
     external: true,
   },
+
+  apps: LMS_APPS,
 
   sessions: {
     eyebrow: "How a session works",

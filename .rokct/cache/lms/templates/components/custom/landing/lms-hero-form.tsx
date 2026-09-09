@@ -20,35 +20,41 @@
 // components/custom/landing/hero-form.ts. Ray, 2026-09-08: the base hero is
 // a frame; the home SDK injects the body the way it injects the page
 // sections; the chat box belongs to agent_sdk. Supacharge's hero has no chat
-// or search input: two calls to action - the store link and sign-in - and
-// the hero's trust line under them (the frame shows that line only beside
-// its store badges, which this product's copy hides). Links:
-// LMS_LANDING_CONFIG.app and LANDING_CONFIG.loginUrl; words: the copy this
-// SDK registers in lms-hero-copy.ts. Shapes: the Dart welcome screen's
-// primary Login button (AppStyle.primary fill, radius 12) and outlined
-// Register button, from lms-theme.css.
+// or search input: the download calls to action and sign-in, and the hero's
+// trust line under them (the frame shows that line only beside its store
+// badges, which this product's copy hides). Since 1.12.0 the downloads are
+// one button per shown app - LMS_SHOWN_APPS, the Android APK first as the
+// primary and the desktop build outlined beside it (Ray, 2026-09-09:
+// "supacharge need to show these apps, ios is demoted for now. apk and
+// desktop app"; iOS is in LMS_APPS with shown: false and never renders
+// here) - then LANDING_CONFIG.loginUrl. Words: the copy this SDK registers
+// in lms-hero-copy.ts. Shapes: the Dart welcome screen's primary Login
+// button (AppStyle.primary fill, radius 12) and outlined Register button,
+// from lms-theme.css.
 
 import React from "react";
 import Link from "next/link";
 
 import { LANDING_CONFIG } from "@/components/custom/landing/landing-config";
 import type { HeroFormProps } from "@/components/custom/landing/hero-form";
-import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
+import { LMS_SHOWN_APPS } from "@/components/custom/landing/lms-landing-config";
 
 export default function LmsHeroForm({ hero }: HeroFormProps) {
-  const app = LMS_LANDING_CONFIG.app;
-
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
-        <a
-          href={app.href}
-          target={app.external ? "_blank" : undefined}
-          rel={app.external ? "noopener noreferrer" : undefined}
-          className="sc-btn sc-btn-primary w-full px-8 sm:w-auto"
-        >
-          {app.label}
-        </a>
+        {LMS_SHOWN_APPS.map((app, index) => (
+          <a
+            key={app.id}
+            href={app.href}
+            target={app.external ? "_blank" : undefined}
+            rel={app.external ? "noopener noreferrer" : undefined}
+            title={app.description}
+            className={`sc-btn ${index === 0 ? "sc-btn-primary" : "sc-btn-outline"} w-full px-8 sm:w-auto`}
+          >
+            {app.label}
+          </a>
+        ))}
         <Link
           href={LANDING_CONFIG.loginUrl}
           className="sc-btn sc-btn-outline w-full px-8 sm:w-auto"

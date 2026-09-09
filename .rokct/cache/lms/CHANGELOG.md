@@ -1,5 +1,189 @@
 # Changelog
 
+## 1.14.0
+
+* The tutor cards keep scrolling like the testimonials. Ray, 2026-09-09:
+  "tutor cards should keep scrolling like testamonials". The testimonials
+  have run rokct.ai's auto-scrolling row since 1.10.0 (base_sdk >= 1.14.0's
+  `components/custom/landing/testimonials-marquee.tsx` over its
+  `app/styles/rokct-marquee.css`); the tutor roster was the swipeable deck
+  at every width, so on a desktop it stood still until dragged.
+  * `components/custom/landing/lms-marquee.tsx` (new) is the same row with
+    the card left to the caller: base's `TestimonialsMarquee` draws its
+    own quote card from an `items` list and has no slot for a card that is
+    already a component, and the tutor card flips, carries a portrait and
+    a sign-up link and is `lms-tutor-card.tsx`'s to draw. The DOM is the
+    marquee's - the clipping frame, the two edge fades, the `w-max` track
+    carrying `rokct-marquee`, `rokct-marquee-track` and
+    `group-hover:[animation-play-state:paused]` - and it imports base's
+    `app/styles/rokct-marquee.css` by the path base's own component uses,
+    so the keyframes, the pause under the pointer and the stillness under
+    `prefers-reduced-motion` are base's one rule set; nothing is copied
+    out of that file and there is no base_sdk change. Two things the
+    testimonials' row does not need: the track is measured and
+    `--rokct-marquee-duration` set so the row travels at the testimonials'
+    own pace (five 350px cards and their gaps over 60s, 1850px a minute)
+    rather than at their per-loop duration, since a loop of twelve tutors
+    at 60s would go by twice as fast; and a row whose one copy of cards is
+    narrower than its frame - the three assistants on a wide screen, or a
+    short roster - stands still and centred as a single copy with no fades
+    and no animation, never blank, and becomes a marquee again the moment
+    the frame is narrower than its cards. The first render assumes it
+    overflows, so the server sends the moving row. The copies after the
+    first are `aria-hidden` (a reader hears each tutor once) and stay
+    clickable, because the card under the pointer is a copy two thirds of
+    the time.
+  * `components/custom/lms-tutors-section.tsx` renders TWO rows and the
+    breakpoint picks one, so the server sends the right row for the width
+    and nothing shifts on hydration. From 640px up the roster, and the
+    assistants under it, run in the marquee, full-bleed as the
+    testimonials' row is. BELOW 640px the roster is the deck exactly as
+    1.3.0 left it (Ray, 2026-09-08: "the tutor cards can still be a deck
+    that take one row and can be swipped like in dart"), to the class:
+    one swipeable row, the next card's edge showing, one card per swipe,
+    dots under it. A visitor who asked for reduced motion gets the deck at
+    every width - a still row scrolled by hand is what the marquee's
+    reduced-motion rule promises, and the deck is that row with arrows,
+    dots and keys. Every prop the section had is kept: the cards, their
+    portraits, subjects, grades, `priority` on the first four, the
+    `signupUrl` behind "Start with", the assistants' `sc-deck-trio` and
+    `lg:max-w-3xl` (which now only matter below 640px, and stay).
+  * `components/custom/landing/lms-flip-card.tsx` exports the
+    `useMediaQuery` hook it already had, for the section's reduced-motion
+    check; its own use is unchanged.
+  * `components/custom/landing/lms-theme.css` adds `.sc-marquee-slot`, the
+    fixed card width a marquee track needs (17rem, the deck's four-across
+    card at 1280px), beside the deck widths for the reason they are there.
+  * `manifest.json` installs the new file and adds
+    `app/styles/rokct-marquee.css` to `requires` (base_sdk >= 1.14.0, the
+    floor the testimonials already stand on). The base floor stays 1.21.0.
+  * `lms-testimonials-section.tsx` is untouched and still renders base's
+    `TestimonialsMarquee`. `LMS_LANDING_VERSION` is 1.14.0;
+    `tests/test_landing_apps.py` asserts the tutors section renders the
+    lms marquee from 640px up and the deck below, the testimonials section
+    still renders base's, and the lms marquee runs on base's classes and
+    stylesheet.
+
+## 1.13.0
+
+* The header shows the wordmark only. Ray, 2026-09-09: "i saw supacharge
+  got a s logo in header, let home sdk declare if it needs logo there or
+  not. supacharge text is the logo right now until i design an icon". The
+  "S" was supacharge-web's own `components/custom/brand-logo.tsx`, an
+  asset-free placeholder that draws the platform's first letter on a dark
+  square, which base_sdk's header rendered beside the wordmark because
+  nothing told it not to.
+  * `components/custom/landing/lms-header-menu.ts` declares
+    `brand: { logo: "none" }` (base_sdk >= 1.21.0's `HeaderMenu.brand`):
+    no image in the brand slot, the wordmark (`branding.tsx`) alone.
+    Nothing else about the menu changes. When an icon is designed, the
+    declaration becomes its path.
+  * `manifest.json` names the floor: `components/custom/landing/header-menu.ts`
+    and `components/custom/header-menu.tsx` at base_sdk >= 1.21.0, and
+    `components/custom/header.tsx` (the header that reads the
+    declaration) joins `requires` at the same floor. Against 1.18.0-1.20.0
+    the field is a type error in the registry's `HeaderMenu`.
+  * `LMS_LANDING_VERSION` is 1.13.0; `tests/test_landing_apps.py` asserts
+    the declaration and Ray's reason beside it.
+
+## 1.12.0
+
+* The landing shows the app's downloads as two entries, and iOS is demoted.
+  Ray, 2026-09-09: "supacharge need to show these apps, ios is demoted for
+  now. apk and desktop app".
+  * `components/custom/landing/lms-landing-config.ts` gains `LandingApp`
+    (a `LandingLink` with `id`, `description`, `icon` and `shown`) and
+    `LMS_APPS`, one entry per platform, copied from what the app's release
+    lane actually publishes (RokctAI/supacharge
+    `.github/workflows/release.yml`, `build_android: true` and
+    `build_windows: true`; the v1.2.9 release carries `app-v1.2.9.apk`,
+    `app-v1.2.9.aab`, `app-windows-v1.2.9.zip`): `android` - "Android app
+    (APK)", "Direct APK download from the latest release", icon
+    `smartphone`; `desktop` - "Desktop app", "Windows build from the latest
+    release", icon `box` (base's header bundles no monitor glyph; a
+    `monitor` entry in `HeaderMenuIcon` is a base_sdk change); and `ios` -
+    kept in the list with `shown: false` and a "demoted for now" comment,
+    because no iOS lane or App Store listing exists. `LMS_SHOWN_APPS` is the
+    filtered list and the ONLY thing a surface reads. Every `href` is still
+    the releases PAGE, `https://github.com/RokctAI/supacharge/releases/
+    latest`, for the reason 1.4.1 gave: assets are named per version, so no
+    `releases/latest/download/<file>` link is stable. There is no macOS or
+    Linux build, so "Desktop app" means the Windows build. No Play or App
+    Store link exists in any source, so none is shown.
+  * `components/custom/landing/lms-header-menu.ts` adds ONE group,
+    `apps`, labelled with the landing's own "Get the app"
+    (`LMS_LANDING_CONFIG.app.label`), whose items are the shown apps with
+    their descriptions and icons. A group rather than flat `links` because
+    base_sdk 1.18.0 draws an item with a description or an icon as a card
+    only inside the groups panel: the desktop bar leads with the one
+    trigger that opens the two cards, the burger lists them under the same
+    heading. `LMS_LANDING_CONFIG.app` itself is FLAGGED as no longer
+    rendered by any surface and kept (a shell may still read it).
+  * `components/custom/landing/lms-hero-form.tsx` renders one button per
+    shown app - the APK as the primary, the desktop build outlined -
+    ahead of "Sign in", the entry's description as the button's title;
+    `components/custom/lms-footer-section.tsx` one link per shown app in
+    place of the single "Get the app".
+  * The base_sdk floor moves from 1.14.0 to 1.18.0: `HeaderMenuLink`'s
+    `description` and `icon`, the `HeaderMenuIcon` set `LandingApp.icon`
+    is typed as, and the panel that draws them ship there; against
+    1.14.0-1.17.0 the fields are type errors. `manifest.json` `requires`
+    is unchanged in members; its notes for `header-menu.ts` and
+    `header-menu.tsx` name the new floor.
+* The web does not play lessons; it asks for the app. Ray, 2026-09-09:
+  "supacharge web doesnt play lessons or whatch libray but you should be
+  able to watch schedule if you are logged in. for attending lessons it
+  should ask you to download app on phone or download desktop app" -
+  because "we make things to apps so it will mean waiting on downloading
+  those assets to users browser before play. so they will be able to do
+  other things like partner loging in to check his students, or student
+  wanting to pay or update details on the go".
+  * What the web half shipped: ONE playback surface,
+    `app/handson/all/lms/courses/[courseName]/learn/[lessonId]/page.tsx`
+    (react-player over `video_url`/`youtube`, the EditorJS body, the
+    discussions, anti-skip completion); NO library or watch route; the
+    schedule as the lms home, `app/handson/all/lms/page.tsx`
+    (`LMS_LANDING_CONFIG.home.url`), whose Upcoming Live Classes come from
+    `lms.lms.api.get_my_live_classes`.
+  * Replaced: the lesson route still resolves (the `learn/` layout 404s only
+    for a missing course) but now renders the new
+    `components/custom/lms-download-app.tsx` - the landing's "Get the app"
+    heading, one line from Ray's brief ("Lessons are attended in the app.
+    Download the app on your phone or download the desktop app."), and one
+    button per `LMS_SHOWN_APPS` entry with its description (Android APK,
+    desktop; iOS never reaches it) plus a "Back to course" link. The
+    player is moved whole to
+    `learn/[lessonId]/_components/lesson-playback.tsx`, flagged NOT USED
+    ON THE WEB, and nothing imports it, so react-player stays out of the
+    web bundle. `react-player`, `@editorjs/*` stay in `dependencies` for
+    it.
+  * Schedule: kept as it is. The lms home and every lesson route sit under
+    `/handson`, which auth_sdk's `middleware.ts` matcher already gates
+    (`auth.config.ts`: `isOnHandsOn && !isLoggedIn` returns false), and
+    `app/page.tsx` sends an anonymous `/` to `/landing`; no new auth
+    mechanism. Gap, reported not built: the Flutter schedule reads
+    `replay.api.get_upcoming_sessions`
+    (`replay/frappe/src/tenant/replay/api/get_upcoming_sessions.py`), a
+    different feed from the web dashboard's live classes.
+  * Account surfaces the web keeps, untouched: profile and details update
+    (`me/profile/page.tsx`, `updateProfileAction`), batches, courses,
+    quizzes, assignments, jobs. Gaps, reported not built: no partner
+    "my students" view and no signed-in billing/pay page on the web
+    (paying is the landing's pricing section via
+    `LANDING_CONFIG.planSignupUrl`).
+* `tests/test_landing_apps.py` (new; stdlib + node
+  `--experimental-strip-types`, the shape base_sdk's own tests take):
+  `LMS_APPS` lifted out and read under node - the shown ids are exactly
+  `android` and `desktop`, `ios` is present with `shown: false` and no
+  surface names it, every href is https, the labels and icons are the
+  ones above; the header menu, hero, footer and prompt read
+  `LMS_SHOWN_APPS` and never `LMS_APPS`; the lesson route renders the
+  prompt and imports no player while the flagged playback file still does;
+  `home.url` is under `/handson/` (the gated prefix); manifest version,
+  CHANGELOG head and `LMS_LANDING_VERSION` agree; the manifest notes name
+  the 1.18.0 floor. `LMS_LANDING_VERSION` is 1.12.0 (it had drifted to
+  1.9.0).
+
 ## 1.11.0
 
 * The social card shows a still from the tour. Ray, 2026-09-09: the link

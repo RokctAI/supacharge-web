@@ -43,7 +43,12 @@ import React, {
   type ReactNode,
 } from "react";
 
-function useMediaQuery(query: string): boolean {
+/**
+ * Whether a media query matches, false on the server and until the first
+ * paint. Exported since 1.14.0 for lms-tutors-section.tsx's reduced-motion
+ * check; the flip card's own use is unchanged.
+ */
+export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;

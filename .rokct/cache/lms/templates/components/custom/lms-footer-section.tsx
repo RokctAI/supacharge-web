@@ -17,8 +17,10 @@
 "use client";
 
 // The landing page's footer: the motto, the section links, the auth links
-// the page hands in, the app link and the copyright row. Copy:
-// LMS_LANDING_CONFIG.footer and LMS_LANDING_CONFIG.app.
+// the page hands in, the app links and the copyright row. Copy:
+// LMS_LANDING_CONFIG.footer and, since 1.12.0, one link per shown app from
+// LMS_SHOWN_APPS (the Android APK and the desktop build; iOS is in the list
+// with shown: false and never renders) in place of the single "Get the app".
 //
 // The last row is base_sdk's shared chrome (FooterChromeRow, base_sdk
 // >= 1.12.0) rather than a bare legal line: the same copyright row rokct.ai
@@ -33,7 +35,10 @@ import Link from "next/link";
 import { FooterChromeRow } from "@/components/custom/footer-chrome";
 import { LmsWordmark } from "@/components/custom/landing/lms-wordmark";
 import { LMS_FOOTER_CHROME } from "@/components/custom/landing/lms-footer-chrome";
-import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
+import {
+  LMS_LANDING_CONFIG,
+  LMS_SHOWN_APPS,
+} from "@/components/custom/landing/lms-landing-config";
 import type {
   PageSectionMeta,
   PageSectionProps,
@@ -50,7 +55,6 @@ export function LmsFooterSection({
 }) {
   const config = LMS_LANDING_CONFIG.footer;
   if (!config) return null;
-  const app = LMS_LANDING_CONFIG.app;
 
   return (
     <footer
@@ -84,14 +88,18 @@ export function LmsFooterSection({
             <Link href={signupUrl} className="hover:text-[var(--sc-ink)] transition-colors">
               Create an account
             </Link>
-            <a
-              href={app.href}
-              target={app.external ? "_blank" : undefined}
-              rel={app.external ? "noopener noreferrer" : undefined}
-              className="hover:text-[var(--sc-ink)] transition-colors"
-            >
-              {app.label}
-            </a>
+            {LMS_SHOWN_APPS.map((app) => (
+              <a
+                key={app.id}
+                href={app.href}
+                target={app.external ? "_blank" : undefined}
+                rel={app.external ? "noopener noreferrer" : undefined}
+                title={app.description}
+                className="hover:text-[var(--sc-ink)] transition-colors"
+              >
+                {app.label}
+              </a>
+            ))}
           </nav>
         </div>
         <FooterChromeRow

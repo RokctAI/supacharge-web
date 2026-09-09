@@ -480,3 +480,19 @@ html.sc-landing:not(.dark) {
 .sc-marquee .sc-marquee-card > div:last-child span:last-child {
   color: var(--sc-ink-2);
 }
+
+/*
+ * The tutor marquee (landing/lms-marquee.tsx, which lms-tutors-section.tsx
+ * renders from 640px up since 1.14.0 - Ray, 2026-09-09: "tutor cards
+ * should keep scrolling like testamonials"). A marquee track needs a fixed
+ * card width, as the testimonials' 350px is theirs: this one is the deck's
+ * four-across card at 1280px (a quarter of the 72rem container less the
+ * gap, 268px, rounded to the rem), so the moving row shows the card at
+ * the size the deck drew it. Beside the deck widths for the reason they
+ * are here rather than in the component: a card too narrow stops reading
+ * as the app's card, and the number that says so belongs with the others.
+ */
+.sc-marquee-slot {
+  flex: 0 0 17rem;
+  width: 17rem;
+}
