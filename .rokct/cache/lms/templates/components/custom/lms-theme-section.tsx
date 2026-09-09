@@ -17,10 +17,11 @@
 "use client";
 
 // Registers Supacharge's look (landing/lms-theme.tsx) as the first entry of
-// base_sdk's landing host: a negative order, before the floating nav, so
-// the tokens, fonts and the `dark` class are on <html> for every other
-// section and for the hero the host renders between them. Renders nothing
-// visible and is not a nav stop.
+// base_sdk's landing host: a negative order, before the floating nav, so the
+// tokens and fonts are on <html> for every other section and for the hero the
+// host renders between them. The light/dark mode is the host shell's, not
+// ours - lms-theme.tsx only defaults it to dark when nothing has chosen.
+// Renders nothing visible and is not a nav stop.
 
 import React from "react";
 

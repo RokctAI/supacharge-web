@@ -17,13 +17,29 @@
 "use client";
 
 // Applies Supacharge's look to the landing while it is mounted: loads
-// lms-theme.css (the Dart AppStyle tokens and the shared pieces), puts the
-// `sc-landing` class and the two font variables on <html>, and - because
-// base_sdk's hero and the shell's header style their dark side with
-// Tailwind `dark:` variants (class strategy) - the `dark` class too, unless
-// the host asked for the light set with html[data-sc-theme="light"]. All of
-// it is undone on unmount, so the handson pages are untouched. Rendered by
-// lms-theme-section.tsx, registered before every other section.
+// lms-theme.css (the Dart AppStyle tokens and the shared pieces) and puts the
+// `sc-landing` class and the two font variables on <html>. Those ARE
+// Supacharge's look, so they go on unconditionally.
+//
+// The light/dark MODE is not ours to pin. The host shell owns it - on
+// supacharge.app next-themes writes Tailwind's `dark` class onto <html> from
+// the header's theme toggle - so all this supplies is the DEFAULT: when
+// nothing has expressed a mode yet, `dark` goes on, because Supacharge's
+// landing is dark. A choice that is already there is left exactly as it is.
+// Pinning `dark` on every mount is what made the toggle look broken (Ray,
+// 2026-09-08: "theme toggle gets respected by header only"): the header
+// followed the toggle and the landing put its own class straight back.
+//
+// ONE source of truth, and it is that `dark` class. lms-theme.css keys its
+// light token set on `html.sc-landing:not(.dark)` - the same signal Tailwind's
+// `dark:` variants read (darkMode: ["class"]) - so the tokens and the variants
+// cannot disagree, and the sections re-theme the instant the toggle flips,
+// in CSS, with no re-render. `data-sc-theme` survives only as a DERIVED
+// mirror of that class, a read-only hook for anything that would rather match
+// an attribute; it is written here and never read, so it cannot compete.
+//
+// All of it is undone on unmount, so the handson pages are untouched. Rendered
+// by lms-theme-section.tsx, registered before every other section.
 
 import { useEffect } from "react";
 
@@ -36,15 +52,34 @@ export function LmsTheme() {
   useEffect(() => {
     const root = document.documentElement;
     const added = [LMS_THEME_CLASS, lmsSans.variable, lmsBrand.variable];
-    const light = root.getAttribute("data-sc-theme") === "light";
-    const hadDark = root.classList.contains("dark");
     added.forEach((name) => root.classList.add(name));
-    if (light) root.classList.remove("dark");
-    else root.classList.add("dark");
+
+    // Supply the default, never override a choice: `dark` goes on only when
+    // neither class is there, i.e. nothing has asked for a mode at all.
+    const defaulted =
+      !root.classList.contains("dark") && !root.classList.contains("light");
+    if (defaulted) root.classList.add("dark");
+
+    // Derived mirror of the class, kept in step for as long as we are mounted.
+    const hadAttr = root.getAttribute("data-sc-theme");
+    const mirror = () => {
+      root.setAttribute(
+        "data-sc-theme",
+        root.classList.contains("dark") ? "dark" : "light",
+      );
+    };
+    mirror();
+    // Only `class` is watched, and only `data-sc-theme` is written, so the
+    // mirror cannot retrigger itself.
+    const watcher = new MutationObserver(mirror);
+    watcher.observe(root, { attributes: true, attributeFilter: ["class"] });
+
     return () => {
+      watcher.disconnect();
       added.forEach((name) => root.classList.remove(name));
-      if (hadDark) root.classList.add("dark");
-      else root.classList.remove("dark");
+      if (defaulted) root.classList.remove("dark");
+      if (hadAttr === null) root.removeAttribute("data-sc-theme");
+      else root.setAttribute("data-sc-theme", hadAttr);
     };
   }, []);
   return null;

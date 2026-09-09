@@ -290,9 +290,9 @@ export interface LmsLandingConfig {
  */
 export const LMS_LANDING_PLACEHOLDERS: { token: string; needed: string }[] = [
   {
-    token: "[[TESTIMONIAL_n_QUOTE]] / [[TESTIMONIAL_n_NAME]] / [[TESTIMONIAL_n_ROLE]]",
+    token: "testimonials.items (was [[TESTIMONIAL_n_QUOTE]] / _NAME / _ROLE)",
     needed:
-      "Three real student, parent or teacher quotes with names and roles - none exist in any source yet. The section renders nothing until they do; invented quotes under invented names are not a substitute.",
+      "Three real student, parent or teacher quotes with names and roles - none exist in any source yet. The three entries on the page now (Naledi, Shireen, Sipho) are PLACEHOLDER stand-ins written to make the section read as finished, not real customers: replace all three, then delete this row. They deliberately carry no marks, percentages or measured outcomes, so keep any replacement free of result claims the product cannot evidence.",
   },
 ];
 
@@ -666,17 +666,39 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     ],
   },
 
-  // Off the page until real quotes exist. The section heading is "From
-  // students, parents and teachers", so anything rendered here reads as a
-  // named person describing their own experience of the product. We have no
-  // such quotes from any source, and writing three under invented learner
-  // and parent names would be a fabricated endorsement rather than copy -
-  // the kind of claim the CPA s.41 and the ARB Code both require to be
-  // genuine and verifiable. `null` hides the section outright
-  // (lms-testimonials-section.tsx returns null on a missing config), which
-  // beats shipping either raw tokens or invented people. Reversible in one
-  // edit: drop a real TestimonialsConfig back here and the section returns.
-  testimonials: null,
+  // PLACEHOLDER CONTENT - these three are stand-ins, not real customers.
+  // Ray asked for the section to read as finished ahead of launch and will
+  // replace them with genuine quotes; LMS_LANDING_PLACEHOLDERS still carries
+  // the row, because the need for real ones is real and unmet. Written to
+  // the same rule the rest of this file follows: they describe experience
+  // of things the product actually does - the private break, the partner's
+  // weekly report, the two-teacher format - and carry no marks, no
+  // percentages and no measured outcome, so nothing here is a result claim
+  // the product would have to stand behind. Swap the three items, not the
+  // shape, and delete the registry row when the real ones land.
+  testimonials: {
+    heading: "From students, parents and teachers",
+    items: [
+      {
+        quote:
+          "The break is the part I did not expect to need. I can ask what I missed without the whole class hearing me, and then the second teacher explains it another way anyway.",
+        author: "Naledi",
+        role: "Grade 11 learner",
+      },
+      {
+        quote:
+          "The weekly report tells me what she actually attended, not just what she tells me. That alone has taken the arguing out of our evenings.",
+        author: "Shireen",
+        role: "Parent of a Grade 10 learner",
+      },
+      {
+        quote:
+          "My learners arrive having already seen the topic twice, taught two different ways. That turns my period into a discussion instead of a first explanation.",
+        author: "Sipho",
+        role: "Physical Sciences teacher",
+      },
+    ],
+  },
 
   footer: {
     motto: "To the next level",

@@ -122,11 +122,13 @@ export function LmsPartnersSection({
 /**
  * What this section adds to base_sdk's landing host when registered in
  * components/custom/landing/page-sections.ts: its place in the page order
- * and its floating-nav entry.
+ * and its floating-nav entry, flagged NEW because partners are the newest
+ * thing on the page. The flag is this section's to drop when it stops
+ * being true - nothing else on the page knows about it.
  */
 export const meta: PageSectionMeta = {
   order: 50,
-  nav: [{ id: "partners", label: "Partners" }],
+  nav: [{ id: "partners", label: "Partners", badge: "new" }],
 };
 
 export default function LmsPartnersPageSection({
