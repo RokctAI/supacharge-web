@@ -173,6 +173,19 @@ html.sc-landing:not(.dark) {
 .sc-btn-outline:hover {
   background: var(--sc-card);
 }
+/*
+ * The hero's download badges (lms-hero-copy.ts, 1.15.0) are base_sdk's own
+ * store badges, so the frame's pill, mark and two lines are untouched here.
+ * The frame draws a {src, alt} mark as an <img>, which cannot take the
+ * badge's text colour the way its built-in marks do, and the marks this
+ * SDK installs under /brand/marks/ are black on transparent: in dark mode
+ * (the `dark` class next-themes writes on <html>, the one signal
+ * lms-theme.tsx and Tailwind's `dark:` variants read) they invert to white,
+ * the colour the frame gives the text beside them.
+ */
+html.sc-landing.dark #hero a[href^="/download/"] img {
+  filter: invert(1);
+}
 .sc-eyebrow {
   font-size: 0.75rem;
   font-weight: 600;
@@ -208,6 +221,19 @@ html.sc-landing:not(.dark) {
 .sc-landing #hero > div > div:first-child > div > div:last-child {
   width: auto !important;
 }
+/*
+ * 1.15.0 (Ray, 2026-09-09: "the supacharge name in hero is small"): the
+ * host shell's Branding (components/custom/branding.tsx) measures the
+ * frame's 250px slot the moment it mounts - before lms-theme.tsx has put
+ * sc-landing on <html>, so before the rule above has widened the slot -
+ * and shrinks the wordmark to fit it with an inline transform and an
+ * inline width on its wrapper (at 1280 a 72px "Supacharge" came out 36px
+ * tall). The slot is auto-width here, so nothing needs to fit: undo both
+ * inline styles and the wordmark renders at the size the rule below sets.
+ */
+.sc-landing #hero > div > div:first-child > div > div:last-child span {
+  width: auto !important;
+}
 .sc-landing #hero > div > div:first-child > div > div:last-child span > span {
   font-family: var(--sc-font-brand) !important;
   font-style: italic !important;
@@ -216,6 +242,7 @@ html.sc-landing:not(.dark) {
   letter-spacing: -0.03em !important;
   line-height: 1 !important;
   color: var(--sc-ink) !important;
+  transform: none !important;
 }
 .sc-landing #hero > div > div:first-child > div > div:last-child span > span::after {
   content: "\00ae";

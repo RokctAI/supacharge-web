@@ -77,6 +77,14 @@ export interface LandingLink {
 export interface LandingApp extends LandingLink {
   /** Stable key, unique among the apps. */
   id: "android" | "desktop" | "ios";
+  /**
+   * The platform's own name - "Android", "Windows" - the hero badge shows
+   * under its eyebrow (1.15.0; Ray, 2026-09-09: the buttons must not say
+   * "APK", they say the platform). Never a file format.
+   */
+  platform: string;
+  /** The small line above the platform name on the hero badge. */
+  eyebrow: string;
   /** One line under the label - what the download is. */
   description: string;
   /**
@@ -342,16 +350,21 @@ export const LMS_LANDING_PLACEHOLDERS: { token: string; needed: string }[] = [
 const SIGNUP_LABEL = "Start with Supacharge";
 
 /**
- * The page every download points at: the app's GitHub releases, where the
- * weekly release lane (RokctAI/supacharge .github/workflows/release.yml,
- * `build_android: true` and `build_windows: true`) attaches each build.
+ * The releases page: where the weekly release lane (RokctAI/supacharge
+ * .github/workflows/release.yml, `build_android: true` and
+ * `build_windows: true`) attaches each build, and where the single flagged
+ * `app` link and the demoted iOS entry still point.
  *
- * The releases PAGE, not a `releases/latest/download/<asset>` link, for the
- * reason 1.4.1 gives: the lane names every asset for its version
- * (`app-v1.2.9.apk`, `app-windows-v1.2.9.zip`), so no fixed filename
- * resolves and a direct link would 404 on the next release. The page always
- * shows the newest release and lets a visitor read the notes before a
- * 127 MB download; the description on each entry says which file to take.
+ * Since 1.15.0 the SHOWN apps no longer point here. The lane names every
+ * asset for its version (`app-v1.2.9.apk`, `app-windows-v1.2.9.zip`), so
+ * no `releases/latest/download/<asset>` link resolves and a hard-coded
+ * one would 404 on the next release - the reason 1.4.1 sent visitors to
+ * the page. The shown entries instead go through this SDK's own
+ * app/download/[platform]/route.ts, which asks the public GitHub releases
+ * API for the latest release, finds that platform's asset by its name
+ * pattern and 302s to it, falling back to this page when the API is
+ * unreachable or the asset is missing (Ray, 2026-09-09: "there is no way
+ * we can resolve to get the direct download link?").
  */
 const RELEASES_URL = "https://github.com/RokctAI/supacharge/releases/latest";
 
@@ -360,11 +373,14 @@ const RELEASES_URL = "https://github.com/RokctAI/supacharge/releases/latest";
  *
  * Ray, 2026-09-09: "supacharge need to show these apps, ios is demoted for
  * now. apk and desktop app". The two shown entries are the two the release
- * lane actually publishes - an Android APK (`app-v<version>.apk`, beside
+ * lane actually publishes - an Android build (`app-v<version>.apk`, beside
  * the `.aab` the Play lane takes) and a Windows desktop build
  * (`app-windows-v<version>.zip`); there is no macOS or Linux build and no
- * store listing, so "Desktop app" means the Windows build and both
- * destinations are the same releases page.
+ * store listing, so "Desktop app" means the Windows build. The words on
+ * every surface name the PLATFORM, never the file format (Ray, 2026-09-09:
+ * "its saying apk which it should not"). Their hrefs are the site's own
+ * download route (app/download/[platform]/route.ts), which redirects to the
+ * latest release's asset for that platform - see RELEASES_URL above.
  *
  * Kept as a plain literal (no references) so tests/test_landing_apps.py can
  * lift it out and read it under node without a bundler.
@@ -372,19 +388,23 @@ const RELEASES_URL = "https://github.com/RokctAI/supacharge/releases/latest";
 export const LMS_APPS: LandingApp[] = [
   {
     id: "android",
-    label: "Android app (APK)",
-    href: "https://github.com/RokctAI/supacharge/releases/latest",
+    label: "Android app",
+    platform: "Android",
+    eyebrow: "Download for",
+    href: "/download/android",
     external: true,
-    description: "Direct APK download from the latest release",
+    description: "Direct download for Android from the latest release",
     icon: "smartphone",
     shown: true,
   },
   {
     id: "desktop",
     label: "Desktop app",
-    href: "https://github.com/RokctAI/supacharge/releases/latest",
+    platform: "Windows",
+    eyebrow: "Download for",
+    href: "/download/windows",
     external: true,
-    description: "Windows build from the latest release",
+    description: "Direct download for Windows from the latest release",
     // base_sdk's header bundles seven glyphs and none of them is a monitor;
     // "box" (a product) is the nearest. A "monitor" glyph is a base_sdk
     // change, not this SDK's.
@@ -395,10 +415,12 @@ export const LMS_APPS: LandingApp[] = [
     // demoted for now (Ray, 2026-09-09: "ios is demoted for now")
     id: "ios",
     label: "iOS app",
+    platform: "iOS",
+    eyebrow: "Download for",
     // No iOS build lane exists in RokctAI/supacharge and there is no App
-    // Store listing, so this points at the same releases page as the rest
-    // rather than at a URL nothing publishes. Swap in the listing when
-    // there is one.
+    // Store listing, so there is nothing for the download route to resolve:
+    // this points at the releases page rather than at a URL nothing
+    // publishes. Swap in the listing when there is one.
     href: "https://github.com/RokctAI/supacharge/releases/latest",
     external: true,
     description: "Not published yet",

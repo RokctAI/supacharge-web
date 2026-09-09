@@ -51,6 +51,9 @@ LESSON_DIR = os.path.join(
 CONFIG = os.path.join(LANDING, "lms-landing-config.ts")
 HEADER_MENU = os.path.join(LANDING, "lms-header-menu.ts")
 HERO_FORM = os.path.join(LANDING, "lms-hero-form.tsx")
+HERO_COPY = os.path.join(LANDING, "lms-hero-copy.ts")
+MARKS = os.path.join(TEMPLATES, "public", "brand", "marks")
+THEME_CSS = os.path.join(LANDING, "lms-theme.css")
 FOOTER_CHROME = os.path.join(LANDING, "lms-footer-chrome.ts")
 FOOTER_SECTION = os.path.join(CUSTOM, "lms-footer-section.tsx")
 PROMPT = os.path.join(CUSTOM, "lms-download-app.tsx")
@@ -63,10 +66,12 @@ LESSON_PLAYBACK = os.path.join(LESSON_DIR, "_components", "lesson-playback.tsx")
 RELEASES_PAGE = "https://github.com/RokctAI/supacharge/releases/latest"
 
 # The surfaces that offer the app. Each reads LMS_SHOWN_APPS and never the
-# raw LMS_APPS, so a demoted entry cannot leak through one of them.
+# raw LMS_APPS, so a demoted entry cannot leak through one of them. Since
+# 1.15.0 the hero's surface is its copy (the badges the frame draws), not
+# its form, which draws nothing.
 APP_SURFACES = {
     "header menu": HEADER_MENU,
-    "hero form": HERO_FORM,
+    "hero copy": HERO_COPY,
     "footer section": FOOTER_SECTION,
     "download prompt": PROMPT,
 }
@@ -127,7 +132,7 @@ class TestApps(unittest.TestCase):
         cls.apps = lift_apps()
         cls.by_id = {app["id"]: app for app in cls.apps}
 
-    def test_shown_apps_are_the_apk_and_the_desktop_build_in_that_order(self):
+    def test_shown_apps_are_the_android_and_the_desktop_build_in_that_order(self):
         shown = [app["id"] for app in self.apps if app["shown"]]
         self.assertEqual(shown, ["android", "desktop"])
 
@@ -138,23 +143,54 @@ class TestApps(unittest.TestCase):
         self.assertIn("demoted for now", source)
 
     def test_labels_are_the_words_ray_asked_for(self):
-        self.assertEqual(self.by_id["android"]["label"], "Android app (APK)")
+        self.assertEqual(self.by_id["android"]["label"], "Android app")
         self.assertEqual(self.by_id["desktop"]["label"], "Desktop app")
 
-    def test_every_entry_is_a_complete_external_https_link(self):
+    def test_badges_name_the_platform(self):
+        """1.15.0: the hero badge reads "<eyebrow> <platform>"."""
+        self.assertEqual(self.by_id["android"]["platform"], "Android")
+        self.assertEqual(self.by_id["desktop"]["platform"], "Windows")
+        self.assertEqual(self.by_id["ios"]["platform"], "iOS")
         for app in self.apps:
             with self.subTest(app=app["id"]):
-                self.assertTrue(app["href"].startswith("https://"), app["href"])
+                self.assertTrue(app["eyebrow"].strip())
+
+    def test_no_rendered_word_says_apk(self):
+        """1.15.0 (Ray, 2026-09-09: "its saying apk which it should not"):
+        the platform is the word, never the file format - on every field a
+        surface renders, and in the code of every surface."""
+        for app in self.apps:
+            for field in ("label", "platform", "eyebrow", "description"):
+                with self.subTest(app=app["id"], field=field):
+                    self.assertNotRegex(app[field], r"(?i)apk")
+        for name, path in {**APP_SURFACES, "hero form": HERO_FORM}.items():
+            with self.subTest(surface=name):
+                self.assertNotRegex(code_of(path), r"(?i)apk")
+
+    def test_every_entry_is_a_complete_link_opened_in_a_new_tab(self):
+        for app in self.apps:
+            with self.subTest(app=app["id"]):
+                self.assertRegex(app["href"], r"^(https://|/download/)", app["href"])
+                # external on every entry, the site's own route included: every
+                # surface then renders a plain anchor, never a prefetching Link
+                # that could start the download on the visitor's behalf.
                 self.assertIs(app["external"], True)
                 self.assertTrue(app["description"].strip())
                 self.assertIn(app["icon"], {"box", "globe", "smartphone", "message-square", "zap", "wrench", "file-text"})
 
-    def test_destinations_are_the_releases_page_not_a_per_version_asset(self):
-        # 1.4.1: assets are named per version, so only the page is stable.
+    def test_shown_destinations_are_the_download_route_never_a_per_version_asset(self):
+        """1.15.0: the shown apps go through /download/<platform>, which
+        resolves the latest release's asset at request time; the assets
+        are named per version (1.4.1), so no href may bake one in."""
         for app in self.apps:
             with self.subTest(app=app["id"]):
-                self.assertEqual(app["href"], RELEASES_PAGE)
                 self.assertNotIn("/releases/download/", app["href"])
+                if app["shown"]:
+                    self.assertRegex(app["href"], r"^/download/[a-z]+$")
+                else:
+                    # Nothing publishes the demoted platform: the page, not an
+                    # invented route.
+                    self.assertEqual(app["href"], RELEASES_PAGE)
 
     def test_icons_are_a_phone_for_android_and_not_a_phone_for_desktop(self):
         self.assertEqual(self.by_id["android"]["icon"], "smartphone")
@@ -178,6 +214,67 @@ class TestSurfaces(unittest.TestCase):
                 self.assertIn("LMS_SHOWN_APPS", source)
                 self.assertNotRegex(source, r"\bLMS_APPS\b")
                 self.assertNotRegex(source, r"[\"']ios[\"']")
+
+    def test_hero_badges_are_the_frames_own_store_badges(self):
+        """1.15.0 (Ray, 2026-09-09, on a custom button drawn in the badge's
+        shape: "cant say this, look at the rokctai hero how it say it"): the
+        downloads are base_sdk's HeroBadge entries - one per shown app,
+        registered through the hero copy, drawn by the frame exactly as
+        rokct.ai's "Available in the / Chrome Web Store" badge is - with the
+        small line and the big line taken from the entry's eyebrow and
+        platform, and the platform's mark handed to the frame through its
+        {src, alt} icon slot."""
+        copy = code_of(HERO_COPY)
+        self.assertIn("LMS_SHOWN_APPS.map(", copy)
+        for field in ("eyebrow: app.eyebrow", "label: app.platform", "icon: LMS_APP_MARKS[app.id]"):
+            self.assertIn(field, copy)
+        self.assertIn("badges: LMS_HERO_BADGES,", copy)
+        # The hero form draws no button of its own any more.
+        form = code_of(HERO_FORM)
+        self.assertIn("return null;", form)
+        for word in ("<a", "href", "LMS_APP_GLYPHS", "LMS_SHOWN_APPS", "loginUrl", "LANDING_CONFIG"):
+            self.assertNotIn(word, form)
+        self.assertNotRegex(form, r"(?i)sign in")
+
+    def test_hero_badge_marks_are_installed_files_and_no_cdn(self):
+        """The Android and Windows marks are SVG files this SDK installs
+        under public/brand/marks (the Simple Icons tracings, CC0) - no CDN,
+        no inline glyph module - and the demoted iOS entry keeps the frame's
+        own Apple glyph for the day it is shown again."""
+        copy = code_of(HERO_COPY)
+        marks = {
+            "android": ("/brand/marks/android.svg", "Android"),
+            "desktop": ("/brand/marks/windows.svg", "Windows"),
+        }
+        for app_id, (src, alt) in marks.items():
+            with self.subTest(app=app_id):
+                self.assertIn(f'{app_id}: {{ src: "{src}", alt: "{alt}" }}', copy)
+                path = os.path.join(TEMPLATES, "public", src.lstrip("/").replace("/", os.sep))
+                self.assertTrue(os.path.isfile(path), path)
+                svg = read(path)
+                self.assertEqual(svg.count("<path"), 1)
+                self.assertNotRegex(svg, r"https?://(?!www\.w3\.org/2000/svg)")
+                self.assertNotIn("fill=", svg)
+        self.assertIn('ios: "app-store"', copy)
+        self.assertFalse(os.path.exists(os.path.join(LANDING, "lms-app-glyphs.tsx")))
+        self.assertNotIn(
+            "lms-app-glyphs",
+            json.dumps(load_manifest()["installs"]),
+        )
+        self.assertEqual(sorted(os.listdir(MARKS)), ["android.svg", "windows.svg"])
+
+    def test_hero_badge_marks_follow_the_frames_text_colour_in_dark_mode(self):
+        """The frame draws a {src, alt} mark as an <img>, which cannot take
+        the badge's text colour the way its built-in marks do, so the
+        stylesheet inverts the black marks under the `dark` class - the one
+        signal lms-theme.tsx and Tailwind's dark: variants read."""
+        css = read(THEME_CSS)
+        rule = re.search(
+            r'html\.sc-landing\.dark #hero a\[href\^="/download/"\] img \{([^}]*)\}', css
+        )
+        self.assertIsNotNone(rule, "dark-mode mark rule missing")
+        self.assertIn("filter: invert(1);", rule.group(1))
+        self.assertNotIn(".sc-app-badge", css)
 
     def test_header_menu_lists_the_apps_as_one_group_of_cards(self):
         source = read(HEADER_MENU)
