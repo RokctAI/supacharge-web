@@ -1,5 +1,96 @@
 # Changelog
 
+## 1.19.0
+
+* The host the shell SHOWS follows the REQUEST first. The generated
+  favicon's letter (1.17.0) and the host line on the generated
+  link-preview card (1.15.0) were both derived from the configured site
+  url, so a white-label or custom domain in front of the same deployment
+  showed the platform's letter and host rather than its own. Now both
+  come from one helper, `resolveDisplayHost(copy, headers)` in
+  `app/lib/site-metadata.ts`, and the request wins when it is a public
+  host.
+  * The rule: the request host - `x-forwarded-host` (its first value
+    when a proxy chain appended) else `host`, the port dropped, a
+    leading `www.` removed, lower-cased - UNLESS it is a non-public
+    host, in which case the configured site's host (`NEXT_PUBLIC_SITE_URL`,
+    else the copy's `url`), then the site name (or title). Non-public
+    means: empty; exactly `localhost`, `127.0.0.1`, `[::1]`, `::1` or
+    `0.0.0.0`; or ending in `.vercel.app`, `.local` or `.internal`
+    (`NON_PUBLIC_HOSTS`, `NON_PUBLIC_HOST_SUFFIXES`). So a custom
+    domain gets its own letter and host line, and a preview deployment
+    or a local run keeps the configured site's. Also exported:
+    `normaliseHost()`, `isPublicHost()`, `requestHost()`, `siteHost()`,
+    and the `HeaderReader` type (anything with `get`, so a request's
+    `Headers` and next/headers' `headers()` both fit).
+  * `app/brand-icon/route.tsx`: the letter is
+    `resolveDisplayHost(copy, request.headers)`'s first letter or digit,
+    else the site name's, else `R` - the same remaining fallbacks as
+    1.17.0. Colour, size, ring and caching are unchanged; the route's own
+    `hostOf` and `requestOrigin` helpers are gone with the old order.
+  * `app/opengraph-image.tsx` (and so `app/twitter-image.tsx`): the
+    card's host line is `resolveDisplayHost(copy, headers)` with the same
+    `headers()` the route already read for the request origin, so nothing
+    that was static becomes dynamic. Assets are still fetched from the
+    request origin first and from the configured site url only when
+    there is no request. `www.` is now stripped from the printed host.
+  * `tests/test_manifest.py` checks the helper exists, reads
+    `x-forwarded-host` then `host`, checks the request before the
+    configured site, lists every excluded host and suffix, and that
+    both routes call it.
+
+## 1.18.0
+
+* The header's `groups` open as ONE panel again - the mega menu. Ray,
+  2026-09-09: "no mega menu anymore" on rokct.ai is a regression; rokct
+  keeps everything its old header had, and Supacharge inherits the same
+  header. 1.14.0 to 1.16.0 rendered each group as its own dropdown, so the
+  five columns agent_sdk 1.8.0 registered from rokctai_frontend's
+  `PLATFORM_FEATURES` became five `12rem` single-column menus on the bar.
+  * `components/custom/header-menu.tsx`: `HeaderMenuNav` renders the groups
+    as a single `DesktopMegaMenu` - one trigger, the FIRST group's label
+    (with its badge), that discloses a panel `absolute inset-x-0 top-full`
+    under the bar (the bar's backdrop-filter is its containing block, so it
+    spans the bar's width and needs no knowledge of its height): inside, a
+    `mx-auto max-w-6xl px-4 py-8` row with the first group's items as a
+    300px lead column without a repeated heading, and every other group as a
+    headed column (`h4`, 15px semibold) in a `repeat(auto-fit, minmax(9rem,
+    1fr))` grid beside it - the geometry of rokctai_frontend's hand-written
+    panel (`w-[300px]` cards left, four columns right). Same open/close
+    contract as the 1.14.0 dropdown: hover, focus and click open; Escape
+    (focus back on the button), an outside click, focus leaving it and a
+    click on any of its links close. Theme tokens only: `bg-background`,
+    `border-border`, `shadow-2xl`, `text-foreground`,
+    `text-muted-foreground`, `hover:bg-foreground/5`, and `MenuLabel` for
+    the new/soon pills. The trigger leads the row, ahead of the flat links,
+    as the old bar's Product did (Product | Pricing | Affiliate | Teams);
+    with no groups the row is the flat links alone, as before. The
+    per-group `DesktopGroup` is gone.
+  * `components/custom/landing/header-menu.ts`: `HeaderMenuLink` gains
+    `description?: string` (one line under the label) and `icon?:
+    HeaderMenuIcon`; `HeaderMenuIcon` is the closed set `"box" | "globe" |
+    "smartphone" | "message-square" | "zap" | "wrench" | "file-text"`,
+    resolved from lucide-react by name in header-menu.tsx (`MENU_ICONS`) so
+    the header bundles seven glyphs rather than the library. Both fields
+    are carried onto `HeaderMenuItem` by `resolveHeaderMenuItems` and
+    `resolveHeaderMenu` (an anchor has neither), and an item with either
+    renders as a card in the panel - icon box, label with badge, blurb,
+    an arrow on hover - the way rokct.ai's Browser Extension / Web App /
+    Mobile Apps tiles did; an item with neither is a 13.5px link. A "soon"
+    card is non-navigable like a "soon" link.
+  * Unchanged, so nothing composed today moves: the mobile panel
+    (`HeaderMenuList`, each group a headed section of stacked links), the
+    flat links, the actions, and the header's own markup. A menu with NO
+    groups renders byte-for-byte as in 1.16.0 (Supacharge's header until
+    lms_sdk registers groups). agent_sdk 1.9.0 fills the descriptions and
+    icons for rokct.ai.
+  * Not carried over from the old rokctai_frontend header: the Chrome Web
+    Store glyph inside the "Add ROK Extension" button (an external CDN
+    image; `HeaderMenuAction` has no icon field), the 200ms fade/slide of
+    the panel (it toggles with the `hidden` attribute like the 1.14.0
+    dropdown), and the 1.5s logo collapse with the nav fading until hover
+    or scroll, which 1.14.0 already dropped.
+
 ## 1.17.0
 
 * A FALLBACK favicon for a shell that has none. Ray, 2026-09-09: "on
