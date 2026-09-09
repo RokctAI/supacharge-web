@@ -192,6 +192,8 @@ next-env.d.ts
 /components/custom/landing/lms-theme.tsx
 /components/custom/landing/lms-tutor-card.tsx
 /components/custom/landing/lms-wordmark.tsx
+/components/custom/landing/network-sites.ts
+/components/custom/landing/network-strip.ts
 /components/custom/landing/page-sections.ts
 /components/custom/landing/plans-query.ts
 /components/custom/landing/site-metadata.ts
@@ -214,6 +216,7 @@ next-env.d.ts
 /components/custom/nav/client-nav.tsx
 /components/custom/nav/nav-user.tsx
 /components/custom/nav/team-switcher.tsx
+/components/custom/network-strip.tsx
 /components/custom/paas-login.tsx
 /components/custom/session-provider.tsx
 /components/custom/submit-button.tsx
