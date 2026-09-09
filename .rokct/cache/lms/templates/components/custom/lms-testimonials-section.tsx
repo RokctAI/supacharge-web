@@ -16,26 +16,47 @@
 
 "use client";
 
-// The landing page's testimonials. Quotes: LMS_LANDING_CONFIG.testimonials,
-// whose five items are ALL PLACEHOLDER stand-ins rather than real customers
-// until genuine quotes exist (see LMS_LANDING_PLACEHOLDERS) - they render as
-// ordinary testimonials, which is the point. The isPlaceholder branch below
-// is for the `[[TOKEN]]` state this section used to be in, and still applies
-// if an entry is ever emptied back to a token: a token is shown as such,
-// never dressed up as somebody's words. A null config renders nothing.
+// The landing page's testimonials: since 1.10.0 the same auto-scrolling row
+// rokct.ai runs (Ray, 2026-09-09: Supacharge is to inherit rokct.ai's
+// auto-scrolling testimonials), rendered through base_sdk >= 1.14.0's
+// components/custom/landing/testimonials-marquee.tsx - the row that pauses
+// under the pointer and stands still under prefers-reduced-motion. This
+// file keeps the section frame and the heading and hands the marquee the
+// quotes; the card and the edge fades are re-themed through the two class
+// props the marquee exposes, so the cards stay Supacharge's (`sc-card`,
+// --sc-ink) on the same ground as the rest of the page and the fades match
+// that ground.
 //
-// Below 640px the five are one swipeable row (`sc-row`,
-// landing/lms-theme.css); from 640px up the grid is unchanged, so five cards
-// fill the md:grid-cols-3 row as three then two. The count is Ray's
-// (2026-09-09): five stand-ins so the row can be judged at the length the
-// real quotes will have, and all five go when they arrive.
+// Quotes: LMS_LANDING_CONFIG.testimonials, whose five items are ALL
+// PLACEHOLDER stand-ins rather than real customers until genuine quotes
+// exist (see LMS_LANDING_PLACEHOLDERS) - they render as ordinary
+// testimonials, which is the point. The isPlaceholder check below is for
+// the `[[TOKEN]]` state this section used to be in, and still applies if an
+// entry is ever emptied back to a token: a token is shown as such, bare,
+// never wrapped in quotation marks and dressed up as somebody's words. A
+// null config renders nothing.
+//
+// The marquee is one horizontal row at every width, so the `sc-row` swipe
+// row this section used below 640px (1.8.0) is no longer needed here: the
+// cards move by themselves and, with motion turned off, scroll by hand.
 
 import React from "react";
 
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
+import { TestimonialsMarquee } from "@/components/custom/landing/testimonials-marquee";
 
 const isPlaceholder = (text: string) => /^\[\[.*\]\]$/.test(text.trim());
+
+/**
+ * The marquee's card, in Supacharge's chrome. `w-[350px] shrink-0 h-full`
+ * are what the marquee needs of a card (a fixed width, so the track's
+ * length is known and one third of it is exactly one copy of the items);
+ * the rest is the card this section drew before - `sc-card` for the
+ * surface, border and radius out of landing/lms-theme.css, the same p-6.
+ */
+const CARD_CLASS =
+  "sc-card sc-marquee-card flex w-[350px] shrink-0 flex-col justify-between gap-5 p-6 h-full";
 
 export function LmsTestimonialsSection({ id }: { id?: string }) {
   const config = LMS_LANDING_CONFIG.testimonials;
@@ -50,44 +71,18 @@ export function LmsTestimonialsSection({ id }: { id?: string }) {
         <h2 className="text-center text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
           {config.heading}
         </h2>
-        <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-4 sc-row">
-          {config.items.map((item, index) => (
-            <figure
-              key={`${item.author}-${index}`}
-              className="flex flex-col justify-between gap-6 sc-card p-6"
-            >
-              <blockquote
-                className={`text-lg leading-relaxed ${
-                  isPlaceholder(item.quote)
-                    ? "font-mono text-sm text-[var(--sc-star)]"
-                    : "text-[var(--sc-ink)]"
-                }`}
-              >
-                {isPlaceholder(item.quote) ? item.quote : `“${item.quote}”`}
-              </blockquote>
-              <figcaption className="flex flex-col border-t border-[var(--sc-stroke-subtle)] pt-4">
-                <span
-                  className={`font-bold ${
-                    isPlaceholder(item.author)
-                      ? "font-mono text-xs text-[var(--sc-star)]"
-                      : "text-[var(--sc-ink)]"
-                  }`}
-                >
-                  {item.author}
-                </span>
-                <span
-                  className={`text-sm ${
-                    isPlaceholder(item.role)
-                      ? "font-mono text-xs text-[var(--sc-star)]"
-                      : "text-[var(--sc-ink-2)]"
-                  }`}
-                >
-                  {item.role}
-                </span>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
+      </div>
+      <div className="mt-12">
+        <TestimonialsMarquee
+          className="sc-marquee"
+          items={config.items.map((item) => ({
+            text: isPlaceholder(item.quote) ? item.quote : `“${item.quote}”`,
+            author: item.author,
+            role: item.role,
+          }))}
+          cardClassName={CARD_CLASS}
+          fadeClassName="from-[var(--sc-card-alt)]"
+        />
       </div>
     </section>
   );

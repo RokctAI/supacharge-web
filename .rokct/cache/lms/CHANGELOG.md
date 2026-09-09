@@ -1,5 +1,133 @@
 # Changelog
 
+## 1.10.0
+
+* The testimonials are rokct.ai's auto-scrolling row. Ray, 2026-09-09:
+  Supacharge is to inherit rokct.ai's auto-scrolling testimonials - and
+  base_sdk 1.14.0 made that one component every shell can render,
+  `components/custom/landing/testimonials-marquee.tsx` (the marquee that
+  pauses under the pointer and stands still under prefers-reduced-motion,
+  importing base's `app/styles/rokct-marquee.css` itself so the host edits
+  nothing).
+  * `components/custom/lms-testimonials-section.tsx` keeps its frame and
+    heading and renders `TestimonialsMarquee` over
+    `LMS_LANDING_CONFIG.testimonials` in place of the card grid. The card is
+    re-themed through the marquee's `cardClassName` prop - `sc-card` for the
+    surface, border and radius, the same `p-6`, plus the `w-[350px] shrink-0
+    h-full` the track needs so one third of it is exactly one copy of the
+    quotes - and the edge fades through `fadeClassName`
+    (`from-[var(--sc-card-alt)]`, the section's own ground).
+  * The words inside the card are the marquee's and painted zinc with no
+    prop to change them, so `components/custom/landing/lms-theme.css`
+    re-paints them from outside through the `sc-marquee` / `sc-marquee-card`
+    classes the section adds - the quote, author and role in the card's ink,
+    the avatar disc and the rule above it in the card's stroke - exactly the
+    way the hero frame has been re-painted through `#hero` since 1.2.0.
+  * A `[[TOKEN]]` quote is still shown bare, never wrapped in quotation
+    marks and dressed up as somebody's words; what it loses is the
+    monospace/star styling of the old per-card branch, because the marquee
+    styles every card alike. All five items are still the PLACEHOLDER
+    stand-ins 1.8.0 describes.
+  * The `.sc-row` swipe row is gone from this one section: the marquee is a
+    single horizontal row at every width, so nothing is stacked below 640px
+    and there is nothing to swipe. Every other section keeps its row.
+* The new/soon pill `components/custom/lms-floating-nav.tsx` draws beside a
+  badged entry is now base's ONE `components/custom/menu-label.tsx`
+  (`MenuLabel`: bg-primary with black text, Ray, 2026-09-09: "use primary
+  color and text in black") instead of this file's own `--sc-primary` span.
+  The header is base's since 1.14.0 and renders `lms-header-menu.ts` inside
+  it with that same label, so the nav and the header can no longer show two
+  different pills; on Supacharge the shell's `--primary` is the same orange.
+* `components/custom/landing/lms-header-menu.ts` says why `testimonials` is
+  still not in the header in words that are true: the section stopped
+  rendering `[[TESTIMONIAL_n_QUOTE]]` tokens in 1.8.0, but its five quotes
+  are stand-ins rather than real customers, and the header points only at
+  sections whose words are. No entry was added. Its opening comment also
+  notes that since base_sdk 1.14.0 the menu renders inside the header, not
+  as a row under the shell's own.
+* New `components/custom/landing/lms-site-metadata.ts`: Supacharge's site
+  metadata - siteName, url, `<title>`, tagline, description, keywords,
+  `en_ZA`, and the wordmark as the logo base draws into its generated
+  Open Graph / Twitter preview image - default-exported for base_sdk
+  1.15.0's site-metadata registry and registered with one integrations line
+  at `// @rokct-sdk-site-metadata-start` in
+  `components/custom/landing/site-metadata.ts`.
+  * That registry is OPTIONAL in this release's base floor. Against
+    base_sdk 1.14.0 the target file does not exist and
+    `sdk_installer_base.py update_integrations()` prints "Integration
+    target not found" and skips the line (the composer's missing-target
+    rule), so the module installs and sits unused.
+  * For the same reason the module declares the shape it fills
+    (`LmsSiteMetadata`, the `SiteMetadataCopy` fields) instead of
+    importing base's type: an `import type` of a file that is not on disk
+    is a compile error, and a shell on 1.14.0 must still build. The
+    registry's own `load` signature checks the default export structurally
+    when base 1.15.0 is present.
+* base_sdk floor: >= 1.14.0 (was 1.13.0). The header that renders the
+  registered menu, `menu-label.tsx` and the marquee ship together there;
+  `requires` lists `components/custom/menu-label.tsx`,
+  `components/custom/landing/testimonials-marquee.tsx` and
+  `components/custom/landing/site-metadata.ts` (the last one optional, as
+  above), and the manifest's per-file notes say which base version carries
+  each.
+
+## 1.9.0
+
+* The landing page now says it is for IEB students as well as CAPS students.
+  Ray, 2026-09-09: "its joining it. though i havent added tutors and
+  assistants of IEB but since ieb extends caps i can use same team" - IEB
+  joins CAPS rather than sitting beside it, and the same team serves both.
+* What makes that true is the curriculum, and only the curriculum. IEB schools
+  sit the National Senior Certificate on the same DBE CAPS curriculum
+  (`factory/lessons/curriculum/IEB/README.md`: "the IEB teaches the same CAPS
+  content"); what differs is how the IEB assesses it - its own Subject
+  Assessment Guidelines, its own papers, its own pacing. So every line here
+  claims shared CONTENT and nothing about assessment.
+  * `subjects.eyebrow`: "Subjects built on CAPS" -> "Built for CAPS and IEB".
+  * `subjects.blurb` and the "What is Supacharge?" FAQ answer keep the CAPS
+    teaching plan they already named and add, in the same breath, that it is
+    the curriculum IEB schools teach too. Neither drops CAPS: the annual
+    teaching plan is a CAPS document, and pretending otherwise would trade one
+    inaccuracy for another.
+  * The Subjects feature card loses one word - "Browse every CAPS-aligned
+    subject you take" -> "Browse every subject you take". A card that only
+    lists what the student takes never needed to name a curriculum, and the
+    shortest honest line is the one that claims nothing.
+* One new FAQ item, "Does this work for IEB?", carries the whole answer rather
+  than stretching the other lines to imply it: the shared curriculum, then
+  "We don't include IEB past papers."
+  * That last sentence is not a caveat to be tidied away later. It is what
+    keeps the rest of the section true, because there is no IEB assessment
+    layer in the product to point at: the published lesson indexes carry zero
+    IEB rows, the index builders read the CAPS root, and `lms_course` has no
+    curriculum field, so a student who picks IEB today gets CAPS lessons under
+    an IEB badge.
+  * It says the papers are NOT INCLUDED, not "not yet". Ray, 2026-09-09: "we
+    cant do practice as we dont have permission for past papers for IEB". The
+    block is permission the company does not hold, so a line that hinted at a
+    future would be its own untruth - a different one from the one this change
+    removes.
+* Deliberately absent, and each one for a reason: no "IEB-aligned", no "built
+  for the IEB exam", no IEB past papers offered, no IEB mark, weighting or
+  paper-structure figure, and nothing implying a selectable IEB lesson set.
+  The repository contradicts all of them today, and IEB assessment material
+  additionally cannot be reproduced commercially without written permission
+  (`factory/lessons/curriculum/IEB/SOURCES.md`).
+* The team is untouched. `lms/team/**/CAPS/` and `public/team/**/CAPS/` are
+  identifiers, not copy - read by `sync_team_assets.dart`,
+  `build_tutor_catalog.py`, the manifests, CI and the live `/team/...` image
+  URLs - and Ray has confirmed the CAPS team serves IEB, so renaming them
+  would break served assets for nothing a visitor can see.
+* The Dart half moves with this one. `lms/dart/templates/tour/lms.tour.yaml`
+  carried two of these strings verbatim on the `courses` step; both are
+  reworded to the web's new wording (Dart manifest 1.16.7 -> 1.16.8) so the
+  guided tour, its stills and the site do not drift apart. Step key and route
+  are unchanged.
+* Version-only side effects: `manifest.json` 1.8.0 -> 1.9.0 and
+  `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` follows it, as it must. No
+  new `base_sdk` seam and no new floor - the highest this SDK already requires
+  is base_sdk >= 1.13.0 (the header-menu registry), which core `main` carries.
+
 ## 1.8.0
 
 * Cuts the Supacharge landing's height on a phone by laying most of its card
