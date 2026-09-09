@@ -292,7 +292,7 @@ export const LMS_LANDING_PLACEHOLDERS: { token: string; needed: string }[] = [
   {
     token: "testimonials.items (was [[TESTIMONIAL_n_QUOTE]] / _NAME / _ROLE)",
     needed:
-      "Three real student, parent or teacher quotes with names and roles - none exist in any source yet. The three entries on the page now (Naledi, Shireen, Sipho) are PLACEHOLDER stand-ins written to make the section read as finished, not real customers: replace all three, then delete this row. They deliberately carry no marks, percentages or measured outcomes, so keep any replacement free of result claims the product cannot evidence.",
+      "Five real student, parent or teacher quotes with names and roles - none exist in any source yet. ALL FIVE entries on the page now (Naledi, Shireen, Sipho, Lerato, Yusuf) are PLACEHOLDER stand-ins written to make the section read as finished, not real customers - the last two were added after the first three and are no more real than they are: replace all five, then delete this row. They deliberately carry no marks, percentages or measured outcomes, and no surnames, schools or employers, so keep any replacement free of result claims the product cannot evidence.",
   },
 ];
 
@@ -669,12 +669,18 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
   // PLACEHOLDER CONTENT - these three are stand-ins, not real customers.
   // Ray asked for the section to read as finished ahead of launch and will
   // replace them with genuine quotes; LMS_LANDING_PLACEHOLDERS still carries
-  // the row, because the need for real ones is real and unmet. Written to
+  // the row, because the need for real ones is real and unmet. All FIVE are
+  // stand-ins - Ray asked for two more than the original three (2026-09-09:
+  // "i need you to add 2 more so when i replace i will replace all. right
+  // now is about the design") so the row's layout can be judged at its real
+  // length, so there is no genuine quote among them to tell apart. Written to
   // the same rule the rest of this file follows: they describe experience
-  // of things the product actually does - the private break, the partner's
-  // weekly report, the two-teacher format - and carry no marks, no
-  // percentages and no measured outcome, so nothing here is a result claim
-  // the product would have to stand behind. Swap the three items, not the
+  // of things the product actually does - the break, the partner's weekly
+  // report, the two-teacher format, tomorrow's recording of a missed
+  // session - and carry no marks, no percentages and no measured outcome,
+  // so nothing here is a result claim the product would have to stand
+  // behind. First names only, with no surname, school or employer, so none
+  // of them reads as a traceable person. Swap all five items, not the
   // shape, and delete the registry row when the real ones land.
   testimonials: {
     heading: "From students, parents and teachers",
@@ -696,6 +702,18 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
           "My learners arrive having already seen the topic twice, taught two different ways. That turns my period into a discussion instead of a first explanation.",
         author: "Sipho",
         role: "Physical Sciences teacher",
+      },
+      {
+        quote:
+          "When I miss a session the recording is in my library the next day, so I am not starting the next one already behind.",
+        author: "Lerato",
+        role: "Grade 12 learner",
+      },
+      {
+        quote:
+          "Two teachers on the same topic is what sold me. He hears it the way the examiners mark it, then again from first principles, and it is the second telling he repeats back to me.",
+        author: "Yusuf",
+        role: "Parent of a Grade 9 learner",
       },
     ],
   },

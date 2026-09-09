@@ -17,12 +17,18 @@
 "use client";
 
 // The landing page's testimonials. Quotes: LMS_LANDING_CONFIG.testimonials,
-// whose three items are PLACEHOLDER stand-ins rather than real customers
+// whose five items are ALL PLACEHOLDER stand-ins rather than real customers
 // until genuine quotes exist (see LMS_LANDING_PLACEHOLDERS) - they render as
 // ordinary testimonials, which is the point. The isPlaceholder branch below
 // is for the `[[TOKEN]]` state this section used to be in, and still applies
 // if an entry is ever emptied back to a token: a token is shown as such,
 // never dressed up as somebody's words. A null config renders nothing.
+//
+// Below 640px the five are one swipeable row (`sc-row`,
+// landing/lms-theme.css); from 640px up the grid is unchanged, so five cards
+// fill the md:grid-cols-3 row as three then two. The count is Ray's
+// (2026-09-09): five stand-ins so the row can be judged at the length the
+// real quotes will have, and all five go when they arrive.
 
 import React from "react";
 
@@ -44,7 +50,7 @@ export function LmsTestimonialsSection({ id }: { id?: string }) {
         <h2 className="text-center text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
           {config.heading}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-4 sc-row">
           {config.items.map((item, index) => (
             <figure
               key={`${item.author}-${index}`}

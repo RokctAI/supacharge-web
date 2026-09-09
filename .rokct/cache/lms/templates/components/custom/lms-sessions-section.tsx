@@ -18,6 +18,11 @@
 
 // The landing page's "how a session works" section: the two-part lesson
 // and the rules a session keeps. Copy: LMS_LANDING_CONFIG.sessions.
+//
+// The three lesson steps are one swipeable row below 640px (`sc-row`,
+// landing/lms-theme.css) - a swipe through the lesson reads the way the
+// lesson runs. The facts block underneath keeps stacking: those are three
+// bare paragraphs, not cards, and prose in a snap row reads as broken.
 
 import React from "react";
 import Link from "next/link";
@@ -61,7 +66,7 @@ export function LmsSessionsSection({
         </div>
 
         {/* The lesson, as a timeline: expert, break, simplifier. */}
-        <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <ol className="grid sm:grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 sc-row">
           {config.steps.map((step, index) => (
             <li
               key={step.who}
