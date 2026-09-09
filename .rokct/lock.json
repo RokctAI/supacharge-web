@@ -18,7 +18,7 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/telemetry/nextjs",
       "ref": "main",
-      "commit": "12dcf150824937230cfbf6bb8f54e4397f03eaff",
+      "commit": "785de203d4161608193b92e2eeb5f46b859ecd1e",
       "version": "1.2.0",
       "install_py_sha256": "318d20eb7123ffaa549618d06b4530dfce5df9ba0b07df2328c0c6e1738e36c4",
       "content_sha256": "79628f311222b638a98c8357e0d947936ba4b7b247361545d88d2da5be767396"
@@ -29,10 +29,10 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/base/nextjs",
       "ref": "main",
-      "commit": "12dcf150824937230cfbf6bb8f54e4397f03eaff",
-      "version": "1.9.0",
+      "commit": "785de203d4161608193b92e2eeb5f46b859ecd1e",
+      "version": "1.12.0",
       "install_py_sha256": "b6c434a1c05611d29f1018f68b9423383f7ecfbf9cc1efe74825ba6c4df98fff",
-      "content_sha256": "390f47fa2a3ba2b1df50d06042aaa31dab6fe24dece0df6cc38e1680305e0c40"
+      "content_sha256": "f38b485cff6795e141d7bf1800d3d576b349718703f1848943d6836488fcf637"
     },
     {
       "name": "auth_sdk",
@@ -40,10 +40,10 @@
       "git": "https://github.com/RokctAI/Users",
       "path": "../Users/auth/nextjs",
       "ref": "main",
-      "commit": "6c3c73c2ad209492f9bd14f4abc8d4c61038e108",
-      "version": "1.5.0",
+      "commit": "eb539abfa782575a1bae1b563a638cb5433b9590",
+      "version": "1.6.0",
       "install_py_sha256": "b9b0d4156a68d46f528be2b885eed17cc7dba21f6b4b48b2991ba2c3274ae21b",
-      "content_sha256": "4699cfce486e4d3ba66bdace081acce637ab4fa5f564d0615c9322c17bc816ad"
+      "content_sha256": "e59869cf4693396c074207752700ce7cefa5dd804dc721f78282250a0c9a5320"
     },
     {
       "name": "lms_sdk",
@@ -51,10 +51,10 @@
       "git": "https://github.com/RokctAI/agent",
       "path": "../agent/lms/nextjs",
       "ref": "main",
-      "commit": "74804de712774918b55ded045b4714370e38dba9",
-      "version": "1.4.2",
+      "commit": "eccc0d224a70bc7c51c2775e01f5fc86d7debdc7",
+      "version": "1.6.0",
       "install_py_sha256": "65a891707fd3c741b55681a8cb05ad4dd2d0833ee5643f490928267891144741",
-      "content_sha256": "70fd1eaaa92fdbb2a49ac5fed18e866cf422cbac730d03617719fd5fb5af5bc4"
+      "content_sha256": "8d9f45aa28f1b7e98c347bfee7397f622cd77c8d1fbe235d65dd85cd36e6da5a"
     }
   ]
 }

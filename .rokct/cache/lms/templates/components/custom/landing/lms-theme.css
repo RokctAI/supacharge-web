@@ -25,7 +25,7 @@
  * in a shell with or without Tailwind. Token sheet: agent PR #242 (feel/tokens.md).
  *
  * Dark-first, like every Dart capture; the light set (AppStyle's light
- * counterparts) applies under html[data-sc-theme="light"].
+ * counterparts) applies when the host's theme class is not `dark`.
  */
 
 .sc-landing {
@@ -59,7 +59,19 @@
   color-scheme: dark;
 }
 
-.sc-landing[data-sc-theme="light"] {
+/*
+ * The light set, keyed on the ONE signal the host owns: Tailwind's `dark`
+ * class on <html> (darkMode: ["class"]), which on supacharge.app next-themes
+ * writes from the header's theme toggle. Matching its absence rather than a
+ * second attribute is what keeps these tokens and every `dark:` utility in
+ * base_sdk's chrome flipping together, in CSS, the moment the toggle fires -
+ * no JS, no re-render, nothing to fall out of step. lms-theme.tsx guarantees
+ * `dark` is on when nobody has chosen, so "no choice" lands on the dark set
+ * above, not here; it also mirrors the class into `data-sc-theme` for anything
+ * that would rather match an attribute, but that mirror is derived output, not
+ * an input to this sheet.
+ */
+html.sc-landing:not(.dark) {
   --sc-primary-tint: #ffe7d6;
   --sc-surface: #ececef;
   --sc-card: #f9f9fb;

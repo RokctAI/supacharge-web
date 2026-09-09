@@ -1,3 +1,71 @@
+## 1.6.0
+
+* **Login and register no longer decide for themselves that the answer is a
+  local Postgres row.** Three things the credentials flow needs have nothing to
+  do with authenticating anybody: which tenant site an email signs in against
+  when the form named none, where the keys and site a login produced get
+  remembered, and which platform administrator a registration provisions
+  under. All three were hardcoded to the drizzle store this SDK installs -
+  `db.select()` on `User` inside `Credentials.authorize()`, `db.update()` after
+  it, `db.select()` on `GlobalSettings` in `register()` and `getIndustries()`,
+  and the insert/update on `User` that register ends with. They now go through
+  `app/(auth)/tenant-link.ts`, a one-marker first-wins registry in the shape
+  base_sdk's `hero-form.ts` and `plans-query.ts` established: an SDK installs a
+  module whose default export is a `TenantLink` and registers it with one line
+  at `// @rokct-sdk-tenant-link-start`,
+  `{ id: "<sdk>-tenant-link", load: () => import("@/app/(auth)/<file>") },`.
+  `loadTenantLink()` answers the first entry that loads.
+* **The Postgres path is the DEFAULT and is not going anywhere.** It moved
+  verbatim into `app/(auth)/tenant-link-database.ts` - the same queries, in the
+  same order, with the same conditions, including the detail that a login only
+  ever UPDATEs a row that already exists. With nothing registered and
+  `ROKCT_TENANT_LINK` unset that is what answers, so **rokctai_frontend is
+  unchanged**: it still looks every login's site up in Postgres, still writes
+  the refreshed keys back, still reads its admin keys off `GlobalSettings`, and
+  still needs a live database for `db:migrate` before `next build`. The local
+  store is the multi-tenancy feature - it maps a user to the base URL they came
+  from - and the seam exists so a single-tenant shell can opt out, never so
+  this path can be deleted.
+* **A single-tenant shell can now be database-free, with one line of its own
+  config.** `ROKCT_TENANT_LINK=single-tenant` selects
+  `app/(auth)/tenant-link-single.ts`, which imports neither `@/db` nor drizzle
+  nor postgres. Both built-ins are reached by dynamic import precisely so that
+  selecting one does not evaluate the other. It answers the site from
+  base_sdk's kernel resolver - `envBaseUrl()` in
+  `app/services/base/tenant-hosts.ts`, the
+  `ROKCT_BASE_URL` -> `NEXT_PUBLIC_ROKCT_BASE_URL` -> `NEXT_PUBLIC_FRAPPE_URL`
+  chain every other service in the shell already reads, rather than a second
+  mechanism of this SDK's own - and makes the two local writes deliberate
+  no-ops: `User.siteName` and `User.onboardingData` exist so a deployment with
+  many backends can remember which one a user belongs to, and where there is
+  exactly one the row would record a constant. The authoritative user record
+  lives on the tenant site either way. A host sets the variable the
+  compile-time way, through `env` in its own `next.config.mjs`, because that
+  file is host-owned and therefore survives a compose - an SDK-installed file
+  does not, as `scripts/compose.sh reconcile_tracked_host_files()` documents.
+* **Administrator credentials for a database-free register come from the
+  deployment, not from the gateway.** `tenant-link-single.ts` reads
+  `ROKCT_ADMIN_API_KEY` / `ROKCT_ADMIN_API_SECRET`. Registration is a guest
+  call with no session, so an unauthenticated gateway cmd that handed out
+  administrator credentials would be a credential oracle open to the internet;
+  and the `GlobalSettings` row the default reads is itself only a cache of "an
+  administrator signed in here once". Unset means "not initialized" and
+  registration stops with exactly the message an empty `GlobalSettings` row
+  produces today, rather than calling the control plane unauthenticated.
+* **A shell with no database no longer reports a misconfiguration as "invalid
+  credentials".** The site lookup sat inside the `try` whose `catch` returns
+  `null`, so on a deployment with `POSTGRES_URL` unset every single login
+  failed as a rejected password while the real error - the connection - was
+  only ever a server log line. With the single-tenant link selected there is no
+  connection to fail, and the first thing that can go wrong is the gateway
+  login call itself.
+* **New requirement: `app/services/base/tenant-hosts.ts`** (base_sdk's kernel
+  resolver, for `envBaseUrl()`). Added to the manifest's `requires`, not its
+  `installs`: every composed shell already has it, because base_sdk installs
+  its whole `src/services` surface there and composes before this SDK.
+* `install.py` is unchanged, so the composer's pinned installer digest is
+  unchanged.
+
 ## 1.5.0
 
 * **`/register` shipped a literally blank page, and this fixes it.** The whole
