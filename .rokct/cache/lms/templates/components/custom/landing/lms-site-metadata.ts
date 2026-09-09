@@ -35,7 +35,18 @@
 //
 // `logo` is the asset base draws into the GENERATED preview image;
 // `ogImage` would be a ready-made png/jpg that replaces the generated one,
-// and Supacharge has none - the wordmark is the brand.
+// and Supacharge has none - the wordmark is the brand. `still` (base_sdk
+// >= 1.16.0) is the portrait tour frame that same generated image draws in
+// a phone bezel on its right half: public/brand/social-still.png, the
+// 744px-wide copy of ONE chapter of the app's guided tour that
+// .github/workflows/sync_team_assets.yml pulls from RokctAI/supacharge's
+// marketing/tour/screenshots (its STILL_CHAPTER value names the chapter;
+// lms/team/marketing/tour/renders/README.md says how to flip it).
+// `stillAnchor` follows the chapter: "bottom" for a header-first screen
+// such as 06-schedule (the phone bleeds off the card's bottom edge, the
+// screen's header shows), "top" for a bottom-sheet screen such as
+// 02-auth_login. Against base_sdk 1.15.0 the registry has neither field
+// and lays the rest over the default unchanged.
 
 /** The subset of base_sdk >= 1.15.0's SiteMetadataCopy this module fills. */
 export interface LmsSiteMetadata {
@@ -49,6 +60,10 @@ export interface LmsSiteMetadata {
   ogImage?: string;
   /** Asset path drawn into the generated preview image. */
   logo?: string;
+  /** Portrait tour frame the generated preview draws in a phone bezel (base_sdk >= 1.16.0). */
+  still?: string;
+  /** Where that phone hangs from; "bottom" (default) shows the screen's header. */
+  stillAnchor?: "top" | "bottom";
   locale?: string;
 }
 
@@ -62,6 +77,8 @@ const LMS_SITE_METADATA: LmsSiteMetadata = {
   keywords: ["tutoring", "CAPS", "South Africa", "online tutor", "matric", "Supacharge"],
   locale: "en_ZA",
   logo: "/brand/supacharge-wordmark.svg",
+  still: "/brand/social-still.png",
+  stillAnchor: "bottom",
 };
 
 export default LMS_SITE_METADATA;

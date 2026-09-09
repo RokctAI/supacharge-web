@@ -149,6 +149,17 @@ class TestRegistryMarkers(unittest.TestCase):
         self.assertEqual(src.count("@rokct-sdk-site-metadata-start"), 1)
         self.assertEqual(src.count("@rokct-sdk-site-metadata-end"), 1)
 
+    def test_site_metadata_declares_the_tour_still(self):
+        # base_sdk 1.16.0: the generated card draws a registered still of the
+        # app in a phone frame; the registry declares the two fields and the
+        # route reads them.
+        src = read(os.path.join(LANDING, "site-metadata.ts"))
+        self.assertIn("still?: string;", src)
+        self.assertIn('stillAnchor?: "top" | "bottom";', src)
+        route = read(os.path.join(SDK_ROOT, "templates", "app", "opengraph-image.tsx"))
+        self.assertIn("copy.still", route)
+        self.assertIn("copy.stillAnchor", route)
+
     def test_site_metadata_exports_its_contract(self):
         src = read(os.path.join(LANDING, "site-metadata.ts"))
         for needle in (

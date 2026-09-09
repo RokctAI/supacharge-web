@@ -34,8 +34,10 @@
 // before, a later entry wins a field it repeats) and app/lib/site-metadata.ts
 // turns the result into a Next Metadata object for the host layout and the
 // landing page; app/opengraph-image.tsx draws the preview from the same
-// copy. With no entry the shell is named after PLATFORM_NAME and unfurls
-// without a description, which is honest rather than wrong.
+// copy (the logo, the tagline and, since 1.16.0, a registered `still` of
+// the app in a phone frame on the card's right half). With no entry the
+// shell is named after PLATFORM_NAME and unfurls without a description,
+// which is honest rather than wrong.
 //
 // Entries between the markers below are injected by the Rokct SDK installer
 // (sdk_installer_base.py update_integrations()) - the same contract as the
@@ -71,6 +73,23 @@ import { PLATFORM_NAME } from "@/app/config/platform";
  * - `logo` is the mark the GENERATED preview draws beside the site name
  *   (a public path or an absolute URL; SVG is fine here). It is not a
  *   preview image and is never put in a card tag by itself.
+ * - `still` is a PORTRAIT screenshot of the app - a frame of its guided
+ *   tour, say - that the GENERATED preview draws on the right half of the
+ *   card inside a phone bezel (Ray, 2026-09-09: the link preview shows a
+ *   still from the tour, not only the wordmark). A public path or an
+ *   absolute URL to a `.png`, `.jpg`, `.jpeg` or `.webp`; 1080x1920 is the
+ *   expected shape, the route reads the real size from the file's header
+ *   and draws it 372px wide. With a still the card is two columns: logo
+ *   (or the site name when there is no logo), tagline and host on the
+ *   left, the phone on the right. Without one the card is the single
+ *   column it always was. A still that will not load, or whose size the
+ *   header does not give, leaves the single-column card.
+ * - `stillAnchor` is where the phone hangs from. `"bottom"` (the default)
+ *   sets the top of the bezel 72px under the card's top edge and lets the
+ *   phone bleed off the bottom, so the still's HEADER is what shows;
+ *   `"top"` hangs it from the top edge instead (top bezel cut, bottom of
+ *   the phone 72px above the card's bottom edge), for a screen whose
+ *   content is a bottom sheet.
  * - `locale` is the Open Graph locale; defaults to `en_ZA`.
  */
 export interface SiteMetadataCopy {
@@ -82,6 +101,8 @@ export interface SiteMetadataCopy {
   keywords?: string[];
   ogImage?: string;
   logo?: string;
+  still?: string;
+  stillAnchor?: "top" | "bottom";
   locale?: string;
 }
 

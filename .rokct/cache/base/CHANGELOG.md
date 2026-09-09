@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.16.0
+
+* The generated link-preview card can show a STILL of the app. Ray,
+  2026-09-09: the 1200x630 preview should show a still from the app's
+  guided tour rather than only the wordmark. Additive: a shell whose
+  registered copy names no still draws the single-column card of 1.15.0
+  from exactly the same markup.
+  * `SiteMetadataCopy` in `components/custom/landing/site-metadata.ts`
+    gains `still?: string` - a public path or absolute URL to a PORTRAIT
+    `.png`, `.jpg`, `.jpeg` or `.webp` (a 1080x1920 tour screenshot is the
+    expected shape) - and `stillAnchor?: "top" | "bottom"`, default
+    `"bottom"`. Same extension rule as `ogImage`, same merge and load
+    rules as every other field.
+  * `app/opengraph-image.tsx` draws the two-column card when a still is
+    registered: `#0b0b0b` ground with the top-right radial highlight as
+    before; the left 45% (540px) a column with the registered logo at 64px
+    - or the site name when there is no logo - the tagline at 38px in 72%
+    white, and the host small at the bottom-left at 24px in 45% white; the
+    right 55% the still drawn 372px wide at its own aspect inside a phone
+    frame (`#1a1c1f`, 44px corners, 10px bezel, 34px inner corners, a
+    `0 30px 80px rgba(0,0,0,0.6)` shadow) centred in the column and
+    clipped by it. With `stillAnchor: "bottom"` the frame's top sits 72px
+    under the card's top edge and the phone bleeds off the bottom, so the
+    screen's header is what shows; with `"top"` the phone hangs from the
+    top edge - top bezel cut, its bottom 72px above the card's bottom edge
+    - for a screen that is a bottom sheet. The still is fetched by the same
+    origin-first rule as the logo and inlined as a data URI; its size is
+    read from its own header, which now covers JPEG (SOF) and WebP
+    (VP8/VP8L/VP8X) alongside PNG (IHDR) and SVG. Best-effort as before: a
+    still that will not load, or whose header gives no size, leaves the
+    single-column card; a ready-made `ogImage` still wins outright.
+  * `tests/test_manifest.py` checks that the registry declares `still` and
+    `stillAnchor` and that the route reads `copy.still`.
+
 ## 1.15.0
 
 * Ships the LINK-PREVIEW shell: what a pasted link to a rokct shell unfurls

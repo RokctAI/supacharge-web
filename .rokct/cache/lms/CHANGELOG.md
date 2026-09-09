@@ -1,5 +1,44 @@
 # Changelog
 
+## 1.11.0
+
+* The social card shows a still from the tour. Ray, 2026-09-09: the link
+  preview shows a still from the tour, not only the wordmark - and base_sdk
+  1.16.0 gave `SiteMetadataCopy` the two fields for it: `still`, a portrait
+  screenshot the generated 1200x630 preview draws 372px wide inside a phone
+  bezel on the card's right half, and `stillAnchor`, where that phone hangs
+  from (`"bottom"`, the default, sets the bezel 72px under the top edge and
+  lets the phone bleed off the bottom so the screen's header shows; `"top"`
+  hangs it from the top edge for a bottom-sheet screen).
+  * `components/custom/landing/lms-site-metadata.ts` adds both fields to its
+    own `LmsSiteMetadata` shape (still no import from base's file, for the
+    reason 1.10.0 gives) and registers `still: "/brand/social-still.png"`
+    with `stillAnchor: "bottom"`. Against base_sdk 1.15.0 the registry has
+    neither field and lays the rest over the default unchanged, so the
+    base_sdk floor stays 1.14.0; the still itself needs >= 1.16.0.
+  * `templates/public/brand/social-still.png` (shipped by the existing
+    `templates/public/brand -> public/brand` install, served at
+    `/brand/social-still.png`) is ONE chapter of the app's guided tour -
+    `marketing/tour/screenshots/06-schedule.png` in RokctAI/supacharge, the
+    "Today, sorted" schedule screen, header-first, hence `"bottom"` -
+    downscaled from the RAW 1080x1920 frame to 744x1323 (2x of the drawn
+    width) as a lossless BOX resample, 162,213 bytes, smaller than the
+    source. The canonical copy is `lms/team/marketing/tour/renders/
+    social-still.png`; its README names the source chapter.
+  * The chapter is ONE value: `STILL_CHAPTER` at the top of the `sync` job in
+    `.github/workflows/sync_team_assets.yml` (default `06-schedule`). A new
+    step there runs `lms/team/scripts/tour_still.py`, which pulls that
+    chapter from RokctAI/supacharge main (public today; the MONOREPO_PAT the
+    other cross-repo workflows use is read when present, else the built-in
+    token, no new secret) and writes both copies ahead of the persona sync,
+    and the commit step stages them alongside the synced trees. The still
+    lives under `lms/team/marketing/` deliberately: `sync_team_assets.dart`
+    excludes that root, so a web social-card still never lands in the
+    Flutter bundle the persona sync also feeds, which is why the script
+    writes the shipped copy itself rather than leaning on the sync. Flipping
+    to `02-auth_login` is that one value plus `stillAnchor: "top"` in
+    lms-site-metadata.ts, as the README and the script's docstring say.
+
 ## 1.10.0
 
 * The testimonials are rokct.ai's auto-scrolling row. Ray, 2026-09-09:

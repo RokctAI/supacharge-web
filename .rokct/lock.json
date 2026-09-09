@@ -18,7 +18,7 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/telemetry/nextjs",
       "ref": "main",
-      "commit": "9ceb96d96526b544ccbe4a94b1e94bdb2007ed2a",
+      "commit": "40c7fd47bf9829b03ad7f5ac67973661b275c256",
       "version": "1.2.0",
       "install_py_sha256": "318d20eb7123ffaa549618d06b4530dfce5df9ba0b07df2328c0c6e1738e36c4",
       "content_sha256": "79628f311222b638a98c8357e0d947936ba4b7b247361545d88d2da5be767396"
@@ -29,10 +29,10 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/base/nextjs",
       "ref": "main",
-      "commit": "9ceb96d96526b544ccbe4a94b1e94bdb2007ed2a",
-      "version": "1.15.0",
+      "commit": "40c7fd47bf9829b03ad7f5ac67973661b275c256",
+      "version": "1.16.0",
       "install_py_sha256": "b6c434a1c05611d29f1018f68b9423383f7ecfbf9cc1efe74825ba6c4df98fff",
-      "content_sha256": "b3f102a7f40a696ef5c7f6fa29e2051541dd1d8e4e178f3d3dfda50c7b8d19e8"
+      "content_sha256": "d4d01e9a341fc43f4292b1ba321fe3d53108bf6babe12d43c3737fc48e4aed43"
     },
     {
       "name": "auth_sdk",
@@ -51,10 +51,10 @@
       "git": "https://github.com/RokctAI/agent",
       "path": "../agent/lms/nextjs",
       "ref": "main",
-      "commit": "2f32948262b50765742e5a1a9c12855517d6a861",
-      "version": "1.10.0",
+      "commit": "f8a1fbe44b8cbfeb7c47541b78aafb434f748534",
+      "version": "1.11.0",
       "install_py_sha256": "65a891707fd3c741b55681a8cb05ad4dd2d0833ee5643f490928267891144741",
-      "content_sha256": "92a522b7014b308d13c457a7a3a6d045208801db4c732589f99e7c81c8b72157"
+      "content_sha256": "c2e569415cda57518c94406c01fa4fec78d0f92bb75c188039cb954fdc38cf6d"
     }
   ]
 }

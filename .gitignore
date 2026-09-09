@@ -216,6 +216,7 @@ next-env.d.ts
 /lib/drizzle/meta/0001_snapshot.json
 /lib/drizzle/meta/_journal.json
 /middleware.ts
+/public/brand/social-still.png
 /public/brand/supacharge-wordmark-ink.svg
 /public/brand/supacharge-wordmark.svg
 /public/team/assistants/CAPS/assistant_001/appearance/renders/avatar_168.webp
