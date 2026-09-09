@@ -1,3 +1,75 @@
+## 1.5.0
+
+* **`/register` shipped a literally blank page, and this fixes it.** The whole
+  page sat inside `<Suspense fallback={null}>` because `RegisterPageInner`
+  calls `useSearchParams()` to read `?plan=`. A client component that reads
+  `useSearchParams()` makes Next bail its enclosing Suspense boundary out to
+  client rendering during static prerendering, so the only thing that reached
+  the HTML was that boundary's fallback - and the fallback was `null`. The
+  served document for `/register` contained zero `<form>` elements, zero
+  `<input>` elements, a `<div hidden></div>` and a
+  `BAILOUT_TO_CLIENT_SIDE_RENDERING` template: a blank white page until the JS
+  bundle downloaded and executed, and a blank page forever if it did not.
+  `useSearchParams()` is now confined to `PlanFromQuery`, a leaf that renders
+  `null` and hands the value up, wrapped in its own boundary. The bailout is
+  confined with it, so the registration form server-renders as ordinary HTML.
+  The page-level boundary is kept but its fallback is now a real card-shaped
+  skeleton rather than `null`, so a future hook that bails lands on a
+  placeholder instead of blanking the route again.
+  `components/custom/auth-form.tsx` gained a one-line
+  `useEffect` that syncs `activePlan` when `selectedPlan` arrives after the
+  first render - `useState(selectedPlan || "Free")` reads its initial value
+  once, so without it the deep link `/register?plan=X` would have silently
+  stopped preselecting the plan.
+* **The auth screens are theme-token driven, so every shell themes itself.**
+  Login and register hardcoded Rokct's indigo/purple: `bg-gradient-to-r
+  from-indigo-600 to-purple-600` on both submit buttons, an indigo/purple
+  gradient behind the login logo, `text-indigo-600` links, and the
+  `border-indigo-500/20 ring-indigo-500/10 focus-visible:ring-indigo-500`
+  voucher field in `auth-form.tsx`. A host's `--primary` was already correct
+  and already served - it was simply painted over, because a gradient is a
+  `background-image` and renders on top of `.bg-primary`'s
+  `background-color`. Every one of those is now the token: `bg-primary` /
+  `hover:bg-primary/90` / `text-primary-foreground` on the buttons (the
+  gradient is gone, not restyled - leaving it would overpaint again),
+  `text-primary` on links and the voucher label, `border-primary/20` and
+  `focus-visible:ring-ring` on the voucher input. The surrounding chrome moved
+  off raw greys onto `bg-background`, `bg-card`, `border-border`,
+  `text-foreground` and `text-muted-foreground` for the same reason: the
+  hardcoded `bg-gray-50` / `bg-white` / `text-gray-900` card ignored the host's
+  own light/dark tokens.
+  `components/custom/submit-button.tsx` no longer forces `text-white` on every
+  submit button; `components/ui/button.tsx`'s default variant already supplies
+  `text-primary-foreground`, and the hardcoded white made a light-primary shell
+  unreadable.
+  **This is a visible change to rokct.ai as well as to supacharge.app.**
+  rokctai_frontend composes auth_sdk too, so its login and register now render
+  in its own `--primary` instead of the indigo/purple gradient. That is the
+  point of the change - each shell themes itself - but it is not confined to
+  one product.
+* **New requirement: `components/custom/brand-logo.tsx`.** The login page drew
+  an inline Lucide "layers" glyph on an indigo gradient - a mark belonging to
+  no product - and the register page had no mark at all. Both now render
+  `<BrandLogo width={56} height={56} />`. This invents no mechanism: the
+  component is an existing host seam that `rokctai_frontend` and
+  `supacharge-web` both already ship with an identical prop signature
+  (`width`, `height`, `className`, `variant`, `showBadge`, `isCircle`,
+  `priority`), so it is added to the manifest's `requires` rather than to its
+  `installs`, and each shell shows its own mark with no branching in the SDK.
+* **`/forgot-password` is no longer white-on-white.** The placeholder page set
+  `text-white` on a container with no background of its own, so it was legible
+  only because every shell happened to render it on a dark body. It is now
+  `bg-background text-foreground`, which is what makes it survive a host whose
+  light theme is actually reachable - `/login` links straight to it.
+* **The "Or continue with" divider is gone from the login card.** It labelled
+  an empty list: this form ships no OAuth or social provider buttons, so the
+  divider sat directly above the "Create an account" link. Restore it in the
+  same commit that adds the first provider button.
+* The install surface and `install.py` are untouched - `install.py`'s sha256 is
+  unchanged, so the protocol's `supacharge.json` / `rokctapp.json` pins still
+  hold. `manifest.json` changes only in `version` and in one added `requires`
+  entry; no `installs` entry is added, moved or removed.
+
 ## 1.4.1
 
 * **`db/index.ts` no longer needs a database to BUILD.** The module read
