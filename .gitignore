@@ -103,6 +103,7 @@ next-env.d.ts
 /app/admin/system/languages/page.tsx
 /app/admin/system/translations/page.tsx
 /app/admin/system/update/page.tsx
+/app/brand-icon/route.tsx
 /app/handson/all/lms/courses/\[courseName\]/_components/reviews.tsx
 /app/handson/all/lms/courses/\[courseName\]/assignment/\[assignmentId\]/page.tsx
 /app/handson/all/lms/courses/\[courseName\]/learn/\[lessonId\]/_components/discussions.tsx

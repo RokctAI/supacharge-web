@@ -58,6 +58,10 @@ SITE_METADATA_INSTALLS = {
     "templates/app/twitter-image.tsx": "app/twitter-image.tsx",
 }
 
+# base_sdk 1.17.0: the fallback favicon, the first letter of the domain in
+# the shell's primary colour.
+BRAND_ICON_INSTALL = ("templates/app/brand-icon/route.tsx", "app/brand-icon/route.tsx")
+
 
 def load_manifest():
     with open(MANIFEST, encoding="utf-8") as f:
@@ -103,6 +107,28 @@ class TestManifest(unittest.TestCase):
         for src, dst in SITE_METADATA_INSTALLS.items():
             self.assertIn(src, by_from, f"{src} is not in installs")
             self.assertEqual(by_from[src], dst)
+
+    def test_brand_icon_route_is_installed(self):
+        # base_sdk 1.17.0: the generated favicon tile is SDK-owned and
+        # overwritable, so it ships through installs like the og routes.
+        by_from = {e["from"]: e["to"] for e in self.manifest["installs"]}
+        src, dst = BRAND_ICON_INSTALL
+        self.assertIn(src, by_from, f"{src} is not in installs")
+        self.assertEqual(by_from[src], dst)
+        self.assertNotIn(dst, self.manifest["requires"])
+        route = read(os.path.join(SDK_ROOT, src))
+        self.assertIn("export async function GET(", route)
+        self.assertIn('export const runtime = "nodejs";', route)
+        self.assertIn("public, max-age=86400", route)
+
+    def test_brand_icon_letter_takes_the_primary_colour(self):
+        # Ray, 2026-09-09: "that letter should take color of primary
+        # color" - the registered themeColor first, else the host's
+        # --primary token, never a hard-coded brand.
+        route = read(os.path.join(SDK_ROOT, BRAND_ICON_INSTALL[0]))
+        self.assertIn("copy.themeColor", route)
+        self.assertIn("--primary", route)
+        self.assertIn("app/globals.css", route)
 
     def test_host_layout_is_a_declared_prerequisite(self):
         self.assertIn("app/layout.tsx", self.manifest["requires"])
@@ -159,6 +185,24 @@ class TestRegistryMarkers(unittest.TestCase):
         route = read(os.path.join(SDK_ROOT, "templates", "app", "opengraph-image.tsx"))
         self.assertIn("copy.still", route)
         self.assertIn("copy.stillAnchor", route)
+
+    def test_site_metadata_declares_the_icon(self):
+        # base_sdk 1.17.0: a home SDK may register a real icon and the
+        # letter's colour; with none, and no host icon file, the shell
+        # links the generated tile.
+        src = read(os.path.join(LANDING, "site-metadata.ts"))
+        self.assertIn("icon?: string;", src)
+        self.assertIn("themeColor?: string;", src)
+
+    def test_metadata_shell_falls_back_to_the_brand_icon(self):
+        lib = read(os.path.join(SDK_ROOT, "templates", "app", "lib", "site-metadata.ts"))
+        self.assertIn('export const GENERATED_BRAND_ICON = "/brand-icon";', lib)
+        self.assertIn("copy.icon", lib)
+        self.assertIn("existsSync", lib)
+        self.assertIn('typeof window !== "undefined"', lib)
+        for host_file in ("app/favicon.ico", "app/icon.png", "app/icon.svg",
+                          "app/icon.ico", "app/apple-icon.png", "public/favicon.ico"):
+            self.assertIn(f'"{host_file}"', lib, f"{host_file} is not a checked host icon")
 
     def test_site_metadata_exports_its_contract(self):
         src = read(os.path.join(LANDING, "site-metadata.ts"))

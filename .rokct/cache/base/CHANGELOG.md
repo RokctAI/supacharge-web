@@ -1,5 +1,59 @@
 # Changelog
 
+## 1.17.0
+
+* A FALLBACK favicon for a shell that has none. Ray, 2026-09-09: "on
+  builds that dont have favicon like supacharge you can make it to take
+  first letter of domain", and "that letter should take color of primary
+  color". Additive, and a true fallback: nothing here replaces an icon a
+  host already has.
+  * `app/brand-icon/route.tsx` (new, installed) answers
+    `GET /brand-icon?s=<px>` with a PNG app tile drawn by `next/og`: `s`
+    square, 16..512, default 64; the card's `#0b0b0b` ground with the
+    same top-right highlight, corners rounded 22%; the letter centred at
+    about 62% of the square's height in the sans face next/og bundles
+    (regular is the only weight it ships, so `fontWeight: 700` is
+    honoured only where a bolder face is available). The letter is the
+    first character of the site host - `NEXT_PUBLIC_SITE_URL`, else the
+    copy's `url`, else the origin of the request - with a leading `www.`
+    stripped and uppercased; when the host gives no letter or digit the
+    site name's first character is used, and failing that `R`. The
+    letter is drawn in the shell's PRIMARY colour, never a hard-coded
+    brand: the registered `themeColor`, else the first `--primary:`
+    declaration inside the `:root` block of the host's `app/globals.css`
+    (read from disk once per process; the shadcn `H S% L%` triple, hex,
+    `rgb()`/`rgba()`, `hsl()`/`hsla()` and `oklch()` are understood and
+    normalised to hex for satori), else `#ffffff`. A primary with a
+    relative luminance under 0.18 keeps the letter and adds a ring of
+    the same primary at 40% alpha (2px at 64, scaling with the tile) so
+    it still reads on the dark ground. `Cache-Control: public,
+    max-age=86400`. `runtime = "nodejs"`, like the og routes.
+  * `buildSiteMetadata()` in `app/lib/site-metadata.ts` now builds
+    `icons`, in this order: an `icons` override wins outright and the
+    disk is not looked at; a host that ships an icon file Next serves by
+    file convention - `app/favicon.ico`, `app/icon.png|svg|ico`,
+    `app/apple-icon.png`, `public/favicon.ico`, checked with
+    `fs.existsSync` under `process.cwd()` at call time, server-side only
+    (`typeof window === "undefined"`, dynamic `node:fs` import, any
+    failure counts as absent) - gets NO `icons` key, so that file stays
+    the icon; a registered `copy.icon` is linked next (as the Apple touch
+    icon too when it is a raster); and with none of those the links are
+    `/brand-icon?s=64` (64x64) and `/brand-icon?s=192` (192x192) as
+    `icon` and `/brand-icon?s=180` as `apple`. Exported helpers:
+    `GENERATED_BRAND_ICON`, `HOST_ICON_FILES`, `hostIconExists()`,
+    `generatedIcons()`, `registeredIcons(icon)`, `resolveIcons(copy)`.
+  * `SiteMetadataCopy` in `components/custom/landing/site-metadata.ts`
+    gains `icon?: string` - a public path or absolute URL to a `.png`,
+    `.svg` or `.ico` - so a home SDK can ship a real icon later and
+    register it with the same one line as the rest of its copy, replacing
+    the generated tile without touching the host; and `themeColor?:
+    string` - any CSS colour - for a letter colour other than the
+    theme's `--primary`.
+  * `tests/test_manifest.py` checks the route is in `installs` and
+    references `themeColor` and `--primary`, that the registry declares
+    `icon` and `themeColor`, and that `app/lib/site-metadata.ts`
+    references `/brand-icon` and reads `copy.icon`.
+
 ## 1.16.0
 
 * The generated link-preview card can show a STILL of the app. Ray,

@@ -35,9 +35,11 @@
 // turns the result into a Next Metadata object for the host layout and the
 // landing page; app/opengraph-image.tsx draws the preview from the same
 // copy (the logo, the tagline and, since 1.16.0, a registered `still` of
-// the app in a phone frame on the card's right half). With no entry the
-// shell is named after PLATFORM_NAME and unfurls without a description,
-// which is honest rather than wrong.
+// the app in a phone frame on the card's right half); since 1.17.0
+// app/brand-icon/route.tsx draws the fallback favicon - the domain's first
+// letter - for a shell that ships no icon file and registers no `icon`.
+// With no entry the shell is named after PLATFORM_NAME and unfurls
+// without a description, which is honest rather than wrong.
 //
 // Entries between the markers below are injected by the Rokct SDK installer
 // (sdk_installer_base.py update_integrations()) - the same contract as the
@@ -90,6 +92,24 @@ import { PLATFORM_NAME } from "@/app/config/platform";
  *   `"top"` hangs it from the top edge instead (top bezel cut, bottom of
  *   the phone 72px above the card's bottom edge), for a screen whose
  *   content is a bottom sheet.
+ * - `icon` is the shell's FAVICON (a public path or an absolute URL to a
+ *   `.png`, `.svg` or `.ico`; a PNG of 180px or more doubles as the Apple
+ *   touch icon). It is honoured only when the host ships no icon file of
+ *   its own (`app/favicon.ico`, `app/icon.*`, `app/apple-icon.png`,
+ *   `public/favicon.ico` - Next serves those by file convention and they
+ *   always win) and the layout passes no `icons` override. With neither a
+ *   host file nor a registered `icon`, app/lib/site-metadata.ts points
+ *   the icon links at the generated `/brand-icon` tile - the first letter
+ *   of the domain on the card's dark ground (Ray, 2026-09-09: "on builds
+ *   that dont have favicon like supacharge you can make it to take first
+ *   letter of domain"). Register a real icon here to replace that tile
+ *   without touching the host.
+ * - `themeColor` is the shell's primary colour, the one the generated
+ *   `/brand-icon` tile draws its letter in (Ray, 2026-09-09: "that letter
+ *   should take color of primary color"). Any CSS colour - `#hex`,
+ *   `rgb()`, `hsl()`, `oklch()` or the bare shadcn `H S% L%` triple.
+ *   Defaults to the `--primary` token in the host's app/globals.css, so
+ *   it is only needed when the icon should differ from the theme.
  * - `locale` is the Open Graph locale; defaults to `en_ZA`.
  */
 export interface SiteMetadataCopy {
@@ -103,6 +123,8 @@ export interface SiteMetadataCopy {
   logo?: string;
   still?: string;
   stillAnchor?: "top" | "bottom";
+  icon?: string;
+  themeColor?: string;
   locale?: string;
 }
 
