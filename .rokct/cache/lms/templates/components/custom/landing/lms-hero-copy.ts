@@ -32,11 +32,20 @@
 // pill, the same mark at the left, the same small line over the same big
 // line - with rokct.ai's wording pattern applied to a platform that has no
 // store: the small line says what the visitor does, the big line names the
-// platform ("Download for" over "Android", "Download for" over "Windows"),
-// never a file format. The marks are the SVG files this SDK installs under
-// public/brand/marks/ (the Simple Icons tracings, CC0; no CDN), handed to
-// the frame through its {src, alt} icon slot; lms-theme.css turns them
-// white in dark mode, as the frame's own marks follow its text colour.
+// destination ("GET IT ON" over "Google Play", "Download for" over
+// "Windows"), never a file format. The marks are the SVG files this SDK installs under
+// public/brand/marks/, handed to the frame through its {src, alt} icon
+// slot. Since 1.16.0 they are the store marks every visitor already knows
+// (Ray, 2026-09-09: "we use what these platforms use for familiarity"):
+// the Google Play triangle in Google's four colours for the Android
+// entry, the Windows panes for the desktop one, the Apple mark for the iOS
+// entry and the Huawei flower in Huawei red for the AppGallery one, each
+// under its store's own badge wording from the entry's `badge` field
+// ("GET IT ON" / "Google Play"; "but eventually we getting in those stores
+// except windows"). The two monochrome marks (Apple, Windows:
+// "keep it black and white") are black on the light pill and white on the
+// dark one through lms-theme.css; the coloured ones are never touched. No
+// CDN.
 
 import type { HeroCopy } from "@/components/custom/landing/hero-copy";
 import type { HeroBadge } from "@/components/custom/landing/hero-config";
@@ -46,25 +55,30 @@ import {
 } from "@/components/custom/landing/lms-landing-config";
 
 /**
- * The platform mark the frame draws in each badge, by app id: the SVG files
- * this SDK installs for Android and Windows, and the frame's own Apple
- * glyph for the day the iOS entry is shown again.
+ * The store mark the frame draws in each badge, by app id: the SVG files
+ * this SDK installs under public/brand/marks/. The Android entry wears the
+ * Google Play mark, the iOS entry the Apple mark, the Huawei entry the
+ * AppGallery flower - the stores the app is, or will be, listed in (Ray,
+ * 2026-09-09) - and the desktop entry the Windows panes, the one platform
+ * with no store. Which of them is drawn is the entry's own business
+ * (LMS_SHOWN_APPS: shown today, or listed).
  */
 export const LMS_APP_MARKS: Record<
   LandingApp["id"],
   NonNullable<HeroBadge["icon"]>
 > = {
-  android: { src: "/brand/marks/android.svg", alt: "Android" },
+  android: { src: "/brand/marks/google-play.svg", alt: "Google Play" },
   desktop: { src: "/brand/marks/windows.svg", alt: "Windows" },
-  ios: "app-store",
+  ios: { src: "/brand/marks/app-store.svg", alt: "App Store" },
+  huawei: { src: "/brand/marks/app-gallery.svg", alt: "AppGallery" },
 };
 
 /** One store badge per shown app, in the frame's own shape. */
 export const LMS_HERO_BADGES: HeroBadge[] = LMS_SHOWN_APPS.map((app) => ({
   id: app.id,
   href: app.href,
-  eyebrow: app.eyebrow,
-  label: app.platform,
+  eyebrow: app.badge.eyebrow,
+  label: app.badge.label,
   icon: LMS_APP_MARKS[app.id],
 }));
 
