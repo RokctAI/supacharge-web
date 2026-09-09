@@ -1,5 +1,71 @@
 # Changelog
 
+## 1.4.2
+
+* The pricing section's partner line rendered the literal
+  `[[PARTNER_DISCOUNT]]`. Ray (2026-09-08) confirmed the documented number,
+  so it now reads "Link an accountability partner and pay R249 a month
+  instead of R299." Both prices, not the bare saving: the token sat in "pay
+  [[PARTNER_DISCOUNT]] less each month", where the substitution is the R50
+  gap rather than the R249 price, and "pay R249 less each month" would have
+  been wrong by a factor of five. Naming both numbers cannot be misread, and
+  it suits a section that opens "no surprises". Sources agree:
+  `supacharge-business.md` section 3 (R299 standard, R249 with a partner,
+  "R50/month discount") and `supacharge-subscription-tiers-proposal.md:64`
+  ("a flat R50 partner" discount, matching the backend's charging logic).
+* The testimonials section is now `null` and renders nothing, replacing the
+  three `[[TESTIMONIAL_n_*]]` triples. The heading is "From students,
+  parents and teachers", so whatever sits there reads as a named person
+  describing their own experience, and no source carries such a quote. Three
+  invented quotes signed with invented learner and parent names would be a
+  fabricated endorsement rather than placeholder copy - the CPA s.41 and the
+  ARB Code both require a testimonial to be genuine and verifiable - so the
+  section stays off the page instead. `lms-testimonials-section.tsx` already
+  returned null on a missing config, so no component change was needed
+  beyond correcting its header comment. One edit reverses it: a real
+  `TestimonialsConfig` back in that slot and the section returns.
+* Assistant cards carried no bio, so Thandi, Bianca and Mandy read as bare
+  names beside twelve tutors who each have one. The card was never the
+  problem: `lms-tutor-card.tsx` already reads `bio` off either persona and
+  renders it - clamped to three lines over the portrait, in full on the back
+  - and its props type already allowed `bio?: string` on an assistant. The
+  `Assistant` interface simply never declared the field and the config never
+  set it, so the guard `{bio && ...}` saw an empty string. `Assistant` now
+  carries an optional `bio` and all three entries have one, which needed no
+  component change at all.
+* The bios say what each assistant actually does, from the persona folders
+  under `lms/team/assistants/CAPS` - intro, timekeeping (halfway, five-minute
+  warning, wrap-up), the break handover and the signoff, the same nine
+  scripts for all three. All three do one job for their own grade, so each
+  bio names that job rather than inventing a personality per assistant;
+  `supacharge-characters.md` is explicit that Bianca is a second identity for
+  the same role and not a separate character. Nothing claims office hours
+  (conditional, and not what the shipped scripts cover), nothing calls them
+  AI (the same doc: "not marketed as AI"), and nothing carries a statistic.
+* `LMS_LANDING_PLACEHOLDERS` drops the `[[PARTNER_DISCOUNT]]` row now that it
+  is answered. The testimonial row stays, because the need is real and still
+  unmet; it now records that the section renders nothing meanwhile.
+
+## 1.4.1
+
+* "Get the app" pointed at the literal string `[[PLAY_STORE_URL]]`, live on
+  the hero and in the footer - both read `LMS_LANDING_CONFIG.app`. There is
+  still no Play listing to point at (the deploy lane has never run), so Ray
+  (2026-09-08) answered the token with the repo: "use repo link to apk". It
+  now goes to `https://github.com/RokctAI/supacharge/releases/latest`, the
+  release page the Android APK is published to.
+* The releases PAGE, not a `releases/latest/download/...` asset link: the
+  workflow names each APK for its version (`app-v1.2.9.apk`,
+  `app-v1.2.8.apk`), so no fixed asset filename resolves and the direct form
+  would 404 on the next release. The page always shows the newest release,
+  so the landing never needs re-editing per release. It also lists the .aab
+  and the Windows build, and lets a visitor read the release notes before
+  taking a 127 MB download.
+* `LMS_LANDING_PLACEHOLDERS` drops the `[[PLAY_STORE_URL]]` row - the list
+  is the outstanding set, and this one is answered. `[[PARTNER_DISCOUNT]]`
+  and the three testimonial triples are still open and still render as
+  tokens.
+
 ## 1.4.0
 
 * The pricing section shows SUPACHARGE's plans. It rendered nothing at all:

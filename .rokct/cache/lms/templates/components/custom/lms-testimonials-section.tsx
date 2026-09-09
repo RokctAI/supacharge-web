@@ -16,9 +16,11 @@
 
 "use client";
 
-// The landing page's testimonials. Quotes: LMS_LANDING_CONFIG.testimonials -
-// `[[TESTIMONIAL_n_*]]` tokens until real quotes exist (see
-// LMS_LANDING_PLACEHOLDERS); a token is shown as such, never dressed up.
+// The landing page's testimonials. Quotes: LMS_LANDING_CONFIG.testimonials,
+// which is null until real quotes exist (see LMS_LANDING_PLACEHOLDERS), so
+// the whole section renders nothing. The placeholder branch below stays for
+// the interim state where a token is filled one at a time: a token is shown
+// as such, never dressed up as somebody's words.
 
 import React from "react";
 

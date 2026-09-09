@@ -130,6 +130,16 @@ export interface Assistant {
   role: string;
   /** The persona folder under lms/team (`assistant_001`), for the portrait. */
   slug?: string;
+  /**
+   * What this assistant does in a session, in the card's own words.
+   * lms-tutor-card.tsx already reads `bio` off either persona and renders
+   * it - clamped to three lines on the front, in full on the back - so an
+   * assistant without one simply showed a name and a role. All three do the
+   * same job for their own grade (the lms/team/assistants persona folders
+   * are identical: intro, timekeeping, break handover, signoff), so each
+   * bio names that job rather than inventing a personality per assistant.
+   */
+  bio?: string;
 }
 
 /** The words on the flip cards (lms-tutor-card.tsx, lms-plan-card.tsx). */
@@ -212,7 +222,7 @@ export interface PartnersConfig {
 export interface PricingConfig {
   heading: string;
   blurb: string;
-  /** `[[PARTNER_DISCOUNT]]` until the host confirms the number. */
+  /** The partner-linked price against the standard one: R299 -> R249, a R50/month saving. */
   partnerNote: string;
   labels: {
     joinFree: string;
@@ -261,7 +271,7 @@ export interface FooterConfig {
 
 export interface LmsLandingConfig {
   home: HomeConfig;
-  /** Where "Get the app" goes. */
+  /** Where "Get the app" goes: the app's own releases, not a store listing. */
   app: LandingLink;
   sessions: SessionsConfig | null;
   subjects: SubjectsConfig | null;
@@ -280,17 +290,9 @@ export interface LmsLandingConfig {
  */
 export const LMS_LANDING_PLACEHOLDERS: { token: string; needed: string }[] = [
   {
-    token: "[[PLAY_STORE_URL]]",
-    needed: "The public store link for the Supacharge Android app (marketing/store/listing is still empty).",
-  },
-  {
-    token: "[[PARTNER_DISCOUNT]]",
-    needed:
-      "The monthly saving once an accountability partner is linked. supacharge-business.md section 3 and the app string discountOnceLinked both say R299 -> R249; confirm before it goes on the page.",
-  },
-  {
     token: "[[TESTIMONIAL_n_QUOTE]] / [[TESTIMONIAL_n_NAME]] / [[TESTIMONIAL_n_ROLE]]",
-    needed: "Three real student, parent or teacher quotes with names and roles - none exist in any source yet.",
+    needed:
+      "Three real student, parent or teacher quotes with names and roles - none exist in any source yet. The section renders nothing until they do; invented quotes under invented names are not a substitute.",
   },
 ];
 
@@ -303,7 +305,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
 
   app: {
     label: "Get the app",
-    href: "[[PLAY_STORE_URL]]",
+    href: "https://github.com/RokctAI/supacharge/releases/latest",
     external: true,
   },
 
@@ -478,9 +480,24 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     ],
     assistantsHeading: "And in your corner, every session",
     assistants: [
-      { slug: "assistant_001", name: "Thandi", role: "Grade 10 session assistant" },
-      { slug: "assistant_002", name: "Bianca", role: "Grade 11 session assistant" },
-      { slug: "assistant_003", name: "Mandy", role: "Grade 12 session assistant" },
+      {
+        slug: "assistant_001",
+        name: "Thandi",
+        role: "Grade 10 session assistant",
+        bio: "Thandi opens every Grade 10 session, calls the halfway mark and the last five minutes, and holds the break so nobody drifts off between the two teachers.",
+      },
+      {
+        slug: "assistant_002",
+        name: "Bianca",
+        role: "Grade 11 session assistant",
+        bio: "Bianca runs the Grade 11 room. The break is hers - questions asked privately, so you can say what did not land without saying it to the class.",
+      },
+      {
+        slug: "assistant_003",
+        name: "Mandy",
+        role: "Grade 12 session assistant",
+        bio: "Mandy takes Grade 12 from the intro to the sign-off, and uses the break to clear up what part one left behind before the simplifier picks the topic up again.",
+      },
     ],
     cards: {
       know: "Know",
@@ -589,7 +606,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
   pricing: {
     heading: "One clear plan.",
     blurb: "See exactly what your plan includes - no surprises.",
-    partnerNote: "Link an accountability partner and pay [[PARTNER_DISCOUNT]] less each month.",
+    partnerNote: "Link an accountability partner and pay R249 a month instead of R299.",
     labels: {
       joinFree: "Join for free",
       daysFree: (days) => `${days} days free`,
@@ -649,14 +666,17 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     ],
   },
 
-  testimonials: {
-    heading: "From students, parents and teachers",
-    items: [
-      { quote: "[[TESTIMONIAL_1_QUOTE]]", author: "[[TESTIMONIAL_1_NAME]]", role: "[[TESTIMONIAL_1_ROLE]]" },
-      { quote: "[[TESTIMONIAL_2_QUOTE]]", author: "[[TESTIMONIAL_2_NAME]]", role: "[[TESTIMONIAL_2_ROLE]]" },
-      { quote: "[[TESTIMONIAL_3_QUOTE]]", author: "[[TESTIMONIAL_3_NAME]]", role: "[[TESTIMONIAL_3_ROLE]]" },
-    ],
-  },
+  // Off the page until real quotes exist. The section heading is "From
+  // students, parents and teachers", so anything rendered here reads as a
+  // named person describing their own experience of the product. We have no
+  // such quotes from any source, and writing three under invented learner
+  // and parent names would be a fabricated endorsement rather than copy -
+  // the kind of claim the CPA s.41 and the ARB Code both require to be
+  // genuine and verifiable. `null` hides the section outright
+  // (lms-testimonials-section.tsx returns null on a missing config), which
+  // beats shipping either raw tokens or invented people. Reversible in one
+  // edit: drop a real TestimonialsConfig back here and the section returns.
+  testimonials: null,
 
   footer: {
     motto: "To the next level",
