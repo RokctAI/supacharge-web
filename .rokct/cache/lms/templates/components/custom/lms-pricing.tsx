@@ -29,6 +29,16 @@
 // row's feature list and the Choose action on the back; the middle plan
 // carries the "Most popular" badge, as the app's plan deck does.
 //
+// Below 640px the plan cards are one swipeable row (`sc-row`,
+// landing/lms-theme.css). Stacked, they are the tallest thing on the
+// page - a plan card is a price, a feature list and an action - and a row
+// of plan cards on a phone is how the app's own plan deck reads. Side by
+// side comparison is what the grid is for from 640px up, which is where
+// there is width to compare in. The flip survives the row because nothing
+// here drags: the scroll is the browser's own, so a tap is still a tap
+// (the deck in lms-tutors-section.tsx has to suppress its cards mid-drag
+// precisely because its JS owns the gesture).
+//
 // Three periods, exactly as the Flutter plan sheet reads them
 // (plans_sheet.dart / lesson_plans.dart): monthly, yearly, and a ONE-OFF
 // that is neither. The monthly/yearly switch only ever moves between the
@@ -159,7 +169,7 @@ export function LmsPricing({
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch sc-row">
           {displayedPlans.map((plan, index) => {
             const baseName = cleanPlanName(plan.plan_name);
             const isFree = !!plan.is_free_plan || plan.cost === 0;

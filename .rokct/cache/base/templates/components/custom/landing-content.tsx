@@ -16,8 +16,9 @@
 
 "use client";
 
-// The generic landing host's client orchestrator: the host header, the
-// hero, then every section the composed SDKs registered in
+// The generic landing host's client orchestrator: the host header and the
+// header menu a home SDK registered under it, the hero, then every section
+// the composed SDKs registered in
 // ./landing/page-sections.ts, loaded with a dynamic import and rendered in
 // ascending `meta.order`, skipping any whose `meta.renders` turns this page
 // down and leaving those out of the floating nav with it. This file names
@@ -32,7 +33,13 @@ import React, { useEffect, useMemo, useState } from "react";
 
 import type { LandingPlan } from "@/app/actions/base/landing";
 import { Header } from "@/components/custom/header";
+import { HeaderMenuRow } from "@/components/custom/header-menu";
 import { Hero } from "@/components/custom/hero";
+import {
+  loadHeaderMenu,
+  resolveHeaderMenuItems,
+  type HeaderMenu,
+} from "@/components/custom/landing/header-menu";
 import {
   LANDING_CONFIG,
   type LandingNavItem,
@@ -97,6 +104,7 @@ export function LandingContent({
 }) {
   const [searchActive, setSearchActive] = useState(false);
   const [sections, setSections] = useState<LoadedSection[]>([]);
+  const [headerMenu, setHeaderMenu] = useState<HeaderMenu | null>(null);
 
   // Load the registered sections once, on the client, and keep them in
   // page order. A section that fails to load is logged and skipped; the
@@ -137,6 +145,19 @@ export function LandingContent({
     };
   }, []);
 
+  // The registered header menu, loaded once on the client beside the
+  // sections. Nothing registered answers null and the header keeps the shape
+  // it has always had.
+  useEffect(() => {
+    let cancelled = false;
+    loadHeaderMenu().then((menu) => {
+      if (!cancelled) setHeaderMenu(menu);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // The sections that belong on this page. A section's `meta.renders` is
   // asked once, here, and everything below - what the page draws and what
   // the floating nav lists - comes off the same answer, so the two can
@@ -159,13 +180,38 @@ export function LandingContent({
     [present],
   );
 
+  // The header menu comes off `navItems`, the very list the floating nav
+  // renders, so a header link and a nav tick can never disagree about what
+  // is on the page: an anchor whose section was turned down by `meta.renders`
+  // is not in `navItems` and so is not in the menu either.
+  const headerMenuItems = useMemo(
+    () => resolveHeaderMenuItems(headerMenu, navItems),
+    [headerMenu, navItems],
+  );
+
+  const header = (
+    <Header
+      loginUrl={LANDING_CONFIG.loginUrl}
+      signupUrl={LANDING_CONFIG.signupUrl}
+      session={session}
+    />
+  );
+
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-black">
-      <Header
-        loginUrl={LANDING_CONFIG.loginUrl}
-        signupUrl={LANDING_CONFIG.signupUrl}
-        session={session}
-      />
+      {/* With a menu, the header and the menu row pin as one group, so the
+          row needs no knowledge of the host header's height - and the host
+          header's own `sticky top-0` is harmless inside an already-pinned
+          parent. With NO menu the header is rendered bare, exactly the
+          element tree this host produced before the registry existed. */}
+      {headerMenuItems.length > 0 ? (
+        <div className="sticky top-0 z-50">
+          {header}
+          <HeaderMenuRow items={headerMenuItems} />
+        </div>
+      ) : (
+        header
+      )}
       <main className="flex-1">
         <RegisteredSections
           sections={overlays}

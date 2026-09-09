@@ -18,6 +18,11 @@
 
 // The landing page's subject grid: the CAPS subjects Supacharge teaches and
 // the tutor duo on each. Copy: LMS_LANDING_CONFIG.subjects.
+//
+// Ray, 2026-09-09, naming this section: "most cards should be one row in
+// mobile. even subjects cards". Six subjects stacked is six screens of
+// thumb, so below 640px the grid is one swipeable row (`sc-row`,
+// landing/lms-theme.css); from 640px up it is unchanged.
 
 import React from "react";
 
@@ -46,7 +51,7 @@ export function LmsSubjectsSection({ id }: { id?: string }) {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sc-row">
           {config.subjects.map((subject) => (
             <div
               key={subject.name}

@@ -391,3 +391,60 @@ html.sc-landing:not(.dark) {
   font-size: 0.75rem;
   color: var(--sc-ink-3);
 }
+
+/*
+ * One row on a phone (.sc-row) - Ray, 2026-09-09: "actually most cards
+ * should be one row in mobile. even subjects cards", and the reason behind
+ * it: "im avoiding a long scroll".
+ *
+ * So the goal is PAGE HEIGHT, and the row is only how it is won. A section
+ * whose cards stack one per screen costs the visitor one card-height of
+ * scrolling per card; the same cards in a swipeable row cost one. Six
+ * subjects stop being six screens of thumb.
+ *
+ * This is the same row the deck above already is - snap so a swipe lands on
+ * a card rather than anywhere, `always` so a fling cannot skip one, no
+ * scrollbar because the next card's own edge is the "there is more" signal -
+ * but as ONE class a section adds to the grid it already has, instead of a
+ * component it has to be rebuilt around. lms-tutors-section.tsx wants the
+ * deck's dots and arrows and its JS; the rest only want the row, and a
+ * plain class keeps their markup, their card components and their desktop
+ * grid untouched.
+ *
+ * Phones only, and mechanically so. Every grid that carries this class is
+ * already ONE column below 640px - their first column break is `sm:` or
+ * `md:` - so taking the class means dropping the `grid-cols-1` that said so,
+ * leaving no `grid-template-columns` down here for the column flow to fight.
+ * A section whose own break is `md:` pins `sm:grid-cols-1` in its place, so
+ * the 640-767px band keeps the exact explicit single column it had rather
+ * than an implicit one; a section that breaks at `sm:` needs no pin, its own
+ * `sm:` rule already owns that band. Either way nothing above 639.98px is
+ * touched: at 640px this query stops applying, the section's own
+ * `sm:`/`md:`/`lg:` columns take over, and the layout is to the pixel what
+ * it was before. No JS, no dots and no arrows - the next card's edge is the
+ * affordance, and the scroll is the browser's own, which is what lets a card
+ * that flips on tap go on flipping on tap inside the row.
+ */
+@media (max-width: 639.98px) {
+  .sc-row {
+    grid-auto-flow: column;
+    /* One card, and 1.75rem of the next one - the same sliver the deck
+       fans its second card out by, so the two rows read as one pattern. */
+    grid-auto-columns: calc(100% - 1.75rem);
+    padding: 0.5rem 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .sc-row::-webkit-scrollbar {
+    display: none;
+  }
+  .sc-row > * {
+    min-width: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+}

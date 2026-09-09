@@ -18,6 +18,11 @@
 
 // The landing page's feature grid: the app's screens in the order the
 // guided tour walks them. Copy and icons: LMS_LANDING_CONFIG.features.
+//
+// Eight cards, so eight screens of scrolling on a phone before this
+// section ends - the longest stack on the page. Below 640px the grid is
+// one swipeable row instead (`sc-row`, landing/lms-theme.css); from 640px
+// up it is the grid it always was.
 
 import React from "react";
 
@@ -40,7 +45,7 @@ export function LmsFeaturesSection({ id }: { id?: string }) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sc-row">
           {config.items.map((feature) => {
             const Icon = feature.icon;
             return (

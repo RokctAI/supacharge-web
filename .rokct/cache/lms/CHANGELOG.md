@@ -1,5 +1,120 @@
 # Changelog
 
+## 1.8.0
+
+* Cuts the Supacharge landing's height on a phone by laying most of its card
+  sections out as ONE swipeable row instead of a column of cards. Ray,
+  2026-09-09: "actually most cards should be one row in mobile. even subjects
+  cards", and the reason behind it: "im avoiding a long scroll". The long
+  scroll is the complaint; the row is only how it is answered, so the sections
+  were picked by how much height each one actually costs stacked.
+* `components/custom/landing/lms-theme.css` grows one class, `.sc-row`, and
+  every converted section adds it to the grid it already has. It is the row
+  `.sc-deck` above it already was - snap so a swipe lands on a card rather
+  than anywhere, `scroll-snap-stop: always` so a fling cannot skip one, the
+  scrollbar hidden because the next card's own edge is the "there is more"
+  signal, and a card sized `calc(100% - 1.75rem)` so that edge shows.
+  * A class, not the `lms-card-deck.tsx` component, because these sections
+    want only the row. The deck brings page dots, two arrows and the JS drag
+    `lms-tutors-section.tsx` needs; here that JS would be the thing standing
+    between a tapped plan card and its flip. The scroll is the browser's own,
+    so a tap stays a tap and `lms-plan-card.tsx` keeps flipping inside the row.
+  * Phones only, and mechanically so: the rules live in one
+    `@media (max-width: 639.98px)` block. Every grid that takes the class was
+    already a single column below 640px, so it drops the `grid-cols-1` that
+    said so and leaves no `grid-template-columns` for the column flow to
+    fight; a section whose own break is `md:` pins `sm:grid-cols-1` in its
+    place so the 640-767px band keeps the explicit single column it had.
+    Measured at six viewports, every section is pixel-identical from 640px up.
+* Converted, in order of the height each one was costing (measured at a 390px
+  viewport, real card copy): features 1472px -> 186px, subjects 1124px ->
+  222px, pricing 998px -> 338px, the session steps 922px -> 346px,
+  testimonials 1070px -> 418px, partners 618px -> 278px. About 4400px of
+  page - some five phone screens of thumb - comes off the landing.
+  * Pricing is in rather than out. Stacked plan cards are among the tallest
+    things on the page, and a row of them is how the app's own plan deck
+    reads; side-by-side comparison is what the grid is for from 640px up,
+    where there is width to compare in.
+* Left stacked, deliberately: the three FACTS under the session steps (bare
+  paragraphs, not cards - prose in a snap row reads as broken), the FAQ (an
+  accordion, already short while collapsed, and a row of expanding panels
+  would fight itself) and the footer link list (not cards). The tutors
+  section is untouched on Ray's own say-so - 2026-09-09: "tutor cards already
+  looks great" - and needed nothing anyway: it has been the `lms-card-deck.tsx`
+  deck since 1.2.0, the same request he made of it on 2026-09-08.
+* The testimonials row now holds FIVE items instead of three, on Ray's call -
+  2026-09-09: "i need you to add 2 more so when i replace i will replace all.
+  right now is about the design". The point is the layout: five is the length
+  the real row will be, so the swipe row and the desktop grid are judged at
+  that length rather than at three.
+  * All five are PLACEHOLDER stand-ins and `LMS_LANDING_PLACEHOLDERS` now says
+    so by name - Naledi, Shireen, Sipho, Lerato, Yusuf - and asks for ALL FIVE
+    to be replaced, not three. That registry row is the only thing standing
+    between a stand-in and a reader who assumes it is a customer, so it had to
+    grow with the section: two genuine-looking quotes added under a note that
+    counted three would have read as two real ones.
+  * The two new entries are written in the same register as the first three -
+    a first name, a role, no surname, no school, no employer, no company, so
+    nobody in them is a traceable person - and, like the others, carry no
+    mark, percentage or measured outcome. Each describes something the product
+    does and the page already claims: tomorrow's recording of a missed session
+    (`sessions.facts`) and the two-teacher format. Neither says anything about
+    who answers a question during the break, a mechanic the page states in one
+    place (`sessions.steps`) and a testimonial has no business restating.
+  * Desktop grows by one ragged row and is otherwise untouched: the grid is
+    still `md:grid-cols-3`, so five cards read as three then two.
+
+## 1.7.0
+
+* Gives Supacharge's landing page a HEADER MENU, which answers the half of
+  Ray's "menus in header and footer are not injected" that was actually
+  missing. The footer menu was not: `lms-footer-section.tsx` has rendered
+  `LMS_LANDING_CONFIG.footer.links` - Sessions, Subjects, Tutors, Partners,
+  FAQ, plus the two auth links and the app link - since this SDK shipped its
+  footer. The HEADER carried only the wordmark, the theme toggle and the two
+  auth links, and this SDK could not change that: `components/custom/header.tsx`
+  is the host shell's own file (base_sdk `requires`), so no SDK may ship it.
+  base_sdk 1.13.0 added the seam and this registers into it.
+* `components/custom/landing/lms-header-menu.ts` is Supacharge's menu,
+  registered with one line at `// @rokct-sdk-header-menu-start`. It names
+  SECTION IDS and nothing else - `sessions`, `subjects`, `tutors`,
+  `features`, `partners`, `pricing`, `faq`, in the page order the sections'
+  own `meta.order` already puts them in, so reading down the menu is reading
+  down the page.
+  * No labels and no hrefs. base_sdk resolves each id against the page's live
+    nav, so the word on screen and the Partners `new` badge come from each
+    section's own `meta.nav` - one place to edit when a section stops being
+    new, and no second list to fall out of step.
+  * `pricing` is the entry that shows why ids beat hrefs: `lms-pricing.tsx`
+    declares `renders: ({ plans }) => showsPricing(plans)` and draws nothing
+    when the platform returns no plan rows. On such a render base_sdk drops
+    the header entry too, instead of offering a link to an anchor that is not
+    on the page.
+  * `testimonials` is deliberately left out while
+    `lms-testimonials-section.tsx` is still rendering
+    `[[TESTIMONIAL_n_QUOTE]]` placeholder copy. The header is the most
+    prominent thing on the page, so it points at finished sections only; the
+    section keeps its floating-nav stop in the meantime.
+  * No fixed `links`. Sign in and sign up are already in the host header
+    beside the row, and the app download - a real URL now, not the old
+    `[[PLAY_STORE_URL]]` token - points off-site to a GitHub releases page,
+    which the footer already carries. The header is where a visitor looks to
+    move around THIS page, so it stays in-page only.
+* Corrects what the session break step claims the assistant DOES. Ray, reading
+  the live page: "assistant doesnt answer questions but read them out to tutor
+  to answer before handing over to the next tutor". The step read "Thandi,
+  Bianca or Mandy keeps time, answers the questions you would rather not ask
+  out loud, and hands over", which is wrong about the product - the assistant
+  does not answer anything. It now reads "Thandi, Bianca or Mandy keeps time,
+  reads out the questions you would rather not ask out loud for your tutor to
+  answer, and hands over to the next tutor." Ray's words, one sentence of
+  `LMS_LANDING_CONFIG.sessions.steps`; the step number, the "about 5 minutes"
+  duration and the "Break - the assistant" heading are untouched.
+* `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` follows `manifest.json` to
+  1.7.0. Its own doc comment asks for the two to be kept in step, and 1.7.0's
+  header-menu work had moved the manifest without it, which would have printed
+  "VERSION 1.6.0" in the footer of a 1.7.0 landing.
+
 ## 1.6.0
 
 * The landing page's footer ended on a bare legal line while rokct.ai's

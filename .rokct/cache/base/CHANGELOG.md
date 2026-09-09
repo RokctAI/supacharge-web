@@ -1,5 +1,50 @@
 # Changelog
 
+## 1.13.0
+
+* Adds a HEADER MENU seam, and with it the half of Ray's report that nothing
+  had answered. Looking at the live site he said "menus in header and footer
+  are not injected". The FOOTER half a home SDK could always answer by
+  itself, because its own footer section owns that markup - lms_sdk's
+  `lms-footer-section.tsx` has rendered its link row since it shipped. The
+  HEADER half it could not: `components/custom/header.tsx` is a `requires`
+  file, the host shell's own, so no SDK may ship it and a home SDK had
+  nowhere to put a header link. The landing host is the one thing that
+  renders that header, so the seam belongs here.
+  * `components/custom/landing/header-menu.ts` is a sixth one-marker
+    registry, `// @rokct-sdk-header-menu-start`, alongside
+    `hero-sections.ts`, `hero-copy.ts`, `hero-form.ts`, `plans-query.ts` and
+    `page-sections.ts`. A home SDK registers one line,
+    `{ id: "<sdk>-header-menu", load: () => import("@/components/custom/landing/<file>") }`,
+    and `loadHeaderMenu()` answers the FIRST entry that loads - one page, one
+    header menu, exactly as `hero-form.ts` picks one form.
+  * A `HeaderMenu` names `anchors` - SECTION IDS, not hrefs - and optional
+    fixed `links`. `resolveHeaderMenuItems()` resolves the anchors against
+    the nav the host has ALREADY computed for this render, the list that has
+    been through every section's `meta.renders` predicate. So the label and
+    the badge come from the `meta.nav` entry the home SDK already owns and
+    are never restated in a second place, and an anchor whose section did not
+    render is DROPPED rather than linked to nothing. That last part is the
+    point: a hand-written list of hrefs would have reintroduced exactly the
+    dead-tick problem `PageSectionMeta.renders` was added in 1.11.0 to stop.
+  * `components/custom/header-menu.tsx` is the row, `HeaderMenuRow`, generic
+    chrome in the `footer-chrome.tsx` mould: neutral black/white alphas and
+    `currentColor` only, so it takes the ground and the ink of whatever
+    header it sits under in both themes, and the badge is stated in the
+    declared `"new"`/`"soon"` vocabulary without claiming a palette - the
+    same split the nav badge got, where base_sdk declared the words and each
+    nav rendered them in its own tokens. An empty list renders nothing, so a
+    host can mount it without deciding anything.
+  * With a menu, `components/custom/landing-content.tsx` pins the host header
+    and the row together inside one sticky wrapper, so the row needs no
+    knowledge of the host header's height and the host header's own
+    `sticky top-0` is harmless inside an already-pinned parent.
+  * With NOTHING registered `loadHeaderMenu()` answers `null`, the row
+    renders nothing and the host emits the bare `<Header>` element tree it
+    always did. rokctai_frontend, whose header carries its own mega menu out
+    of `app/config/features.ts`, is untouched - no SDK supplies its menu and
+    none of its files change.
+
 ## 1.12.0
 
 * Adds the COPYRIGHT ROW every rokct shell ends its page with as shared

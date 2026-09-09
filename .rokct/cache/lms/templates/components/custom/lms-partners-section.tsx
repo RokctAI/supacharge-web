@@ -19,6 +19,9 @@
 // The landing page's accountability-partner section: what a linked parent,
 // guardian, sibling, teacher or mentor receives, and the boundary the
 // platform keeps. Copy: LMS_LANDING_CONFIG.partners.
+//
+// The three cards are one swipeable row below 640px (`sc-row`,
+// landing/lms-theme.css); from 640px up the grid is unchanged.
 
 import React from "react";
 import Link from "next/link";
@@ -68,7 +71,7 @@ export function LmsPartnersSection({
           </ul>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-4 sc-row">
           <div className="flex flex-col gap-4 sc-card p-6 md:p-8">
             <CalendarCheck2 className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
             <h3 className="text-xl font-bold text-[var(--sc-ink)]">
