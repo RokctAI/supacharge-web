@@ -35,7 +35,7 @@ import type { FooterChromeConfig } from "@/components/custom/landing/footer-chro
  * its version.json. A shell that tracks its own releases sets
  * `NEXT_PUBLIC_APP_VERSION` and that wins.
  */
-export const LMS_LANDING_VERSION = "1.14.0";
+export const LMS_LANDING_VERSION = "1.15.0";
 
 /**
  * The legal entity the copyright line names - the same company

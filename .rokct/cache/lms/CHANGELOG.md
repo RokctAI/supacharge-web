@@ -1,5 +1,111 @@
 # Changelog
 
+## 1.15.0
+
+* The hero's download buttons are store badges, say the platform and not
+  the file format, and the sign-in button is gone from the hero. Ray,
+  2026-09-09: "rokct has platform logos but supacharge doesnt in those app
+  buttons"; "its saying apk which it should not"; "supacharge must lose
+  signin button in hero i think it was added as it had only one app link".
+  * The download buttons are base_sdk's own store badges, not a button of
+    this SDK's drawn in their shape (Ray, 2026-09-09, on that button: "cant
+    say this, look at the rokctai hero how it say it").
+    `components/custom/landing/lms-hero-copy.ts` now registers one
+    `HeroBadge` per `LMS_SHOWN_APPS` entry (`LMS_HERO_BADGES`) and the frame
+    draws it exactly as it draws rokct.ai's - the same pill (white, or
+    zinc-900 in dark mode, rounded-xl, shadow, hairline border, scale on
+    hover), the same mark at the left, the same 10px uppercase grey small
+    line over the same 16px bold big line, the same `md` breakpoint below
+    which only the mark shows - with rokct.ai's wording pattern ("Available
+    in the" over "Chrome Web Store", "Download on the" over "App Store")
+    applied to a platform that has no store: the entry's `eyebrow`
+    ("Download for") over its `platform` ("Android", "Windows"). The trust
+    line is the frame's too, over the badges, as on rokct.ai.
+  * The marks are SVG files this SDK installs under `public/brand/marks/`
+    (`android.svg`, `windows.svg`: the Simple Icons tracings, CC0; no CDN,
+    no new dependency), handed to the frame through its `{src, alt}` icon
+    slot (`LMS_APP_MARKS`); the demoted iOS entry keeps the frame's own
+    `"app-store"` glyph for the day it is shown again. The frame draws an
+    image mark as an `<img>`, which cannot take the badge's text colour
+    the way its built-in marks do, so `lms-theme.css` inverts the black
+    marks to white under the `dark` class next-themes writes on `<html>`
+    (the one signal lms-theme.tsx and Tailwind's `dark:` variants read).
+    No base_sdk change: `HeroBadge.icon` has taken `{src, alt}` since the
+    hero-copy registry (base 1.6.0), and base 1.23.0 keeps it.
+  * `components/custom/landing/lms-hero-form.tsx` draws nothing any more:
+    no button of its own, no sign-in `Link` (the header carries sign-in
+    and sign-up, and the hero's job is the download), no trust line of its
+    own (the frame's is the one rendered, or the line would appear twice).
+    It stays registered as the seam for a body of Supacharge's own; with
+    it rendering nothing the slot is exactly what the frame renders with
+    no form registered.
+  * `LandingApp` (`lms-landing-config.ts`) gains `platform` and `eyebrow`,
+    and no rendered word says APK any more: the android entry is
+    "Android app" with the description "Direct download for Android from
+    the latest release" (was "Android app (APK)" / "Direct APK download
+    from the latest release"); the desktop entry's description is "Direct
+    download for Windows from the latest release". The header's app cards
+    (the mega menu's "Android app (APK)" card), the footer links and the
+    lesson prompt read the same fields, so they change with it. "APK"
+    survives only in comments and in the asset-name pattern the download
+    route matches, which no visitor sees.
+* The download buttons download the file. Ray, 2026-09-09: "there is no
+  way we can resolve to get the direct download link?". There is: the
+  release lane names every asset for its version (`app-v1.2.9.apk`,
+  `app-windows-v1.2.9.zip`), so GitHub's stable
+  `releases/latest/download/<asset>` form - which needs a version-less
+  name - never resolves and 1.4.1 sent visitors to the releases page; but
+  the public releases API lists the latest release's assets, and the
+  repository is public, so a small route can resolve the file each time.
+  * `app/download/[platform]/route.ts` (new; `GET /download/android`,
+    `GET /download/windows`) fetches
+    `https://api.github.com/repos/RokctAI/supacharge/releases/latest`
+    through Next's data cache with `next: { revalidate: 600 }` - one call
+    serves every visitor for ten minutes, and a new release is live within
+    ten - and answers a 302 to that platform's asset. No token and no
+    environment: the API is public and unauthenticated. When the API is
+    unreachable, rate-limited or the release has no asset for the platform
+    the 302 goes to the releases page instead (the release's own page when
+    the API gave one), so the button never dead-ends. A platform the route
+    does not serve - iOS, which no lane builds and no listing carries - is
+    a 404, never an invented URL, and that entry stays hidden with its
+    releases-page href. A prefetch (`Next-Router-Prefetch`, `RSC`,
+    `Purpose: prefetch`) is answered 204 with no redirect so a router
+    warming the link cannot start a 127 MB download; the entries stay
+    `external: true` so every surface renders a plain anchor rather than a
+    `Link`.
+  * `app/download/[platform]/resolve.ts` (new) is the pure half - the
+    platform table with each platform's asset-name patterns in order of
+    preference (Android: `app-v<version>.apk`, NOT `app-debug-v<version>.apk`
+    or the `.aab`; Windows: the single installer
+    `<app>-windows-setup-v<version>.exe` the release lane is moving to
+    (Ray, 2026-09-09: one installer instead of the zip) first, then
+    `app-windows-v<version>.zip` for the releases that still carry only the
+    archive, NOT `update_package.zip`), `pickAssetUrl` and
+    `resolveDownload` - with no imports and no environment, so
+    `tests/test_download_route.py` runs it under node against a fixture
+    shaped like the v1.2.9 release, with and without the installer. The
+    Windows badge says "Windows" either way, never the file type.
+  * The shown `LMS_APPS` hrefs are now `/download/android` and
+    `/download/windows`; `LMS_LANDING_CONFIG.app` and the iOS entry still
+    point at the releases page. `/download/<platform>` is two path
+    segments, which auth_sdk's middleware matcher (`/:id`, `/handson/:path*`)
+    does not cover, so no gate was added and none is needed.
+* The hero wordmark renders at its set size. Ray, 2026-09-09: "the
+  supacharge name in hero is small". base's hero frame gives the wordmark
+  a fixed 250px slot and the host shell's `Branding` shrinks its text to
+  fit whatever slot it measures on mount; `lms-theme.css` had widened that
+  slot to `auto` since 1.2.0, but `lms-theme.tsx` puts `sc-landing` on
+  `<html>` after `Branding` has already measured the 250px, so the
+  wordmark kept the inline `transform: scale(0.506)` (and the wrapper the
+  matching inline width) that fitted a 72px "Supacharge" into 250px: 238px
+  wide and 36px tall at 1280, beside a 60px rotating headline word. The
+  stylesheet now clears both inline styles (`transform: none !important`
+  on the wordmark, `width: auto !important` on its wrapper), from outside
+  the frame as it already re-paints the rest, and the wordmark is the
+  72px the rule sets at 1280 (rokct.ai's is 76px) and 40px at 390. No
+  base_sdk change; the base floor stays 1.21.0.
+
 ## 1.14.0
 
 * The tutor cards keep scrolling like the testimonials. Ray, 2026-09-09:
