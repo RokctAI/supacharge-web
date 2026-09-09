@@ -175,19 +175,15 @@ html.sc-landing:not(.dark) {
 }
 /*
  * The hero's download badges (lms-hero-copy.ts) are base_sdk's own store
- * badges and their marks are the platforms' own logos under /brand/marks/
- * (1.16.0). The frame draws a {src, alt} mark as an <img>, an isolated
- * document, so `currentColor` inside it cannot follow the badge's text:
- * it resolves to black in both themes. The two monochrome marks - Apple
- * and Windows (Ray, 2026-09-09: "keep it black and white") - are therefore
- * inverted to white under the `dark` class, and ONLY those two: the marks
- * that carry their brand colours (Google Play, AppGallery) are never
- * touched.
+ * badges and their marks are the platforms' own logos, base_sdk 1.26.0's
+ * mark files (1.17.0; this SDK's own until 1.16.0). The two
+ * monochrome marks, Apple and Windows (Ray, 2026-09-09: "keep it black and
+ * white"), are black on the light pill and white on the dark one, and
+ * base does that itself, keyed on the mark's file name, never touching a
+ * mark that carries its brand colours (Google Play, AppGallery). So no
+ * rule here reaches a mark: the 1.16.0 rule that did is gone, and a home
+ * SDK must not ship one of its own.
  */
-html.sc-landing.dark #hero img[src="/brand/marks/app-store.svg"],
-html.sc-landing.dark #hero img[src="/brand/marks/windows.svg"] {
-  filter: invert(1);
-}
 .sc-eyebrow {
   font-size: 0.75rem;
   font-weight: 600;
