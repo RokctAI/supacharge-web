@@ -169,6 +169,7 @@ next-env.d.ts
 /components/custom/header.tsx
 /components/custom/hero.tsx
 /components/custom/landing-content.tsx
+/components/custom/landing/brand-marks.ts
 /components/custom/landing/footer-chrome-config.ts
 /components/custom/landing/header-menu.ts
 /components/custom/landing/hero-config.ts
@@ -185,6 +186,7 @@ next-env.d.ts
 /components/custom/landing/lms-hero-form.tsx
 /components/custom/landing/lms-landing-config.ts
 /components/custom/landing/lms-marquee.tsx
+/components/custom/landing/lms-network-strip.ts
 /components/custom/landing/lms-plan-card.tsx
 /components/custom/landing/lms-plans-query.ts
 /components/custom/landing/lms-site-metadata.ts
@@ -235,6 +237,7 @@ next-env.d.ts
 /middleware.ts
 /public/brand/marks/app-gallery.svg
 /public/brand/marks/app-store.svg
+/public/brand/marks/chrome-web-store.svg
 /public/brand/marks/google-play.svg
 /public/brand/marks/windows.svg
 /public/brand/social-still.png

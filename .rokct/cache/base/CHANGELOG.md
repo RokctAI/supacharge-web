@@ -1,5 +1,84 @@
 # Changelog
 
+## 1.27.0
+
+* The network strip renders once per page. Ray, 2026-09-09, on rokct.ai:
+  "we now have two trusted by". The shell's layout draws its footer on
+  every route, `/landing` included, so a registered landing placement
+  (`afterHero`) and `footer: true` both landed on the same page - the
+  placement rule knew the surface, not the page. So:
+  * `networkStripRendersAt(strip, surface, onLandingPage = false)`: the
+    footer surface yields on the landing route whenever the landing
+    placement is not `"none"` (the page already carries the strip). Every
+    other route keeps the footer strip; a shell that registers nothing
+    (landing `"none"`, footer on) sees no change anywhere.
+  * `isLandingRoute(pathname)` and `LANDING_ROUTE = "/landing"` in
+    `components/custom/landing/network-strip.ts` - the pure half;
+    `components/custom/network-strip.tsx` reads `usePathname()` itself,
+    so neither `FooterChromeRow` nor a host footer that renders
+    `<NetworkStrip surface="footer" />` needs to know. A render outside
+    the App Router (`null` pathname) counts as any other route.
+  * A fourth landing placement, `"section"`: a page section the home SDK
+    registered draws the strip itself, in its own look (rokct.ai's logos
+    marquee, agent_sdk 1.17.0), reading `loadResolvedNetworkStrip()` and
+    asking `networkStripRendersAt(strip, "section")`; base's `afterHero`
+    and `beforeFooter` surfaces then draw nothing and the footer still
+    yields on `/landing`. `NetworkStripSurface` gains the value with it.
+  * Nothing about the list, the links or the heading changes: a link is
+    still the site's origin, no parameter, no handler.
+* Tests: `network-strip.test.mts` covers `isLandingRoute`, the footer
+  yielding on the landing route only while a landing placement is set,
+  the `"section"` surface, and the unchanged defaults;
+  `test_network_strip_registry_contract` names the four placements and the
+  two new exports, `test_network_strip_component_never_tracks` holds that
+  the component reads the route through `usePathname` and asks the pure
+  rule, and `test_network_strip_renders_once_per_page` reads the rule.
+
+## 1.26.0
+
+* Base ships the platform brand marks itself. Ray, 2026-09-09, on the
+  store logos agent_sdk 1.15.0 (Chrome Web Store, Google Play) and lms_sdk
+  1.16.0 (Google Play, AppGallery, App Store, Windows) each installed under
+  their own `public/brand/marks/`: "move to base, home sdk can choose to
+  use them or not". So:
+  * `templates/public/brand/marks/` - `chrome-web-store.svg` (4353 B, the
+    agent_sdk drawing), `google-play.svg` (1181 B, lms_sdk's gilbarbara
+    tracing; the same four Google colours as agent's), `app-gallery.svg`
+    (1342 B, Huawei red), `app-store.svg` (687 B, Apple, `currentColor`),
+    `windows.svg` (218 B, four equal panes, `currentColor`) - installed as
+    a directory to `public/brand/marks/`, so every host that pins base
+    serves `/brand/marks/<name>.svg`. Only the `marks/` subdirectory is
+    base's; a home SDK's own `public/brand` mapping (lms's wordmarks) is
+    untouched. Each file: a `viewBox`, no `<script>`, no `href`, no host
+    but the SVG namespace (`test_brand_marks_are_installed`).
+  * `components/custom/landing/brand-marks.ts`, a typed registry a home
+    SDK may use or ignore: `BrandMark { src, alt, mono }`, `BRAND_MARKS`
+    keyed `chromeWebStore | googlePlay | appGallery | appStore | windows`,
+    and the dark-mode rule - `isMonoMark(src)` / `markImageClass(src)`.
+    Opting in is handing a mark to a hero badge's `icon` (hero-copy.ts)
+    or a header action's `icon` (header-menu.ts), typed
+    (`icon: BRAND_MARKS.chromeWebStore`) or as the bare path; nothing in
+    base draws one by default.
+  * Dark mode, once, in base: the two monochrome marks are `currentColor`
+    inside an `<img>`, an isolated document, so they resolve black in both
+    themes. `hero.tsx` (a badge's image icon) and `header-menu.tsx` (an
+    action's image icon) now add `dark:invert` to exactly the image whose
+    src path is `/brand/marks/app-store.svg` or `/brand/marks/windows.svg`
+    (`markImageClass`: trimmed, `?query`/`#hash` ignored, absolute URLs
+    never match). Coloured marks and every other image are never filtered.
+    A home SDK must NOT add its own invert for these paths: lms_sdk
+    1.16.0's `lms-theme.css` rule for the same two files is retired in
+    lms_sdk 1.17.0.
+  * Defaults unchanged: `HERO_CONFIG`'s badges keep the built-in "chrome"
+    and "app-store" glyphs, the Google Play badge still names no icon, the
+    header's actions name no image - a shell that declares nothing renders
+    1.25.0's DOM.
+  * Tests: `test_brand_marks_are_installed`,
+    `test_brand_marks_registry_contract`,
+    `test_brand_marks_behaviour_under_node` (`brand-marks.test.mts`) and
+    `test_brand_marks_type_check_under_tsc`; the 1.25.0 image-icon test
+    follows the class merge.
+
 ## 1.25.0
 
 * A header action may carry an IMAGE icon the shell serves itself. Ray,
