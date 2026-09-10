@@ -1,5 +1,77 @@
 # Changelog
 
+## 1.18.0
+
+Requires base_sdk >= 1.26.0 as before; the floor is unchanged.
+
+* supacharge.app shows no network strip. Ray, 2026-09-09: "supacharge
+  dont need the strip yet". base_sdk 1.23.0 draws the other sites of the
+  Rokct network under "Trusted by" in every shell's footer row by default
+  (`FooterChromeRow`, the row `lms-footer-section.tsx` ends the landing
+  page with), minus the shell itself - so supacharge.app was showing
+  rokct.ai and juvo there. So:
+  * `components/custom/landing/lms-network-strip.ts` registers
+    `placement: { landing: "none", footer: false }` with one line at
+    `// @rokct-sdk-network-strip-start`
+    (`components/custom/landing/network-strip.ts`). Base's rule then
+    draws nothing on any surface: not in the footer row, not on the
+    landing page. Nothing else is said - no heading, no order, no hidden
+    keys - and no URL is named; the list stays base's. The shape is
+    written out structurally, like `lms-site-metadata.ts`, so an older
+    base still compiles the shell. When Ray wants the strip,
+    `footer: true` (base's default) is the only change.
+  * `lms-footer-section.tsx` passes nothing to `FooterChromeRow`: the
+    registration, not a prop, keeps the strip off, so a second footer or
+    a host footer that renders the row gets the same answer.
+  * Manifest: version 1.18.0; the module installed; requires
+    `components/custom/landing/network-strip.ts` (optional against an
+    older base: the installer skips the line with a warning); the footer
+    advertises 1.18.0.
+* Tests: `TestNetworkStrip` - the module is installed, registered where
+  base looks in base's one-line contract, says footer off and landing
+  none and nothing more (no URL, no tracking word, no import), and no
+  landing or footer template of this SDK draws the strip or writes its
+  "Trusted by" heading itself (the hero's `trustLine` is copy about
+  learners, not the strip).
+
+## 1.17.0
+
+Requires base_sdk >= 1.26.0 (the platform marks under public/brand/marks/,
+which base now installs on every host). Against base_sdk <= 1.25.0 the
+paths this SDK names resolve to no file and the hero badges and the
+lesson prompt draw a broken image, so this version must not be composed
+over an older base. The base floor was 1.21.0 through 1.16.0.
+
+* The store marks are base_sdk's, not this SDK's. base_sdk 1.26.0
+  installs `public/brand/marks/chrome-web-store.svg`, `google-play.svg`,
+  `app-gallery.svg`, `app-store.svg` and `windows.svg` on every host - the
+  one set of official platform marks, shared by every home SDK, the same
+  drawings this SDK shipped in 1.16.0 - and a home SDK opts into a file by
+  naming its path as the image src. So:
+  * `templates/public/brand/marks/` and its four files are gone. The
+    `templates/public/brand` -> `public/brand` mapping stays: it still
+    carries the Supacharge wordmarks and the social still.
+  * `lms-hero-copy.ts`'s `LMS_APP_MARKS` table and
+    `lms-download-app.tsx` keep the same `/brand/marks/...` paths, so
+    nothing visible changes on the hero badges or the lesson prompt.
+  * `lms-theme.css` no longer touches a mark. base applies the dark-mode
+    treatment for the two monochrome files, app-store.svg and
+    windows.svg, itself, keyed on the src basename, and never filters a
+    coloured mark, so the 1.16.0 rule that did that under `#hero` is
+    gone; no lms stylesheet filters a mark and a home SDK must not ship
+    one.
+  * Manifest: version 1.17.0, base floor 1.26.0; the footer advertises
+    1.17.0.
+* Tests: `test_hero_badge_marks_are_the_store_marks_installed_locally`
+  becomes `test_hero_badge_marks_are_base_sdks_files` (the mapping and
+  the prompt are unchanged; no `templates/public/brand/marks` in this
+  SDK; the wordmarks still install), `test_marks_carry_the_colours_ray_ruled`
+  goes with the files, `test_only_the_two_monochrome_marks_are_inverted_in_dark_mode`
+  becomes `test_no_lms_stylesheet_filters_a_mark` (no `invert`, no
+  `filter:`, no `/brand/marks/` in lms-theme.css or any other lms CSS),
+  and the manifest names the 1.26.0 floor. The storeUrl, shown and
+  wording tests are unchanged.
+
 ## 1.16.0
 
 * The hero badges carry the store marks every visitor already knows, in

@@ -57,6 +57,11 @@ MARKS = os.path.join(TEMPLATES, "public", "brand", "marks")
 THEME_CSS = os.path.join(LANDING, "lms-theme.css")
 FOOTER_CHROME = os.path.join(LANDING, "lms-footer-chrome.ts")
 FOOTER_SECTION = os.path.join(CUSTOM, "lms-footer-section.tsx")
+# 1.18.0: supacharge.app shows no network strip.
+NETWORK_STRIP = os.path.join(LANDING, "lms-network-strip.ts")
+NETWORK_STRIP_LINE = re.compile(
+    r'^  \{ id: "lms-network-strip", load: \(\) => import\("@/components/custom/landing/lms-network-strip"\) \},$'
+)
 PROMPT = os.path.join(CUSTOM, "lms-download-app.tsx")
 TUTORS_SECTION = os.path.join(CUSTOM, "lms-tutors-section.tsx")
 TESTIMONIALS_SECTION = os.path.join(CUSTOM, "lms-testimonials-section.tsx")
@@ -298,16 +303,16 @@ class TestSurfaces(unittest.TestCase):
             self.assertNotIn(word, form)
         self.assertNotRegex(form, r"(?i)sign in")
 
-    def test_hero_badge_marks_are_the_store_marks_installed_locally(self):
+    def test_hero_badge_marks_are_base_sdks_files(self):
         """1.16.0 (Ray, 2026-09-09: "we already have nice icons in buttons
         in hero of rokct but supacharge is getting bad ones. we use what
-        these platforms use for familiarity"): the four marks are Ray's
-        picks, installed under public/brand/marks as clean standalone SVGs
-        - parse as XML, a viewBox, no width/height, no script, no style, no
-        metadata, no external reference, no raster, no CDN - and mapped so
-        the Android download wears Google Play, the desktop one Windows and
-        the iOS entry the Apple mark and the Huawei entry the AppGallery
-        flower; which are drawn is LMS_SHOWN_APPS's business."""
+        these platforms use for familiarity"): the Android download wears
+        Google Play, the desktop one Windows, the iOS entry the Apple mark
+        and the Huawei entry the AppGallery flower; which are drawn is
+        LMS_SHOWN_APPS's business. 1.17.0: the files are base_sdk 1.26.0's,
+        installed under public/brand/marks on every host, so this SDK ships
+        none of them and only names their paths; the public/brand mapping
+        stays for the wordmarks and the social still."""
         copy = code_of(HERO_COPY)
         mapping = {
             "android": ("/brand/marks/google-play.svg", "Google Play"),
@@ -320,59 +325,38 @@ class TestSurfaces(unittest.TestCase):
                 self.assertIn(f'{app_id}: {{ src: "{src}", alt: "{alt}" }}', copy)
         self.assertNotIn('"app-store"', copy)
         self.assertNotIn("android.svg", copy)
-        self.assertEqual(
-            sorted(os.listdir(MARKS)),
-            ["app-gallery.svg", "app-store.svg", "google-play.svg", "windows.svg"],
-        )
-        for name in os.listdir(MARKS):
-            with self.subTest(mark=name):
-                svg = read(os.path.join(MARKS, name))
-                root = ET.fromstring(svg)
-                self.assertEqual(root.tag, "{http://www.w3.org/2000/svg}svg")
-                self.assertRegex(root.get("viewBox") or "", r"^0 0 \d+ \d+$")
-                self.assertIsNone(root.get("width"))
-                self.assertIsNone(root.get("height"))
-                tags = {el.tag.split("}")[-1] for el in root.iter()}
-                self.assertTrue(tags <= {"svg", "path", "g", "defs", "linearGradient", "stop"}, tags)
-                self.assertNotRegex(svg, r"(?i)<script|<style|<image|<metadata|xlink:href|\bhref=|data:|<!--")
-                for value in re.findall(r'xmlns(?::\w+)?="([^"]*)"', svg):
-                    self.assertTrue(value.startswith("http://www.w3.org/"), value)
-                self.assertNotRegex(re.sub(r'xmlns(?::\w+)?="[^"]*"', "", svg), r"(?i)http")
+        # Every mark named is one of base's files under /brand/marks/.
+        for value in re.findall(r'src: "([^"]+)"', copy):
+            self.assertRegex(value, r"^/brand/marks/[a-z-]+\.svg$")
+        self.assertNotRegex(copy, r"(?i)https?://|cdn\.")
+        # This SDK ships no mark: base owns the directory.
+        self.assertFalse(os.path.exists(MARKS), MARKS)
+        brand = os.path.join(TEMPLATES, "public", "brand")
+        self.assertTrue(os.path.isdir(brand))
+        self.assertFalse([f for f in os.listdir(brand) if f.endswith(".svg") and "wordmark" not in f], os.listdir(brand))
+        installs = load_manifest()["installs"]
+        self.assertIn(("templates/public/brand", "public/brand"), [(i["from"], i["to"]) for i in installs])
+        self.assertNotIn("marks", json.dumps(installs))
         self.assertFalse(os.path.exists(os.path.join(LANDING, "lms-app-glyphs.tsx")))
-        self.assertNotIn("lms-app-glyphs", json.dumps(load_manifest()["installs"]))
+        self.assertNotIn("lms-app-glyphs", json.dumps(installs))
 
-    def test_marks_carry_the_colours_ray_ruled(self):
-        """Ray, 2026-09-09: "you will change colors"; "apple is black could
-        be white, huawei is black should be red or meroon"; "keep it black
-        and white" (Windows). A file that already carries its brand colours
-        (Google Play) is kept exactly; the Huawei flower is Huawei red; the
-        Apple and Windows marks are currentColor and nothing else."""
-        fills = lambda name: [f.lower() for f in re.findall(r'fill="([^"]+)"', read(os.path.join(MARKS, name)))]
-        self.assertEqual(sorted(fills("google-play.svg")), sorted(["#ea4335", "#fbbc04", "#4285f4", "#34a853"]))
-        self.assertEqual(set(fills("app-gallery.svg")), {"#cf0a2c"})
-        for name in ("app-store.svg", "windows.svg"):
-            with self.subTest(mark=name):
-                self.assertEqual(set(fills(name)), {"currentcolor"})
-                self.assertNotRegex(read(os.path.join(MARKS, name)), r"#[0-9a-fA-F]{3,8}")
-
-    def test_only_the_two_monochrome_marks_are_inverted_in_dark_mode(self):
-        """The frame draws a mark as an <img>, where currentColor cannot
-        follow the badge text, so the stylesheet inverts the Apple and
-        Windows marks under the `dark` class and nothing else: the 1.15.0
-        rule that inverted every badge image is gone, and no rule reaches
-        the coloured marks."""
+    def test_no_lms_stylesheet_filters_a_mark(self):
+        """1.17.0: base_sdk 1.26.0 applies the dark-mode treatment for the
+        two monochrome marks (app-store.svg, windows.svg) itself, keyed on
+        the src basename, and never touches a coloured one, so the 1.16.0
+        rule that did that under #hero is gone and no lms stylesheet
+        reaches a mark: no invert, no filter, no /brand/marks/ selector."""
         css = read(THEME_CSS)
         self.assertNotRegex(css, r'a\[href\^="/download/"\]')
-        rules = re.findall(r"([^{}]+)\{([^}]*)\}", css)
-        inverting = [sel.strip() for sel, body in rules if "invert(" in body]
-        self.assertEqual(len(inverting), 1, inverting)
-        selector = inverting[0]
-        for mark in ("app-store.svg", "windows.svg"):
-            self.assertIn(f'html.sc-landing.dark #hero img[src="/brand/marks/{mark}"]', selector)
-        for mark in ("google-play.svg", "app-gallery.svg", "android.svg"):
-            self.assertNotIn(mark, css)
-        self.assertEqual(css.count("filter:"), 1)
+        self.assertNotIn("invert", css)
+        self.assertNotIn("filter:", css)
+        self.assertNotIn("/brand/marks/", css)
         self.assertNotIn(".sc-app-badge", css)
+        for root, _dirs, files in os.walk(TEMPLATES):
+            for name in files:
+                if name.endswith(".css"):
+                    with self.subTest(css=os.path.relpath(os.path.join(root, name), TEMPLATES)):
+                        self.assertNotIn("invert", read(os.path.join(root, name)))
 
     def test_download_prompt_draws_the_same_marks(self):
         """1.16.0: the lesson prompt's buttons carry the hero's marks, read
@@ -490,6 +474,59 @@ class TestWebRules(unittest.TestCase):
         self.assertIn("redirect(LMS_LANDING_CONFIG.home.url)", root_page)
 
 
+class TestNetworkStrip(unittest.TestCase):
+    """1.18.0 (Ray, 2026-09-09: "supacharge dont need the strip yet"):
+    base_sdk's network strip - the other sites of the Rokct network under
+    "Trusted by", in every shell's footer row by default - is registered
+    OFF on this shell, everywhere."""
+
+    def test_registered_where_base_looks(self):
+        manifest = load_manifest()
+        self.assertTrue(os.path.exists(NETWORK_STRIP))
+        self.assertIn("components/custom/landing/lms-network-strip.ts", {i["to"] for i in manifest["installs"]})
+        lines = [i for i in manifest["integrations"] if i["target"] == "components/custom/landing/network-strip.ts"]
+        self.assertEqual(len(lines), 1)
+        self.assertEqual(lines[0]["placeholder"], "// @rokct-sdk-network-strip-start")
+        self.assertRegex(lines[0]["replacement"], NETWORK_STRIP_LINE)
+        self.assertIn("components/custom/landing/network-strip.ts", manifest["requires"])
+        self.assertIn("base_sdk >= 1.23.0", manifest["_comment"]["components/custom/landing/network-strip.ts"])
+        self.assertIn("1.18.0", manifest["_comment"]["about"])
+
+    def test_says_off_everywhere_and_nothing_more(self):
+        src = read(NETWORK_STRIP)
+        self.assertIn('landing: "none"', src)
+        self.assertIn("footer: false", src)
+        self.assertIn("export default LMS_NETWORK_STRIP;", src)
+        body = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
+        body = re.sub(r"^\s*//.*$", "", body, flags=re.M)
+        self.assertNotIn("http", body)
+        self.assertNotIn("import ", body, "imports nothing, so an older base still compiles the shell")
+        for tracker in ("utm", "ref=", "onClick", "gtag", "analytics"):
+            self.assertNotIn(tracker, body)
+        self.assertNotIn("Trusted by", body)
+
+    def test_no_lms_template_draws_the_strip_itself(self):
+        """The strip is base's; with the footer surface off nothing of this
+        SDK may draw it or write its heading by hand. The hero's trustLine
+        ("Trusted by learners...") is copy about learners, not the strip,
+        and lives in lms-hero-copy.ts, which is not checked here."""
+        for path in (FOOTER_SECTION, CONFIG, FOOTER_CHROME, HEADER_MENU):
+            with self.subTest(file=os.path.relpath(path, SDK_ROOT)):
+                # The code, not the comments that recount what base draws.
+                code = re.sub(r"/\*.*?\*/", "", read(path), flags=re.S)
+                code = re.sub(r"^\s*//.*$", "", code, flags=re.M)
+                self.assertNotIn("NetworkStrip", code)
+                self.assertNotIn("components/custom/network-strip", code)
+                self.assertNotIn("Trusted by", code)
+        footer = read(FOOTER_SECTION)
+        self.assertIn("<FooterChromeRow", footer)
+        self.assertNotIn("networkStrip=", footer, "the registration, not a prop, keeps the strip off")
+        # The base floor is unchanged.
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        self.assertIn("base_sdk >= 1.26.0", changelog.split("## 1.17.0")[0])
+        self.assertNotIn("base_sdk >= 1.27.0", changelog.split("## 1.17.0")[0])
+
+
 class TestVersion(unittest.TestCase):
     def setUp(self):
         self.manifest = load_manifest()
@@ -519,6 +556,17 @@ class TestVersion(unittest.TestCase):
             with self.subTest(key=key):
                 self.assertIn(key, self.manifest["requires"])
                 self.assertIn("base_sdk >= 1.21.0", notes[key])
+
+    def test_manifest_names_the_base_floor_that_ships_the_marks(self):
+        """1.17.0: the mark files are base_sdk 1.26.0's, so the floor is
+        1.26.0 - stated in the manifest, on the hero-config note and at the
+        head of the changelog."""
+        notes = self.manifest["_comment"]
+        self.assertIn("1.26.0", notes["about"])
+        self.assertIn("components/custom/landing/hero-config.ts", self.manifest["requires"])
+        self.assertIn("base_sdk >= 1.26.0", notes["components/custom/landing/hero-config.ts"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        self.assertIn("base_sdk >= 1.26.0", changelog.split("## 1.16.0")[0])
 
 
 if __name__ == "__main__":

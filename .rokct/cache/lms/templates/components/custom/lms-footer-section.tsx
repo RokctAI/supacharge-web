@@ -28,6 +28,12 @@
 // from ./landing/lms-footer-chrome. It supersedes
 // LMS_LANDING_CONFIG.footer.legal for rendering - that field names the same
 // company and is left in place for now.
+//
+// The row would also carry base_sdk 1.23.0's network strip ("Trusted by",
+// the other sites of the Rokct network) above the copyright line, and
+// since 1.18.0 it does not: ./landing/lms-network-strip.ts registers the
+// footer surface off (Ray, 2026-09-09: "supacharge dont need the strip
+// yet"), so base's rule draws nothing here and this file passes nothing.
 
 import React from "react";
 import Link from "next/link";
