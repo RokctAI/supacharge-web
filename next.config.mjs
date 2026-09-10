@@ -37,35 +37,6 @@ const nextConfig = {
     // server log line. There is now no connection to fail.
     ROKCT_TENANT_LINK: "single-tenant",
   },
-
-  // LEGACY-HOST REDIRECT (Ray's 2026-09-10 ruling: "we using .school only
-  // now"). supacharge.app survives only as a permanent redirect to
-  // supacharge.school; it must never serve the site itself. This is the ONE
-  // sanctioned place the old host string may be written - do not sweep it.
-  //
-  // It lives here, in the host-owned next.config.mjs, so it depends on
-  // neither DNS nor a Vercel project setting and cannot drift between
-  // environments. Next.js applies `redirects` before middleware, so the
-  // auth middleware and the tenant-host lookup never see the legacy host.
-  // `:path*` carries the path and Next preserves the query string, so
-  // https://supacharge.app/landing?x=1 -> https://supacharge.school/landing?x=1
-  // with a 308.
-  async redirects() {
-    return [
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "supacharge.app" }],
-        destination: "https://supacharge.school/:path*",
-        permanent: true,
-      },
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.supacharge.app" }],
-        destination: "https://supacharge.school/:path*",
-        permanent: true,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
