@@ -36,6 +36,13 @@ next-env.d.ts
 .rokct/cache/
 .rokct/sdk_installer_base.py
 
+# Seam files: tracked by the host AND installed by an SDK at compose time.
+# Ignore rules are no-ops for git on tracked files; they exist only to keep
+# the fleet linter's `prettier --write . --ignore-path .gitignore` off the
+# installer-written bytes (build.yml's zero-drift gate compares them to the
+# base_sdk cache copy).
+components/custom/theme-provider.tsx
+
 # Composed output — everything the SDK installers write into the host, listed
 # in the generated block at the end of this file. The shell commits none of
 # it: it is regenerated on every compose from the cache above.
