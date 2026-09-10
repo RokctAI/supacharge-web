@@ -107,7 +107,7 @@ even though nothing connects during it.
 
 `NEXT_PUBLIC_SITE_URL` is the only place the public origin is configured — it
 is resolved once in [`app/site.ts`](app/site.ts) and defaults to
-`https://supacharge.app`. Metadata, the canonical URL, OpenGraph and Twitter
+`https://supacharge.school`. Metadata, the canonical URL, OpenGraph and Twitter
 cards, `/robots.txt`, `/sitemap.xml` and the web app manifest all derive from
 it, so a preview deployment can advertise its own URL by setting it.
 

@@ -244,10 +244,30 @@ export interface TutorsConfig {
   assistantsDeck: DeckLabels;
 }
 
+/**
+ * How lms-features-section.tsx draws a feature card. One per card, and no
+ * two neighbours - beside or above each other, at any width - the same
+ * (tests/test_landing_apps.py lays the cards out and checks).
+ *
+ *   glow      the icon over a soft radial accent
+ *   numeral   `figure` drawn large; a figure the card's own copy states
+ *   list      `lines` under the text, a two-line mini list
+ *   gradient  a diagonal wash from the primary tint into the card
+ *   outlined  a transparent card with a primary-leaning stroke
+ */
+export type FeatureTreatment = "glow" | "numeral" | "list" | "gradient" | "outlined";
+
 export interface Feature {
   name: string;
   text: string;
   icon: LucideIcon;
+  treatment: FeatureTreatment;
+  /** Two columns from 640px up, and first in the flow below 1024px; exactly two cards. */
+  wide?: boolean;
+  /** `numeral` only: the figure drawn large. Decorative - it repeats what `text` says. */
+  figure?: string;
+  /** `list` only: the lines under the text, every one copy the page already carries. */
+  lines?: string[];
 }
 
 export interface FeaturesConfig {
@@ -708,6 +728,13 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     },
   },
 
+  // The cards are a bento (lms-features-section.tsx): the two `wide` ones
+  // are the screens the page is about - the schedule the heading names and
+  // the two-tutor format the sessions section sells - and each card's
+  // `treatment` is assigned so that no two neighbours share one at any
+  // width. `figure` and `lines` are copy this file already carries: the
+  // "2" is the Tutors card's own "Two tutors per subject", the two lines
+  // under Subjects are the subjects section's eyebrow and its grades line.
   features: {
     heading: "Your day, sorted.",
     blurb: "Everything in the app, in the order you use it.",
@@ -716,41 +743,53 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         name: "Schedule",
         text: "Your day at a glance, with the next live session front and centre.",
         icon: CalendarClock,
+        treatment: "glow",
+        wide: true,
       },
       {
         name: "Subjects",
         text: "Browse every subject you take, term by term.",
         icon: BookOpenCheck,
+        treatment: "list",
+        lines: ["Built for CAPS and IEB", "Grades 10, 11 and 12"],
       },
       {
         name: "Tutors",
         text: "Two tutors per subject - find the one whose style clicks with you.",
         icon: Users,
+        treatment: "numeral",
+        wide: true,
+        figure: "2",
       },
       {
         name: "Library",
         text: "Rewatch past lessons and dip into knowledge bites whenever you like.",
         icon: Library,
+        treatment: "gradient",
       },
       {
         name: "Practice",
         text: "Sharpen your skills with practice built around your subjects.",
         icon: ClipboardCheck,
+        treatment: "outlined",
       },
       {
         name: "League",
         text: "Earn points as you learn and see how you stack up this week.",
         icon: Trophy,
+        treatment: "glow",
       },
       {
         name: "My plan",
         text: "See exactly what your plan includes - no surprises.",
         icon: WalletCards,
+        treatment: "gradient",
       },
       {
         name: "Profile",
         text: "Your grade, subjects and progress in one place.",
         icon: UserRound,
+        treatment: "outlined",
       },
     ],
   },

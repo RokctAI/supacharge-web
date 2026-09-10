@@ -51,6 +51,8 @@ LESSON_DIR = os.path.join(
 
 CONFIG = os.path.join(LANDING, "lms-landing-config.ts")
 HEADER_MENU = os.path.join(LANDING, "lms-header-menu.ts")
+SITE_METADATA = os.path.join(LANDING, "lms-site-metadata.ts")
+WORDMARK = os.path.join(LANDING, "lms-wordmark.tsx")
 HERO_FORM = os.path.join(LANDING, "lms-hero-form.tsx")
 HERO_COPY = os.path.join(LANDING, "lms-hero-copy.ts")
 MARKS = os.path.join(TEMPLATES, "public", "brand", "marks")
@@ -66,6 +68,8 @@ PROMPT = os.path.join(CUSTOM, "lms-download-app.tsx")
 TUTORS_SECTION = os.path.join(CUSTOM, "lms-tutors-section.tsx")
 TESTIMONIALS_SECTION = os.path.join(CUSTOM, "lms-testimonials-section.tsx")
 LMS_MARQUEE = os.path.join(LANDING, "lms-marquee.tsx")
+FEATURES_SECTION = os.path.join(CUSTOM, "lms-features-section.tsx")
+FEATURES_CSS = os.path.join(LANDING, "lms-features.css")
 LESSON_PAGE = os.path.join(LESSON_DIR, "page.tsx")
 LESSON_PLAYBACK = os.path.join(LESSON_DIR, "_components", "lesson-playback.tsx")
 
@@ -381,7 +385,8 @@ class TestSurfaces(unittest.TestCase):
         """1.13.0 (Ray, 2026-09-09: "supacharge text is the logo right now
         until i design an icon"): the menu tells base_sdk >= 1.21.0's
         header to draw no image in its brand slot."""
-        self.assertIn('brand: { logo: "none" }', code_of(HEADER_MENU))
+        # 1.20.0 adds `collapse` beside it; the logo is still no image.
+        self.assertIn('brand: { logo: "none", collapse:', code_of(HEADER_MENU))
         self.assertIn(
             "Supacharge text is the logo until an icon is designed (Ray, 2026-09-09)",
             read(HEADER_MENU),
@@ -440,6 +445,139 @@ class TestMarquee(unittest.TestCase):
         )
         self.assertIn("app/styles/rokct-marquee.css", manifest["requires"])
         self.assertIn("base_sdk >= 1.14.0", manifest["_comment"]["app/styles/rokct-marquee.css"])
+
+
+FEATURE_TREATMENTS = {"glow", "numeral", "list", "gradient", "outlined"}
+
+
+def lift_features():
+    """LMS_LANDING_CONFIG.features as node reads it: the block lifted out of
+    the config literal, its `icon: Name` references quoted so the block
+    evaluates without lucide."""
+    source = read(CONFIG)
+    match = re.search(r"^  features: \{\n.*?^  \},$", source, re.S | re.M)
+    if not match:
+        raise AssertionError("features block not found in lms-landing-config.ts")
+    literal = re.sub(r"icon: (\w+),", r'icon: "\1",', match.group(0))
+    literal = "const F = {\n" + literal[len("  features: {\n"):-1] + ";"
+    script = literal + "\nconsole.log(JSON.stringify(F));\n"
+    node = shutil.which("node")
+    if not node:
+        raise unittest.SkipTest("node is not installed")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "features.mts")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(script)
+        run = subprocess.run(
+            [node, "--experimental-strip-types", "--no-warnings", path],
+            capture_output=True, text=True, timeout=60,
+        )
+    if run.returncode != 0:
+        raise AssertionError(run.stderr)
+    return json.loads(run.stdout.strip().splitlines()[-1])
+
+
+def place(items, columns, wide_first):
+    """Where each card lands: the browser's own grid auto-placement (row
+    flow, no dense packing) over `columns` columns, a wide card spanning
+    two, the wide cards ordered first when `wide_first` (the section's
+    `order-first lg:order-none`). Returns {name: set of (row, col) cells}."""
+    order = sorted(items, key=lambda it: 0 if (wide_first and it.get("wide")) else 1)
+    taken = set()
+    cells = {}
+    row = col = 0
+    for it in order:
+        span = 2 if it.get("wide") else 1
+        while True:
+            if col + span > columns:
+                row, col = row + 1, 0
+            if all((row, col + i) not in taken for i in range(span)):
+                break
+            col += 1
+        cells[it["name"]] = {(row, col + i) for i in range(span)}
+        taken |= cells[it["name"]]
+        col += span
+    return cells
+
+
+def neighbours(cells):
+    """Every pair of cards that touch, beside or above each other."""
+    owner = {cell: name for name, cs in cells.items() for cell in cs}
+    pairs = set()
+    for (r, c), name in owner.items():
+        for other in (owner.get((r, c + 1)), owner.get((r + 1, c))):
+            if other and other != name:
+                pairs.add(tuple(sorted((name, other))))
+    return pairs
+
+
+class TestFeatureCards(unittest.TestCase):
+    """The audit finding "eight identical icon-in-square feature cards"
+    (Ray, 2026-09-09: "the eight identical feature cards if its your day you
+    need to fix"): the cards are a bento - two wide, five treatments, no two
+    neighbours alike at any width - and every figure or line a treatment
+    adds is copy the config already carries."""
+
+    def test_two_wide_cards_and_a_treatment_each(self):
+        items = lift_features()["items"]
+        self.assertEqual(len(items), 8)
+        self.assertEqual(sum(1 for it in items if it.get("wide")) , 2)
+        for it in items:
+            with self.subTest(card=it["name"]):
+                self.assertIn(it["treatment"], FEATURE_TREATMENTS)
+                self.assertEqual(it["treatment"] == "numeral", bool(it.get("figure")))
+                self.assertEqual(it["treatment"] == "list", bool(it.get("lines")))
+        self.assertGreaterEqual(len({it["treatment"] for it in items}), 4)
+
+    def test_no_two_neighbours_alike_at_any_width(self):
+        items = lift_features()["items"]
+        by_name = {it["name"]: it["treatment"] for it in items}
+        layouts = {
+            "lg (5 columns, tour order)": place(items, 5, wide_first=False),
+            "sm/md (2 columns, wide first)": place(items, 2, wide_first=True),
+            "phone (one row, wide first)": place(items, 10, wide_first=True),
+        }
+        for label, cells in layouts.items():
+            with self.subTest(layout=label):
+                used = {cell for cs in cells.values() for cell in cs}
+                rows = max(r for r, _ in used) + 1
+                columns = max(c for _, c in used) + 1
+                self.assertEqual(len(used), rows * columns, f"{label} leaves a hole")
+                for a, b in sorted(neighbours(cells)):
+                    self.assertNotEqual(by_name[a], by_name[b], f"{a} and {b} touch and are both {by_name[a]}")
+
+    def test_figures_and_lines_are_existing_copy(self):
+        items = lift_features()["items"]
+        config = code_of(CONFIG)
+        for it in items:
+            if it.get("figure"):
+                with self.subTest(card=it["name"], figure=it["figure"]):
+                    words = {"1": "one", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six"}
+                    self.assertIn(words.get(it["figure"], it["figure"]), it["text"].lower())
+            for line in it.get("lines", []):
+                with self.subTest(card=it["name"], line=line):
+                    self.assertEqual(config.count(f'"{line}"'), 2, "a list line is a string the config already carries, once")
+
+    def test_section_draws_the_bento_from_its_own_sheet(self):
+        section = code_of(FEATURES_SECTION)
+        self.assertIn('import "@/components/custom/landing/lms-features.css"', section)
+        for cls in ("lg:grid-cols-5", "sc-row", "sm:col-span-2 order-first lg:order-none", "sc-card sc-feature"):
+            with self.subTest(cls=cls):
+                self.assertIn(cls, section)
+        self.assertNotIn("bg-[var(--sc-primary)]", section)
+        css = read(FEATURES_CSS)
+        for treatment in FEATURE_TREATMENTS - {"list", "numeral"}:
+            with self.subTest(treatment=treatment):
+                self.assertIn(f".sc-feature-{treatment}", css)
+        self.assertIn(".sc-feature-figure", css)
+        self.assertIn(".sc-feature-line", css)
+        self.assertNotRegex(css, r"#[0-9a-fA-F]{3,8}\b")
+        self.assertNotIn("@keyframes", css)
+        self.assertNotIn("transition", css)
+        self.assertIn(
+            {"from": "templates/components/custom/landing/lms-features.css", "to": "components/custom/landing/lms-features.css"},
+            load_manifest()["installs"],
+        )
 
 
 class TestWebRules(unittest.TestCase):
@@ -525,6 +663,148 @@ class TestNetworkStrip(unittest.TestCase):
         changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
         self.assertIn("base_sdk >= 1.26.0", changelog.split("## 1.17.0")[0])
         self.assertNotIn("base_sdk >= 1.27.0", changelog.split("## 1.17.0")[0])
+
+
+class TestHeaderCollapse(unittest.TestCase):
+    """1.20.0 (Ray, 2026-09-10: "the country code is lost in supacharge it
+    is only in rokctai"; "since supacharge has not icon cant it fold and
+    only leave the first letter as its icon?"): the header brand declares
+    base_sdk's collapse with the market's code, and still no image - the
+    letter tile is base_sdk 1.28.0's to draw."""
+
+    def test_brand_declares_the_collapse_and_still_no_image(self):
+        code = code_of(HEADER_MENU)
+        self.assertIn(
+            'brand: { logo: "none", collapse: { delayMs: 1500, code: marketCode } },',
+            code,
+        )
+        # No icon path, no tile of this SDK's own: base draws the letter.
+        self.assertNotIn("logo: \"/", code)
+        self.assertNotIn("<img", code)
+        self.assertNotIn("brand-icon", code)
+
+    def test_code_is_the_site_locales_region_and_no_country_is_spelled_here(self):
+        code = code_of(HEADER_MENU)
+        self.assertIn(
+            'import LMS_SITE_METADATA from "@/components/custom/landing/lms-site-metadata";',
+            code,
+        )
+        self.assertIn("return localeRegion(LMS_SITE_METADATA.locale);", code)
+        # The letters live in lms-site-metadata.ts's locale only.
+        self.assertNotRegex(code, r'"ZA"|\'ZA\'|South Africa')
+        self.assertNotIn("getBrandingSync", code)
+        self.assertIn('locale: "en_ZA"', code_of(os.path.join(LANDING, "lms-site-metadata.ts")))
+
+    def test_locale_region_under_node(self):
+        code = code_of(HEADER_MENU)
+        match = re.search(r"^export function localeRegion\(.*?^}\n", code, re.S | re.M)
+        self.assertIsNotNone(match, "localeRegion must be a top-level function")
+        fn = match.group(0)
+        self.assertNotRegex(fn, r"^\s*import\s", "localeRegion must stay import-free so node runs it bare")
+        node = shutil.which("node")
+        if not node:
+            raise unittest.SkipTest("node is not installed")
+        cases = {
+            "en_ZA": "ZA",
+            "en-ZA": "ZA",
+            " en_za ": "ZA",
+            "zh_Hant_TW": "TW",
+            "pt_BR": "BR",
+            "en": "",
+            "es_419": "",
+            "und_Latn": "",
+            "": "",
+        }
+        driver = fn + """
+const cases = JSON.parse(process.argv[2]);
+const out = {};
+for (const [locale, want] of Object.entries(cases)) out[locale] = localeRegion(locale);
+out["<null>"] = localeRegion(null);
+out["<undefined>"] = localeRegion(undefined);
+process.stdout.write(JSON.stringify(out));
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "locale-region.ts")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(driver)
+            run = subprocess.run(
+                [node, "--experimental-strip-types", "--no-warnings", path, json.dumps(cases)],
+                capture_output=True, text=True, check=False,
+            )
+        self.assertEqual(run.returncode, 0, run.stderr)
+        got = json.loads(run.stdout)
+        for locale, want in cases.items():
+            with self.subTest(locale=locale):
+                self.assertEqual(got[locale], want)
+        self.assertEqual(got["<null>"], "")
+        self.assertEqual(got["<undefined>"], "")
+
+    def test_manifest_and_changelog_name_the_base_floor_that_draws_the_tile(self):
+        manifest = load_manifest()
+        notes = manifest["_comment"]
+        self.assertIn("1.28.0", notes["about"])
+        for key in ("components/custom/landing/header-menu.ts", "components/custom/header.tsx"):
+            with self.subTest(key=key):
+                self.assertIn(key, manifest["requires"])
+                self.assertTrue(notes[key].startswith("installed by base_sdk >= 1.28.0"), notes[key])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        self.assertIn("base_sdk >= 1.28.0", changelog.split("## 1.18.0")[0])
+
+
+class TestBrandString(unittest.TestCase):
+    """1.21.0 (Ray, 2026-09-10): the brand string is "supacharge.school",
+    lowercase, wherever it is written as the brand. base_sdk 1.28.0's
+    HeaderBrand has no name field - the wordmark text is the host's
+    PLATFORM_NAME - so the name this SDK supplies is the site metadata's
+    siteName, and the footer wordmark's accessible name says the same."""
+
+    def test_site_name_is_the_brand_string(self):
+        code = code_of(SITE_METADATA)
+        self.assertIn('siteName: "supacharge.school",', code)
+        self.assertRegex(code, r'title: "supacharge\.school — ')
+        # The url #285 set stays, and the prose fields are not the brand.
+        self.assertIn('url: "https://supacharge.school",', code)
+        self.assertIn('locale: "en_ZA"', code)
+        self.assertRegex(code, r'description:\s*"Supacharge is the tutoring app')
+
+    def test_wordmark_accessible_name_is_the_brand_string(self):
+        code = code_of(WORDMARK)
+        self.assertIn('title = "supacharge.school",', code)
+        self.assertIn("aria-label={title}", code)
+
+    def test_header_supplies_no_second_spelling(self):
+        # No name field exists on base's HeaderBrand; the brand line is as
+        # 1.20.0 declared it, and the name is read from site metadata.
+        code = code_of(HEADER_MENU)
+        self.assertIn(
+            'brand: { logo: "none", collapse: { delayMs: 1500, code: marketCode } },',
+            code,
+        )
+        self.assertNotRegex(code, r'(name|text|label|wordmark):\s*"[Ss]upacharge')
+
+    def test_no_other_casing_of_the_brand_is_written(self):
+        # Rendered code only (the comments quote the ruling, spellings and all).
+        for path in (SITE_METADATA, WORDMARK, HEADER_MENU, FOOTER_SECTION):
+            with self.subTest(path=os.path.basename(path)):
+                code = code_of(path)
+                self.assertNotRegex(code, r"Supacharge School|Supacharge\.school")
+        manifest = load_manifest()
+        self.assertIn('siteName "supacharge.school"', manifest["_comment"]["about"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        self.assertIn("`supacharge.school`", changelog.split("## 1.20.0")[0])
+
+    def test_hero_wordmark_renders_no_registered_mark(self):
+        """1.21.0 (Ray, 2026-09-10: "hero dont show (R) for now i want to
+        check if there is any trademark"): the hero wordmark's ::after rule
+        is kept but switched off - `content: none` generates no box, so no ®
+        and no margin gap after the name - until the trademark check lands."""
+        css = read(THEME_CSS)
+        blocks = re.findall(r"span > span::after \{([^}]*)\}", css)
+        self.assertEqual(len(blocks), 1, blocks)
+        self.assertIn("content: none;", blocks[0])
+        self.assertNotRegex(blocks[0], r'content:\s*"')
+        self.assertNotIn("00ae", blocks[0])
+        self.assertNotIn("\u00ae", blocks[0])
 
 
 class TestVersion(unittest.TestCase):

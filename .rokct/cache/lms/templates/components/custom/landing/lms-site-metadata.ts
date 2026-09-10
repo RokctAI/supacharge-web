@@ -67,10 +67,20 @@ export interface LmsSiteMetadata {
   locale?: string;
 }
 
+// The brand string is "supacharge.school", lowercase, wherever it is
+// written AS the brand (Ray, 2026-09-10, product owner's ruling; never
+// "Supacharge School", never "Supacharge.school"). `siteName` is the one
+// name this SDK supplies base with: base's root layout reads it as the
+// application name, the Open Graph site name, the `%s — <siteName>` title
+// template of every page below the home page and the generated preview's
+// alt text, and base's header folds the name it shows to its stem after
+// the collapse delay - this module only has to supply the full name. The
+// prose fields (description, keywords, the hero and FAQ copy) talk ABOUT
+// the product and keep "Supacharge".
 const LMS_SITE_METADATA: LmsSiteMetadata = {
-  siteName: "Supacharge",
-  url: "https://supacharge.app",
-  title: "Supacharge — learn faster, pass with confidence, find your tutor",
+  siteName: "supacharge.school",
+  url: "https://supacharge.school",
+  title: "supacharge.school — learn faster, pass with confidence, find your tutor",
   tagline: "Learn faster. Pass with confidence. Find your tutor.",
   description:
     "Supacharge is the tutoring app for South African learners: live CAPS-aligned sessions with real tutors, audio and whiteboard, and a plan that fits your week.",

@@ -23,6 +23,12 @@
 // colour of wherever it sits. The same vector is installed as
 // public/brand/supacharge-wordmark.svg (white) and
 // supacharge-wordmark-ink.svg (light) for places that need a file.
+//
+// `title` is the glyphs' accessible name - what a screen reader says for
+// the brand line in the footer, the one place the shell draws this
+// vector as chrome. Since 1.21.0 it is the brand string "supacharge.school"
+// (Ray, 2026-09-10, lowercase wherever it is written as the brand); the
+// traced glyphs themselves are the app's wordmark and are not retraced.
 
 import React from "react";
 
@@ -32,7 +38,7 @@ export const LMS_WORDMARK_VIEWBOX = "0 0 690 124";
 export function LmsWordmark({
   height = 32,
   className,
-  title = "Supacharge",
+  title = "supacharge.school",
 }: {
   height?: number;
   className?: string;
