@@ -27,6 +27,8 @@ import { describe, it } from 'node:test';
 import {
   DEFAULT_BRAND_COLLAPSE_DELAY_MS,
   HEADER_MENU,
+  brandFoldsToLetter,
+  brandLetterOf,
   headerBrandNeedsCopy,
   isGeneratedBrandIcon,
   loadHeaderBrand,
@@ -243,5 +245,76 @@ describe('resolveHeaderMenu: action icons (1.25.0)', () => {
     assert.notEqual(resolved.actions, menu.actions);
     assert.deepEqual(resolved.actions.map((a) => a.id), ['plain', 'glyph', 'image']);
     assert.deepEqual(resolveHeaderMenu(null, []).actions, []);
+  });
+});
+
+// base_sdk 1.28.0: a collapsing brand with no image folds into a letter
+// tile (Ray, 2026-09-10: "since supacharge has not icon cant it fold and
+// only leave the first letter as its icon?").
+describe('brandLetterOf: the letter the name folds into (1.28.0)', () => {
+  it('the first letter, uppercased - the tab tile\'s rule', () => {
+    assert.equal(brandLetterOf('Supacharge'), 'S');
+    assert.equal(brandLetterOf('Rokct'), 'R');
+    assert.equal(brandLetterOf('  Juvo '), 'J');
+  });
+
+  it('a name starting with a lowercase letter is uppercased', () => {
+    assert.equal(brandLetterOf('juvo'), 'J');
+    assert.equal(brandLetterOf('éclair'), 'É');
+  });
+
+  it('a name starting with a digit keeps the digit', () => {
+    assert.equal(brandLetterOf('3scale'), '3');
+    assert.equal(brandLetterOf('7'), '7');
+  });
+
+  it('punctuation and space before the name are skipped; no letter, no tile', () => {
+    assert.equal(brandLetterOf('-- x'), 'X');
+    assert.equal(brandLetterOf('***'), '');
+    assert.equal(brandLetterOf(''), '');
+    assert.equal(brandLetterOf('   '), '');
+    assert.equal(brandLetterOf(null), '');
+    assert.equal(brandLetterOf(undefined), '');
+  });
+});
+
+describe('brandFoldsToLetter: only a collapsing brand with no image (1.28.0)', () => {
+  it('"none" with a collapse declared: the tile (supacharge)', () => {
+    assert.equal(brandFoldsToLetter(resolveHeaderBrand({ logo: 'none', collapse: true }, null)), true);
+    assert.equal(
+      brandFoldsToLetter(
+        resolveHeaderBrand({ logo: 'none', collapse: { delayMs: 1500, code: () => 'ZA' } }, { icon: '/i.png' }),
+      ),
+      true,
+    );
+  });
+
+  it('no collapse declared: never a tile, whatever the logo', () => {
+    assert.equal(brandFoldsToLetter(resolveHeaderBrand({ logo: 'none' }, null)), false);
+    assert.equal(brandFoldsToLetter(resolveHeaderBrand({ logo: 'none', collapse: false }, null)), false);
+    assert.equal(brandFoldsToLetter(resolveHeaderBrand(null, null)), false);
+    assert.equal(brandFoldsToLetter(resolveHeaderBrand({ logo: '/m.svg' }, null)), false);
+  });
+
+  it('a declared image, a registered icon or the host mark: that mark folds, not a tile (rokct)', () => {
+    assert.equal(brandFoldsToLetter(resolveHeaderBrand({ logo: '/m.svg', collapse: true }, null)), false);
+    assert.equal(brandFoldsToLetter(resolveHeaderBrand({ collapse: true }, { icon: '/i.png' })), false);
+    assert.equal(brandFoldsToLetter(resolveHeaderBrand({ badge: true, collapse: { delayMs: 1500 } }, null)), false);
+    assert.equal(resolveHeaderBrand({ badge: true, collapse: { delayMs: 1500 } }, null).logo, 'host');
+  });
+
+  it('the resolved shape is unchanged for a shell that declares no collapse', () => {
+    assert.deepEqual(resolveHeaderBrand({ logo: 'none' }, null), {
+      logo: 'none',
+      wordmark: true,
+      badge: false,
+      collapse: null,
+    });
+    assert.deepEqual(resolveHeaderBrand(null, null), {
+      logo: 'host',
+      wordmark: true,
+      badge: false,
+      collapse: null,
+    });
   });
 });

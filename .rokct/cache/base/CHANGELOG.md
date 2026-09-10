@@ -1,5 +1,45 @@
 # Changelog
 
+## 1.28.0
+
+* A collapsing brand with no image folds into a letter tile. Ray,
+  2026-09-10, on supacharge.app: "rokctai has logo and name that the name
+  fold into logo and menus disapear, this is not in supacharge. since
+  supacharge has not icon cant it fold and only leave the first letter as
+  its icon?" A shell that declares `brand.logo: "none"` (the wordmark is
+  the logo) and `brand.collapse` had nothing to fold into: `BrandMark`
+  draws nothing for `"none"`, so after `delayMs` the header was left with
+  the code and the chevron alone. So:
+  * `components/custom/header.tsx`: `BrandLetterTile`, drawn by
+    `CollapsingBrand` in the mark's slot when the brand folds to a letter.
+    The platform name's first letter (the same `PLATFORM_NAME` the
+    wordmark shows) in the shell's `primary` token on the generated
+    /brand-icon tab tile's ground (`#0b0b0b` with its highlight, the same
+    in both themes, as the tab's icon is), 44px square like a mark,
+    corners at 22% and the face at 84% of the square - the tab tile's
+    proportions - `role="img"` with the name as its label. CSS and text
+    only: no `<img>`, nothing fetched. Its slot opens with the collapse,
+    the way the code's does, so at load the wordmark stands alone as the
+    declaration says and the name then folds into the letter; the code
+    and the chevron sit beside it and the desktop nav fades and returns
+    exactly as in 1.24.0.
+  * `components/custom/landing/header-menu.ts`: `brandLetterOf(name)`, the
+    tab tile's rule restated for the browser bundle (first letter or
+    digit, any script, uppercased; `""` for none), and
+    `brandFoldsToLetter(brand)`: a collapsing brand whose logo resolved to
+    `"none"`, and nothing else. A shell that declares no `collapse`
+    renders byte-for-byte what it did (`resolveHeaderBrand` answers the
+    same shape); a collapsing brand with a declared image, a registered
+    icon or the host's own mark keeps folding to that mark.
+* Tests: `header-brand.test.mts` - the letter for a capitalised, a
+  lowercase, a digit-led and an empty name, and the fold rule for `"none"`
+  with and without a collapse, for a declared image, a registered icon
+  and the host mark, and the unchanged resolved shape without a collapse;
+  `test_header_folds_to_a_letter_tile_for_an_icon_less_shell` reads the
+  tile (text in the primary token, no image, the tab tile's ground and
+  proportions, opened by the collapse) and holds the still brand's and the
+  mark branches' literals.
+
 ## 1.27.0
 
 * The network strip renders once per page. Ray, 2026-09-09, on rokct.ai:

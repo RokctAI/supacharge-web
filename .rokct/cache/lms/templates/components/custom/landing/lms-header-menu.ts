@@ -63,7 +63,33 @@
 // { logo: "none" }` tells it: no image, the wordmark alone. Against a
 // base_sdk older than 1.21.0 the field is unknown to the registry's
 // HeaderMenu type and the compose fails to type-check, which is the floor
-// the manifest names.
+// the manifest named then.
+//
+// Since 1.20.0 the brand also COLLAPSES, the way rokct.ai's does (Ray,
+// 2026-09-10, on supacharge.app: "the country code is lost in supacharge it
+// is only in rokctai" and "rokctai has logo and name that the name fold
+// into logo and menus disapear, this is not in supacharge. since supacharge
+// has not icon cant it fold and only leave the first letter as its
+// icon?"). `brand.collapse` is base_sdk 1.24.0's declaration: the large
+// wordmark slides away `delayMs` after load, a country code and a chevron
+// take its place and the desktop nav fades until the pointer is over the
+// bar or the page is scrolled. What supacharge lacked was something to
+// fold INTO - the logo is still "none" - and base_sdk 1.28.0 answers that:
+// a collapsing brand with no image folds into a letter tile base draws
+// itself (the platform name's first letter in the primary colour on the
+// tab icon's dark ground), so this module declares nothing about the tile
+// and still no image. Against base_sdk 1.24.0-1.27.0 the declaration
+// compiles but the header folds into nothing, which is why the floor is
+// 1.28.0.
+//
+// The country code: rokct.ai's comes from a host-only branding cache the
+// visitor's geo lookup fills (rokctai_frontend's app/config/platform.ts),
+// which supacharge-web does not have - its getBrandingSync() answers an
+// empty code. What this SDK owns is Supacharge's MARKET: the Open Graph
+// locale lms-site-metadata.ts registers with base, `en_ZA`. Its region is
+// the code beside the collapsed mark - the product's country, the way the
+// wordmark's superscript reads - derived from that one field, so the
+// letters are written nowhere else and follow the metadata if it moves.
 
 import type { HeaderMenu } from "@/components/custom/landing/header-menu";
 
@@ -71,6 +97,26 @@ import {
   LMS_LANDING_CONFIG,
   LMS_SHOWN_APPS,
 } from "@/components/custom/landing/lms-landing-config";
+import LMS_SITE_METADATA from "@/components/custom/landing/lms-site-metadata";
+
+/**
+ * The region of an Open Graph locale, uppercased: "en_ZA" and "en-ZA" give
+ * "ZA", "zh_Hant_TW" gives "TW"; a bare language ("en"), a numeric or
+ * three-letter last segment, or nothing gives "" - and base's header then
+ * draws no code and the tile folds on its own. Import-free on purpose: the
+ * SDK's tests run it bare under node.
+ */
+export function localeRegion(locale: string | null | undefined): string {
+  const segments = (locale ?? "").trim().split(/[_-]/);
+  if (segments.length < 2) return "";
+  const last = segments[segments.length - 1];
+  return /^[A-Za-z]{2}$/.test(last) ? last.toUpperCase() : "";
+}
+
+/** The code beside the collapsed brand: the market's region, from the registered site locale. */
+function marketCode(): string {
+  return localeRegion(LMS_SITE_METADATA.locale);
+}
 
 /**
  * The sections Supacharge's header links to, in page order - the order
@@ -87,8 +133,10 @@ import {
  * when the quotes are.
  */
 const LMS_HEADER_MENU: HeaderMenu = {
-  // Supacharge text is the logo until an icon is designed (Ray, 2026-09-09).
-  brand: { logo: "none" },
+  // Supacharge text is the logo until an icon is designed (Ray, 2026-09-09);
+  // since 1.20.0 it folds into base's letter tile, with the market's code
+  // beside it, after rokct.ai's 1500ms (Ray, 2026-09-10).
+  brand: { logo: "none", collapse: { delayMs: 1500, code: marketCode } },
   anchors: [
     "sessions",
     "subjects",

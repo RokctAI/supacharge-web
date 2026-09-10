@@ -16,18 +16,111 @@
 
 "use client";
 
-// The landing page's feature grid: the app's screens in the order the
-// guided tour walks them. Copy and icons: LMS_LANDING_CONFIG.features.
+// The landing page's feature cards: the app's screens in the order the
+// guided tour walks them. Copy, icons and each card's treatment:
+// LMS_LANDING_CONFIG.features.
 //
-// Eight cards, so eight screens of scrolling on a phone before this
-// section ends - the longest stack on the page. Below 640px the grid is
-// one swipeable row instead (`sc-row`, landing/lms-theme.css); from 640px
-// up it is the grid it always was.
+// A bento, not a grid of eight identical tiles (the supacharge.app audit
+// finding "eight identical icon-in-square feature cards", Ray, 2026-09-09:
+// "the eight identical feature cards if its your day you need to fix").
+// Two cards - the two the config flags `wide`, the screens the page is
+// about - span two columns; the rest are single. Every card carries ONE of
+// five treatments (`Feature.treatment`, drawn by landing/lms-features.css):
+//
+//   glow      the icon over a soft radial accent, no tile
+//   numeral   a large figure taken from the card's own copy (`figure`)
+//   list      the two-line mini list under the text (`lines`)
+//   gradient  a diagonal wash from the primary tint into the card
+//   outlined  a transparent card with a primary-leaning stroke
+//
+// The config assigns them so no two neighbours - beside or above each
+// other - share one, at every width; tests/test_landing_apps.py lays the
+// cards out the way the browser will and checks that. The icons keep
+// their meaning and lose the identical square tile: each treatment draws
+// its own. Colour is the theme's tokens only (lms-theme.css), so the light
+// set follows the toggle with nothing to keep in step. Nothing moves, so
+// there is nothing for prefers-reduced-motion to stop, and nothing is
+// hover-only: the hover is the border tint the rest of the page's cards
+// already have.
+//
+// Columns: five from 1024px, where 2 + 1 + 2 and 1 + 1 + 1 + 1 + 1 fill
+// two rows edge to edge in tour order; two from 640px, where the wide
+// cards go first (`order-first`) so the column pairs stay whole - one
+// wide, two, two, two - and nothing leaves a hole. A wide card with the
+// width to use lays its icon or figure beside the words instead of above
+// them (`sm:flex-row`), so the band reads as a band and not as a single
+// card stretched. Below 640px the grid
+// is the one swipeable row the page's other card sections are (`sc-row`,
+// lms-theme.css - Ray, 2026-09-09: "actually most cards should be one row
+// in mobile", because "im avoiding a long scroll"), with the wide cards
+// first there too.
 
 import React from "react";
 
-import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
+import {
+  LMS_LANDING_CONFIG,
+  type Feature,
+} from "@/components/custom/landing/lms-landing-config";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
+
+import "@/components/custom/landing/lms-features.css";
+
+function FeatureCard({ feature }: { feature: Feature }) {
+  const Icon = feature.icon;
+  const { treatment } = feature;
+  const inlineIcon = treatment === "numeral" || treatment === "list";
+
+  return (
+    <div
+      className={[
+        "sc-card sc-feature",
+        `sc-feature-${treatment}`,
+        "group flex flex-col gap-4 p-6 transition-colors hover:border-[var(--sc-primary)]",
+        feature.wide
+          ? "sm:col-span-2 order-first lg:order-none sm:flex-row sm:items-center sm:gap-6 sm:p-8"
+          : "",
+      ].join(" ")}
+    >
+      {treatment === "numeral" && feature.figure ? (
+        <span className="sc-feature-figure" aria-hidden="true">
+          {feature.figure}
+        </span>
+      ) : null}
+
+      {!inlineIcon ? (
+        <span
+          className={`sc-feature-icon flex size-7 items-center justify-center ${feature.wide ? "sm:mx-3" : ""}`}
+        >
+          <Icon className="size-7" aria-hidden="true" />
+        </span>
+      ) : null}
+
+      <div className={`flex flex-col gap-2 ${treatment === "numeral" ? "mt-auto sm:mt-0" : ""}`}>
+        <h3 className="flex items-center gap-2 text-lg font-bold text-[var(--sc-ink)]">
+          {inlineIcon ? (
+            <span className="sc-feature-icon">
+              <Icon className="size-5" aria-hidden="true" />
+            </span>
+          ) : null}
+          {feature.name}
+        </h3>
+        <p className="text-sm text-[var(--sc-ink-2)] leading-relaxed">
+          {feature.text}
+        </p>
+      </div>
+
+      {treatment === "list" && feature.lines && feature.lines.length > 0 ? (
+        <ul className="sc-feature-lines mt-auto flex flex-col gap-1.5 text-sm font-medium text-[var(--sc-ink)]">
+          {feature.lines.map((line) => (
+            <li key={line} className="sc-feature-line">
+              {line}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
 
 export function LmsFeaturesSection({ id }: { id?: string }) {
   const config = LMS_LANDING_CONFIG.features;
@@ -45,26 +138,10 @@ export function LmsFeaturesSection({ id }: { id?: string }) {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sc-row">
-          {config.items.map((feature) => {
-            const Icon = feature.icon;
-            return (
-              <div
-                key={feature.name}
-                className="group flex flex-col gap-4 sc-card p-6 transition-colors hover:border-[var(--sc-primary)]"
-              >
-                <div className="flex size-11 items-center justify-center rounded-xl bg-[var(--sc-primary)] text-white">
-                  <Icon className="size-5" aria-hidden="true" />
-                </div>
-                <h3 className="text-lg font-bold text-[var(--sc-ink)]">
-                  {feature.name}
-                </h3>
-                <p className="text-sm text-[var(--sc-ink-2)] leading-relaxed">
-                  {feature.text}
-                </p>
-              </div>
-            );
-          })}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 sc-row">
+          {config.items.map((feature) => (
+            <FeatureCard key={feature.name} feature={feature} />
+          ))}
         </div>
       </div>
     </section>

@@ -793,6 +793,67 @@ class TestRegistryMarkers(unittest.TestCase):
         self.assertIn('const variant = action.variant ?? "primary";', actions)
         self.assertIn('"bg-secondary text-secondary-foreground hover:bg-secondary/80"', actions)
 
+    def test_header_folds_to_a_letter_tile_for_an_icon_less_shell(self):
+        """base_sdk 1.28.0 (Ray, 2026-09-10, on supacharge.app: "since
+        supacharge has not icon cant it fold and only leave the first
+        letter as its icon?"): a collapsing brand with `logo: "none"`
+        folds into a CSS letter tile - the platform name's first letter in
+        the primary token on the tab tile's ground - and nothing else
+        moves: the still brand's literals, the declared-image and host-mark
+        branches and the 1.24.0 collapse machinery are as they were."""
+        src = read(HEADER_MENU_REGISTRY)
+        self.assertIn("export function brandLetterOf(name: string | null | undefined): string {", src)
+        self.assertIn("export function brandFoldsToLetter(brand: ResolvedHeaderBrand): boolean {", src)
+        self.assertIn('return brand.collapse !== null && brand.logo === "none";', src)
+        header = read(HEADER)
+        self.assertRegex(
+            header,
+            r"import \{[^}]*\bbrandFoldsToLetter\b[^}]*\bbrandLetterOf\b[^}]*\} from \"@/components/custom/landing/header-menu\";",
+        )
+        self.assertIn("function BrandLetterTile(", header)
+        tile = header[header.index("function BrandLetterTile("):header.index("function BrandBlock(")]
+        # The letter is text in the primary token; the tile is never an image.
+        self.assertIn("const letter = brandLetterOf(name);", tile)
+        self.assertIn("if (!letter) return null;", tile)
+        self.assertIn("{letter}", tile)
+        self.assertIn("text-primary", tile)
+        self.assertIn('role="img"', tile)
+        self.assertIn("aria-label={name}", tile)
+        self.assertNotIn("<img", tile)
+        self.assertNotIn("BrandLogo", tile)
+        self.assertNotIn("fetch(", tile)
+        # 44px like a mark, the tab tile's corners and ground.
+        self.assertIn("h-11 w-11", tile)
+        self.assertIn("rounded-[22%]", tile)
+        self.assertIn("backgroundColor: BRAND_TILE_GROUND", tile)
+        self.assertIn('const BRAND_TILE_GROUND = "#0b0b0b";', header)
+        route = read(os.path.join(SDK_ROOT, "templates", "app", "brand-icon", "route.tsx"))
+        self.assertIn('const GROUND = "#0b0b0b";', route)
+        self.assertIn("const BRAND_TILE_FONT_PX = Math.round(BRAND_TILE_SIZE * 0.84);", header)
+        self.assertIn("const FONT_RATIO = 0.84;", route)
+        # Opens with the collapse, like the code's slot: hidden until then.
+        self.assertIn("aria-hidden={!collapsed}", tile)
+        self.assertIn('maxWidth: collapsed ? `${BRAND_TILE_SIZE}px` : "0px"', tile)
+        # Reached only inside the collapsing brand, only through the pure rule,
+        # from the same name the wordmark shows.
+        collapsing = header[header.index("function CollapsingBrand("):header.index("const UNDECLARED_BRAND")]
+        self.assertIn("{brandFoldsToLetter(brand) ? (", collapsing)
+        self.assertIn("<BrandLetterTile name={PLATFORM_NAME} collapsed={collapsed} />", collapsing)
+        self.assertIn("<BrandMark brand={brand} size={44} />", collapsing)
+        self.assertEqual(header.count("<BrandLetterTile "), 1)
+        # The still brand is untouched, literal for literal.
+        still = header[header.index("function BrandBlock("):header.index("function toBrandCode(")]
+        self.assertIn("if (brand.collapse) return <CollapsingBrand brand={brand} collapsed={collapsed} />;", still)
+        self.assertIn("<BrandMark brand={brand} size={32} />", still)
+        self.assertIn('{brand.wordmark && <Branding className="text-xl" />}', still)
+        self.assertNotIn("BrandLetterTile", still)
+        mark = header[header.index("function BrandMark("):header.index("const BRAND_TILE_GROUND")]
+        self.assertIn('if (brand.logo === "none") return null;', mark)
+        self.assertIn("<BrandLogo width={32} height={32} />", mark)
+        self.assertNotIn("BrandLetterTile", mark)
+        code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", header))
+        self.assertNotIn("/brand-icon", code)
+
     def test_header_menu_action_carries_an_icon(self):
         # base_sdk 1.20.0 (Ray, 2026-09-09: rokct "lost its chrome icon"):
         # an action may name a glyph from the same closed set as an item,

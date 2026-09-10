@@ -1,5 +1,79 @@
 # Changelog
 
+## 1.20.0
+
+Requires base_sdk >= 1.28.0 (the floor moves from 1.26.0): the letter tile
+a collapsing brand with no image folds into is base_sdk 1.28.0's.
+
+* The header brand collapses, the way rokct.ai's does. Ray, 2026-09-10, on
+  supacharge.app: "the country code is lost in supacharge it is only in
+  rokctai" and "rokctai has logo and name that the name fold into logo and
+  menus disapear, this is not in supacharge. since supacharge has not icon
+  cant it fold and only leave the first letter as its icon?" Both were the
+  one missing declaration: `lms-header-menu.ts` said `brand: { logo:
+  "none" }` and nothing about `collapse`, so base's header drew the still
+  wordmark, ran no timer, faded no nav and had nowhere to draw a code. So:
+  * `components/custom/landing/lms-header-menu.ts` declares
+    `brand: { logo: "none", collapse: { delayMs: 1500, code: marketCode } }`
+    - rokct.ai's 1500ms, the logo still no image. base_sdk 1.28.0 then
+    shows the "Supacharge" wordmark and the menu at load, folds the
+    wordmark into a 44px letter tile ("S" in the primary colour on the tab
+    icon's dark ground - base draws it, this SDK ships no icon) after
+    1.5s with the code and a chevron beside it, and fades the desktop nav
+    until the pointer is over the bar or the page is scrolled past 10px.
+  * The code is the market's region, `localeRegion(LMS_SITE_METADATA.locale)`:
+    the Open Graph locale `lms-site-metadata.ts` already registers with
+    base (`en_ZA` -> `ZA`). rokct.ai's code is the visitor's country from a
+    host-only branding cache (rokctai_frontend's app/config/platform.ts
+    over its geo lookup) that supacharge-web has no counterpart of - its
+    `getBrandingSync()` answers an empty code - so nothing is asked of the
+    host and the letters are written in no new place; move the locale and
+    the code follows. A locale with no region draws no code.
+  * Manifest: version 1.20.0; the base floor 1.28.0 on `about`,
+    `components/custom/header.tsx` and
+    `components/custom/landing/header-menu.ts`; the footer advertises
+    1.20.0.
+* Tests: `TestHeaderCollapse` - the declaration (logo still `"none"`,
+  1500ms, the code from the site locale, no country letters in the
+  module), `localeRegion` run bare under node (`en_ZA`, `en-ZA`,
+  `zh_Hant_TW`, a bare language, a numeric region, empty and nothing), and
+  the 1.28.0 floor on the manifest and at the head of the changelog.
+
+## 1.19.0
+
+Requires base_sdk >= 1.26.0 as before; the floor is unchanged.
+
+* The feature cards are a bento, not eight identical tiles. The
+  supacharge.app audit finding "eight identical icon-in-square feature
+  cards" (Ray, 2026-09-09: "the eight identical feature cards if its your
+  day you need to fix"). The features section keeps its copy, its icons,
+  its order and its phone swipe row, and draws the eight cards as a bento:
+  * Schedule and Tutors span two columns (the screen the heading names and
+    the two-tutor format the sessions section sells); the rest are single.
+    Five columns from 1024px (2+1+2 over 1+1+1+1+1, no hole, tour order);
+    two from 640px with the wide cards first; the `.sc-row` swipe row
+    below 640px as before (Ray, 2026-09-09: "actually most cards should be
+    one row in mobile"), with the wide cards first there too. A wide card
+    lays its icon or figure beside the words.
+  * Five treatments, one per card, assigned in the config so no two
+    neighbours - beside or above - share one at any width: glow (icon over
+    a radial accent), numeral (the "2" from "Two tutors per subject"), list
+    (the subjects eyebrow and grades line under Subjects), gradient
+    (primary tint into the card), outlined (no fill, primary-leaning
+    stroke). The identical square icon tile is gone; every colour is a
+    lms-theme.css token, mixed with color-mix() where a step is softer.
+  * `Feature` gains `treatment`, `wide`, `figure`, `lines`
+    (`lms-landing-config.ts`); the new
+    `components/custom/landing/lms-features.css` is installed by the
+    manifest and imported by the section. No new image, dependency or
+    copy; nothing animates.
+  * Manifest: version 1.19.0; the sheet installed; the footer advertises
+    1.19.0.
+* Tests: `TestFeatureCards` lays the cards out the way the browser will at
+  each width and checks the neighbour rule, the two wide cards, that every
+  figure and line is copy the config already carries, and that the sheet
+  holds no literal colour.
+
 ## 1.18.0
 
 Requires base_sdk >= 1.26.0 as before; the floor is unchanged.
