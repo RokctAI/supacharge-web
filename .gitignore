@@ -72,7 +72,9 @@ components/custom/theme-provider.tsx
 /app/actions/base/admin/settings.ts
 /app/actions/base/admin/system.ts
 /app/actions/base/landing.ts
+/app/actions/base/legal.ts
 /app/actions/base/status.ts
+/app/actions/corporate/legal.ts
 /app/actions/handson/all/lms/assignments/actions.ts
 /app/actions/handson/all/lms/assignments/types.ts
 /app/actions/handson/all/lms/batches/actions.ts
@@ -139,6 +141,8 @@ components/custom/theme-provider.tsx
 /app/handson/all/lms/me/profile/page.tsx
 /app/handson/all/lms/page.tsx
 /app/landing/page.tsx
+/app/legal/\[id\]/page.tsx
+/app/legal/page.tsx
 /app/lib/session.ts
 /app/lib/site-metadata.ts
 /app/manager/layout.tsx
@@ -186,6 +190,7 @@ components/custom/theme-provider.tsx
 /components/custom/landing/hero-sections.ts
 /components/custom/landing/landing-config.ts
 /components/custom/landing/landing-page.ts
+/components/custom/landing/legal-links.ts
 /components/custom/landing/lms-card-deck.tsx
 /components/custom/landing/lms-curricula.tsx
 /components/custom/landing/lms-features.css
@@ -213,6 +218,9 @@ components/custom/theme-provider.tsx
 /components/custom/landing/site-metadata.ts
 /components/custom/landing/team-assets.ts
 /components/custom/landing/testimonials-marquee.tsx
+/components/custom/legal/legal-doc.tsx
+/components/custom/legal/legal-frame.tsx
+/components/custom/legal/load-legal-doc.ts
 /components/custom/lms-download-app.tsx
 /components/custom/lms-faq-section.client.tsx
 /components/custom/lms-faq-section.tsx
@@ -237,7 +245,9 @@ components/custom/theme-provider.tsx
 /components/custom/network-strip.tsx
 /components/custom/paas-login.tsx
 /components/custom/session-provider.tsx
+/components/custom/site-theme.tsx
 /components/custom/submit-button.tsx
+/components/custom/theme-provider.client.tsx
 /components/ui/date-range-picker.tsx
 /db/index.ts
 /db/migrate.ts
@@ -250,6 +260,12 @@ components/custom/theme-provider.tsx
 /lib/drizzle/meta/0000_snapshot.json
 /lib/drizzle/meta/0001_snapshot.json
 /lib/drizzle/meta/_journal.json
+/lib/site-data/generate.mjs
+/lib/site-data/generated.ts
+/lib/site-data/kinds.ts
+/lib/site-data/read-site-data.ts
+/lib/site-data/site-theme.ts
+/lib/site-data/validate.mjs
 /middleware.ts
 /public/brand/marks/app-gallery.svg
 /public/brand/marks/app-store.svg

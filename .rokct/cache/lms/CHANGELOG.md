@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.26.0
+
+* The apps lead the header's panel, in one row (Ray, 2026-09-10:
+  "header app links first. if possible put mobile apps in one row since
+  supa dont have much menu"). `lms-header-menu.ts` now declares the
+  groups as apps FIRST with `layout: "row"` (base_sdk 1.36.0's
+  `HeaderMenuGroup.layout`), then Explore, then Platform, and
+  `megaLabel: "Explore"` (base_sdk 1.36.0's `HeaderMenu.megaLabel`) so
+  the bar still reads `[Explore v]  Pricing  FAQ`: the panel opens on
+  the three app cards side by side across the widened lead column, with
+  Explore (sessions, subjects, tutors) and Platform (features, partners
+  with its badge) as the headed columns beside them. The items, the
+  anchors, the flat links and the brand declaration are unchanged; the
+  burger's stacked list shows the same three groups in the new order.
+* The base_sdk floor is 1.36.0 for `components/custom/landing/header-menu.ts`
+  and `components/custom/header-menu.tsx`: against 1.29.0-1.35.0 the two
+  fields are type errors. (1.36.0, not 1.33.0: core's header release was
+  re-versioned above base_sdk 1.35.0, which landed first.)
+* The footer's wordmark carries no registered mark (Ray, 2026-09-10:
+  "footer supa name has (r)"; the brand string is `supacharge.school`,
+  lowercase, never decorated). `lms-wordmark.tsx` traced the ® the Dart
+  app's AppHelpers appends after the name as the last five sub-paths of
+  `LMS_WORDMARK_PATH`, and the footer drew it at the end of the name
+  (`lms-footer-section.tsx` is the one place the shell draws the vector).
+  Those sub-paths are gone from the component and from the two installed
+  files (`public/brand/supacharge-wordmark.svg`, `-ink.svg`), and the
+  viewBox ends just past the "e" - 660 units, was 690 - so the vector
+  keeps its height and loses only the mark's width; the glyphs of the
+  name are untouched, as is the accessible name. The hero's stem was
+  clipped on its descenders and last glyph ("supa name in hero cut off
+  on g and e"): that is base_sdk 1.36.0's fix in `hero-view.tsx`, and
+  nothing here changes for it.
+* The site url is `https://supacharge.school` (Ray, 2026-09-10: the .app
+  domain is dropped entirely and must never be written into code again).
+  `lms-site-metadata.ts` already said so; `test_site_name_is_the_brand_string`
+  now also asserts that the .school host is the only host its code writes.
+
 ## 1.25.0
 
 * The curriculum line names Cambridge, marked soon (Ray, 2026-09-10:

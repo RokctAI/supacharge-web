@@ -796,8 +796,9 @@ process.stdout.write(JSON.stringify(out));
         self.assertIn("1.28.0", notes["about"])
         # The header that draws the tile is 1.28.0's; the registry's floor
         # moved on to 1.29.0 with the stem rule (TestBrandString).
+        # 1.26.0 moved the registry's floor on again, to 1.36.0 (TestHeaderGroups).
         floors = {
-            "components/custom/landing/header-menu.ts": "1.29.0",
+            "components/custom/landing/header-menu.ts": "1.36.0",
             "components/custom/header.tsx": "1.28.0",
         }
         for key, floor in floors.items():
@@ -811,31 +812,47 @@ process.stdout.write(JSON.stringify(out));
 class TestHeaderGroups(unittest.TestCase):
     """1.23.0 (Ray, 2026-09-10: "some of menus in header i think there
     should have gone to mega menu"): the bar reads `[Explore v]  Pricing
-    FAQ`; the panel is Explore (lead), Platform, Get the app."""
+    FAQ`. 1.26.0 (Ray, 2026-09-10: "header app links first. if possible
+    put mobile apps in one row since supa dont have much menu"): the panel
+    is Get the app (lead, one row), Explore, Platform, and the trigger's
+    word is declared (base_sdk 1.36.0's megaLabel) so the bar is unchanged."""
 
     def setUp(self):
         self.menu = lift_header_menu()
 
-    def test_groups_are_explore_platform_apps_in_that_order(self):
-        self.assertEqual([g["id"] for g in self.menu["groups"]], ["explore", "platform", "apps"])
-        self.assertEqual([g["label"] for g in self.menu["groups"]], ["Explore", "Platform", "Get the app"])
+    def test_groups_are_apps_explore_platform_in_that_order(self):
+        self.assertEqual([g["id"] for g in self.menu["groups"]], ["apps", "explore", "platform"])
+        self.assertEqual([g["label"] for g in self.menu["groups"]], ["Get the app", "Explore", "Platform"])
 
-    def test_the_trigger_is_explore_and_it_leads_with_the_sessions(self):
-        # base draws the FIRST group's label as the bar's one trigger and its
-        # items as the 300px lead column.
+    def test_the_trigger_is_still_explore_through_mega_label(self):
+        # base 1.36.0 draws the declared megaLabel as the bar's one trigger,
+        # whichever group leads the panel.
+        self.assertEqual(self.menu["megaLabel"], "Explore")
+        self.assertNotEqual(self.menu["groups"][0]["label"], "Explore")
+
+    def test_the_apps_lead_in_one_row(self):
         lead = self.menu["groups"][0]
-        self.assertEqual(lead["label"], "Explore")
-        self.assertEqual(lead["items"], [{"anchor": "sessions"}, {"anchor": "subjects"}, {"anchor": "tutors"}])
+        self.assertEqual(lead["id"], "apps")
+        self.assertEqual(lead["layout"], "row")
         self.assertNotIn("badge", lead)
+        for group in self.menu["groups"][1:]:
+            with self.subTest(group=group["id"]):
+                self.assertNotIn("layout", group)
+
+    def test_explore_column_is_sessions_subjects_tutors_by_anchor(self):
+        explore = self.menu["groups"][1]
+        self.assertEqual(explore["label"], "Explore")
+        self.assertEqual(explore["items"], [{"anchor": "sessions"}, {"anchor": "subjects"}, {"anchor": "tutors"}])
+        self.assertNotIn("badge", explore)
 
     def test_platform_column_is_features_then_partners_by_anchor(self):
-        platform = self.menu["groups"][1]
+        platform = self.menu["groups"][2]
         self.assertEqual(platform["items"], [{"anchor": "features"}, {"anchor": "partners"}])
 
     def test_section_items_carry_no_label_and_no_badge_of_their_own(self):
         """Labels and badges are the sections' meta.nav: partners' "new" is
         lms-partners-section.tsx's, resolved by base, never restated here."""
-        for group in self.menu["groups"][:2]:
+        for group in self.menu["groups"][1:]:
             for item in group["items"]:
                 with self.subTest(group=group["id"], item=item):
                     self.assertEqual(set(item), {"anchor"})
@@ -845,8 +862,8 @@ class TestHeaderGroups(unittest.TestCase):
         for word in ("Sessions", "Subjects", "Tutors", "Features", "Partners", "Pricing", "FAQ"):
             self.assertNotIn(f'"{word}"', code)
 
-    def test_apps_column_is_unchanged_and_still_last(self):
-        apps = self.menu["groups"][2]
+    def test_apps_items_are_unchanged_and_now_first(self):
+        apps = self.menu["groups"][0]
         self.assertEqual(apps["id"], "apps")
         self.assertEqual([a["id"] for a in apps["items"]], [a["id"] for a in lift_apps(shown=True)])
         for item in apps["items"]:
@@ -867,7 +884,7 @@ class TestHeaderGroups(unittest.TestCase):
 
     def test_every_section_is_linked_exactly_once(self):
         ids = list(self.menu["anchors"])
-        for group in self.menu["groups"][:2]:
+        for group in self.menu["groups"][1:]:
             ids += [item["anchor"] for item in group["items"]]
         self.assertEqual(sorted(ids), sorted(["sessions", "subjects", "tutors", "features", "partners", "pricing", "faq"]))
         self.assertEqual(len(ids), len(set(ids)))
@@ -881,6 +898,29 @@ class TestHeaderGroups(unittest.TestCase):
         changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.22.0")[0]
         self.assertIn("## 1.23.0", changelog)
         self.assertIn("mega menu", changelog)
+
+    def test_manifest_and_changelog_record_apps_first_and_the_floor(self):
+        """1.26.0: the two base fields ship in base_sdk 1.36.0, so the
+        registry and the panel partials both floor there."""
+        manifest = load_manifest()
+        self.assertEqual(manifest["version"], "1.26.0")
+        notes = manifest["_comment"]
+        for key in ("components/custom/landing/header-menu.ts", "components/custom/header-menu.tsx"):
+            with self.subTest(key=key):
+                self.assertIn(key, manifest["requires"])
+                self.assertTrue(notes[key].startswith("installed by base_sdk >= 1.36.0"), notes[key])
+                self.assertIn("1.26.0", notes[key])
+        entry = next(i for i in manifest["installs"] if i["to"] == "components/custom/landing/lms-header-menu.ts")
+        self.assertIn("Since 1.26.0", entry["_comment"])
+        self.assertIn('megaLabel: "Explore"', entry["_comment"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.25.0")[0]
+        self.assertIn("## 1.26.0", changelog)
+        self.assertIn("base_sdk floor is 1.36.0", changelog)
+        self.assertIn('layout: "row"', changelog)
+        source = code_of(HEADER_MENU)
+        self.assertIn('megaLabel: "Explore",', source)
+        self.assertIn('layout: "row",', source)
+        self.assertEqual(source.count("layout:"), 1)
 
 
 class TestBrandString(unittest.TestCase):
@@ -1041,6 +1081,10 @@ process.stdout.write(JSON.stringify(out));
         self.assertRegex(code, r'title: "supacharge\.school — ')
         # The url #285 set stays, and the prose fields are not the brand.
         self.assertIn('url: "https://supacharge.school",', code)
+        # 1.26.0 (Ray, 2026-09-10: the .app domain is dropped entirely and
+        # must never be written into code again): the site url is the
+        # .school host, and it is the only host this module's code writes.
+        self.assertEqual(re.findall(r"https?://([A-Za-z0-9.-]+)", code), ["supacharge.school"])
         self.assertIn('locale: "en_ZA"', code)
         self.assertRegex(code, r'description:\s*"Supacharge is the tutoring app')
 
@@ -1048,6 +1092,38 @@ process.stdout.write(JSON.stringify(out));
         code = code_of(WORDMARK)
         self.assertIn('title = "supacharge.school",', code)
         self.assertIn("aria-label={title}", code)
+
+    def test_footer_wordmark_traces_no_registered_mark(self):
+        """1.26.0 (Ray, 2026-09-10: "footer supa name has (r)"; the brand
+        string is supacharge.school, never decorated): the traced ® that
+        used to end LMS_WORDMARK_PATH is gone from the component and from
+        the two installed svg files, and the viewBox ends just past the
+        "e" instead of past the mark. The name's glyphs are untouched."""
+        code = code_of(WORDMARK)
+        path = re.search(r'const LMS_WORDMARK_PATH =\s*"([^"]+)";', code)
+        self.assertIsNotNone(path)
+        subpaths = [s for s in re.split(r"(?=M)", path.group(1)) if s.strip()]
+        # The name is 10 glyphs; "a", "p", "e" carry counters, so the trace
+        # has more sub-paths than letters, but every one starts inside the
+        # name's width - nothing starts right of the "e" (x 658.1).
+        self.assertEqual(len(subpaths), 18, len(subpaths))
+        starts = [float(re.match(r"M(-?\d+\.?\d*)", s).group(1)) for s in subpaths]
+        self.assertLess(max(starts), 660, starts)
+        self.assertNotIn("M673.1 38.1", path.group(1))
+        self.assertNotIn("M662.5", path.group(1))
+        self.assertIn('export const LMS_WORDMARK_VIEWBOX = "0 0 660 124";', code)
+        self.assertIn("Math.round((height * 660) / 124)", code)
+        for name in ("supacharge-wordmark.svg", "supacharge-wordmark-ink.svg"):
+            with self.subTest(file=name):
+                svg = read(os.path.join(TEMPLATES, "public", "brand", name))
+                self.assertIn('viewBox="0 0 660 124" width="660" height="124"', svg)
+                self.assertNotIn("M673.1 38.1", svg)
+                d = re.search(r' d="([^"]+)"', svg).group(1)
+                self.assertEqual(d, path.group(1), f"{name} is not the component's trace")
+        for src in (code, read(FOOTER_SECTION)):
+            self.assertNotIn("\u00ae", src)
+            self.assertNotIn("&reg;", src)
+            self.assertNotIn("00ae", src)
 
     def test_header_supplies_no_second_spelling(self):
         # No name field exists on base's HeaderBrand; the brand line is as
@@ -1398,7 +1474,8 @@ class TestCurricula(unittest.TestCase):
 
     def test_manifest_and_changelog_record_cambridge(self):
         manifest = load_manifest()
-        self.assertEqual(manifest["version"], "1.25.0")
+        # 1.25.0 or any later release: the line stays.
+        self.assertGreaterEqual(tuple(int(n) for n in manifest["version"].split(".")), (1, 25, 0))
         entry = [e for e in manifest["installs"] if e["from"].endswith("landing/lms-curricula.tsx")]
         self.assertEqual(len(entry), 1)
         self.assertEqual(entry[0]["to"], "components/custom/landing/lms-curricula.tsx")
@@ -1411,4 +1488,5 @@ class TestCurricula(unittest.TestCase):
         self.assertIn("## 1.25.0", head)
         self.assertIn("Cambridge", head)
         self.assertIn("add soon label in curriculum for cambridge", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.25.0"', read(FOOTER_CHROME))
+        # The footer advertises the manifest version (TestVersion); it moved on with 1.26.0.
+        self.assertIn(f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME))
