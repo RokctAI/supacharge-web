@@ -178,6 +178,7 @@ next-env.d.ts
 /components/custom/landing/hero-sections.ts
 /components/custom/landing/landing-config.ts
 /components/custom/landing/lms-card-deck.tsx
+/components/custom/landing/lms-features.css
 /components/custom/landing/lms-flip-card.tsx
 /components/custom/landing/lms-fonts.ts
 /components/custom/landing/lms-footer-chrome.ts

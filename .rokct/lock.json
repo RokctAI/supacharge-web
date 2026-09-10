@@ -31,10 +31,10 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/base/nextjs",
       "ref": "main",
-      "commit": "fa04c1451d44ac3477d02659e33cab8187158433",
-      "version": "1.27.0",
+      "commit": "8bc74eddadfeee8f97324b0ab4547ed647879475",
+      "version": "1.29.0",
       "install_py_sha256": "b6c434a1c05611d29f1018f68b9423383f7ecfbf9cc1efe74825ba6c4df98fff",
-      "content_sha256": "d15db61b86fdd9999125cf97ebd6dfea9727b3e8783e5badc75551c2c45c1eda"
+      "content_sha256": "68c21bda2b667cdcbafc296156d70aa2ce70b444cab0b7e8a5fff0958852b3a8"
     },
     {
       "name": "auth_sdk",
@@ -55,10 +55,10 @@
       "git": "https://github.com/RokctAI/agent",
       "path": "../agent/lms/nextjs",
       "ref": "main",
-      "commit": "41340b543737a72cf0b99f65c7e01e53040b1bdf",
-      "version": "1.18.0",
+      "commit": "71cc0260fcdde4f5c8c24d34224d4de80baa02dd",
+      "version": "1.21.0",
       "install_py_sha256": "65a891707fd3c741b55681a8cb05ad4dd2d0833ee5643f490928267891144741",
-      "content_sha256": "71d282eb0b330b9ce4569c0c4b5b27ae1ea80287270a25bf5fb6eff5bc702002"
+      "content_sha256": "6272c139d6830fee2bef8c0508814b4fd55005404e1f0e3fb57006ebc55f1058"
     }
   ]
 }

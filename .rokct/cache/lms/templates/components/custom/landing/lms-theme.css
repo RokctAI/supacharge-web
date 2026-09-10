@@ -236,14 +236,19 @@ html.sc-landing:not(.dark) {
   font-family: var(--sc-font-brand) !important;
   font-style: italic !important;
   font-weight: 900 !important;
-  font-size: clamp(40px, 9vw, 72px) !important;
+  font-size: clamp(28px, 8.5vw, 72px) !important;
   letter-spacing: -0.03em !important;
   line-height: 1 !important;
   color: var(--sc-ink) !important;
   transform: none !important;
 }
+/*
+ * Held off 2026-09-10 pending a trademark check on the dotted name; re-enable by
+ * restoring `content: "\00ae";` below. `content: none` generates no box, so
+ * the margin-left leaves no gap after the wordmark while it is off.
+ */
 .sc-landing #hero > div > div:first-child > div > div:last-child span > span::after {
-  content: "\00ae";
+  content: none;
   font-size: 0.3em;
   font-style: normal;
   font-weight: 700;
