@@ -1,5 +1,173 @@
 # Changelog
 
+## 1.25.0
+
+* The curriculum line names Cambridge, marked soon (Ray, 2026-09-10:
+  "add soon label in curriculum for cambridge"). Cambridge was not on
+  the page before - the subjects section's eyebrow and the Subjects
+  feature card's first list line both read "Built for CAPS and IEB" - so
+  it joins the line as the third curriculum, spelled as the backend's
+  `CURRICULA` tuple spells it: "Built for CAPS, IEB and Cambridge", with
+  base_sdk's `MenuLabel` pill (`badge="soon"`, the one the floating nav
+  and the header wear, at its default size) right after the name. The
+  pill is the only addition after the name; the word "soon" is never
+  written in copy. The line is plain text, no link and no choice, so
+  nothing carries `aria-disabled`.
+* `LMS_LANDING_CONFIG.subjects.curricula` (`Curriculum[]`: `name`, and
+  `badge` in base's `LandingNavBadge` vocabulary) is the one source; the
+  new `landing/lms-curricula.tsx` renders it after `subjects.eyebrow`
+  ("Built for") and both surfaces render that component - the Subjects
+  feature card through `Feature.curricula: true`, before its `lines` - so
+  the two copies of the line cannot drift. No "use client": `MenuLabel`
+  is a plain component, so the pill is in the server-rendered first
+  HTML. The prose that mentions CAPS and IEB (the subjects blurb, the FAQ)
+  is unchanged.
+* `manifest.json` 1.25.0: `lms-curricula.tsx` installed; no new base
+  floor (base_sdk >= 1.32.0 as since 1.24.0). `LMS_LANDING_VERSION`
+  1.25.0.
+
+## 1.24.0
+
+Requires base_sdk >= 1.32.0 (the floor moves from 1.29.0):
+`PageSectionMeta.rootClass` and `HeroConfig.brand`, the two server-side
+hooks of the server-rendered landing, ship there; against 1.29.0-1.31.0
+both fields are type errors.
+
+* The theme class is in the first HTML. base_sdk 1.32.0 renders the
+  landing on the server, and until now its no-JS render painted unthemed:
+  `lms-theme.tsx` put `sc-landing` on `<html>` from a client effect, so
+  the server's copy first painted in the shell's own colours. Now
+  `lms-theme-section.tsx`'s `meta` declares `rootClass: LMS_ROOT_CLASS`
+  (the new `landing/lms-theme-classes.ts`: `sc-landing` and the two
+  next/font variables, the one list the effect also uses), which base
+  joins onto the landing root on the server; every `.sc-landing` rule
+  matches before any script runs. Both modules carry no "use client"
+  directive: base reads `meta` in the server render, where every export
+  of a client module is a client reference (Next compiles it to
+  `registerClientReference`) whose properties read as `undefined` - the
+  section's component only renders the client `LmsTheme`, so nothing in
+  it needs the client.
+  The effect stays, idempotent with the root class (it adds only what
+  `<html>` lacks and removes only that), for what only `<html>` can
+  carry: the dark default, the `data-sc-theme` mirror and the
+  `.sc-landing body` paint outside the root. `lms-theme.css` paints the
+  root itself the way it paints body (`.sc-landing:not(html)`, under
+  base's `bg-white dark:bg-black`) and lands its light set on the root as
+  well as `<html>`, keyed on the shell's explicit `light` class
+  (`html.light .sc-landing`) - the root's own dark set would otherwise
+  out-cascade what it inherits - so a document with no mode at all (the
+  render without JavaScript) keeps Supacharge's dark default.
+* The hero stem is in the first HTML. `lms-hero-copy.ts` declares
+  `brand: "stem"` and base's hero renders `brandStemOf(PLATFORM_NAME)` -
+  "supacharge", the full name on the element's `aria-label` and `title` -
+  on the server. 1.22.0's client rewrite is retired: `lms-hero-wordmark.ts`
+  and the `MutationObserver` watch `lms-theme.tsx` started are deleted,
+  and the hero's text never changes after hydration. base fits the stem
+  to its own 250px slot rather than the hero's width, so the derived size
+  rule stays in `lms-theme.css`, now keyed on the span base renders
+  (`... > div:last-child > div > span`): `min(72px, (100vw - 32px) /
+  (var(--hero-chars) * 0.68em))`, and `--hero-chars` - the stem's
+  character count, from the very name base renders by the very rule base
+  derives it with (`heroWordmarkChars`, `brandStemOf` imported, not
+  restated) - is one `<style>` rule `LmsTheme` renders, a build constant
+  on both sides. The 1.21.0 clamp for the server-rendered full name and
+  the `span > span[data-sc-brand-name]` rule are gone with the rewrite;
+  the `::after` mark stays switched off, retargeted to the same span.
+* Every section entry is server-readable. The rootClass fix above held
+  only for `lms-theme-section.tsx`; the other ten registered modules
+  still began with "use client", so on base_sdk 1.32.0's server render
+  their `meta.order`, `meta.nav` and `meta.renders` read as undefined:
+  every section fell to order 100, the floating nav listed it by file
+  name ("Scroll to lms-sessions-section"), the Explore mega menu's
+  anchors did not resolve and pricing never dropped without plans. Now
+  the contract is one rule for all of them: the ENTRY module (the one
+  the page-sections line imports) has no directive and exports `meta`
+  and the default component; whatever needs the client - hooks, state,
+  effects, browser APIs, framer-motion - lives in a sibling
+  `<name>.client.tsx` that starts with "use client" and the entry
+  renders. `lms-floating-nav`, `lms-tutors-section`, `lms-pricing` and
+  `lms-faq-section` are split that way (`showsPricing`, the pure rule
+  `meta.renders` asks, stays in the pricing entry); sessions, subjects,
+  features, partners, testimonials and footer had nothing that needed
+  the client and only lose the directive. Markup and behaviour are
+  unchanged; `manifest.json` installs the four client halves.
+* `manifest.json` 1.24.0: the hero wordmark install is dropped; the
+  `page-sections.ts` and `hero-config.ts` floors move to base_sdk >=
+  1.32.0; `app/config/platform.ts` joins `requires` (host-owned, the name
+  the count follows); "Since 1.24.0" notes, the section contract in
+  `about` among them. `LMS_LANDING_VERSION` 1.24.0.
+* Tests: `TestBrandString` now holds that the copy declares the stem, that
+  no client rewrite remains, that the count is derived under node from the
+  same names 1.22.0 ran (`supacharge.school` counts 10) and that the size
+  rule is keyed on base's element; `TestServerHooks` holds the rootClass
+  declaration, its one shared list, the idempotent effect and the 1.32.0
+  floor in the manifest and this changelog.
+
+## 1.23.0
+
+* Most of the header's section links move into the mega menu (Ray,
+  2026-09-10, on supacharge.app: "some of menus in header i think there
+  should have gone to mega menu"). The desktop bar now reads
+  `[Explore v]  Pricing  FAQ`; the panel behind the trigger has three
+  columns - Explore (sessions, subjects, tutors: the first group, so
+  base draws its label as the ONE trigger and its items as the 300px lead
+  column), Platform (features, partners) and Get the app (the same app
+  cards as before, unchanged). `lms-header-menu.ts` orders its `groups`
+  for that render and lists every section entry as `{ anchor: id }`, the
+  id-only form the flat `anchors` list already used, so base still
+  resolves each against the page's live nav: the words and badges come
+  from the sections' own `meta.nav` (partners keeps its "new"), and
+  `pricing` - one of the two links kept flat - is still dropped when
+  `lms-pricing.tsx` renders no plan. The burger panel lists the same two
+  links and the same three headed groups. The two new group labels,
+  "Explore" and "Platform", are this module's own words: a group is not a
+  section, so there is no `meta.nav` to lift them from. No new base_sdk
+  floor: the anchor form of a group item and the panel are base_sdk
+  1.18.0's, and the floor stays at 1.29.0 (1.22.0).
+
+## 1.22.0
+
+Requires base_sdk >= 1.29.0 (the floor moves from 1.28.0): `brandStemOf`,
+the stem rule the hero wordmark now reads, ships there.
+
+* The hero wordmark shows the site name's STEM, never the dotted suffix
+  (Ray, 2026-09-10: the landing hero must not show ".school"; "we not hard
+  coding but saying if value of x has a dot, do this"). The text is
+  derived from whatever name the shell renders: the part before the first
+  dot when the name has one at index > 0, the whole name otherwise - the
+  ONE rule base_sdk 1.29.0's header already folds the brand by, exported as
+  `brandStemOf(name)` from `components/custom/landing/header-menu.ts` and
+  imported, not restated, by the new
+  `components/custom/landing/lms-hero-wordmark.ts` (`heroWordmark(name)`
+  answers `{ text, name }`). No brand string is written anywhere new.
+  base's hero frame draws the host's `Branding`, which prints
+  `PLATFORM_NAME`, and exposes no name hook, so `lms-theme.tsx` keeps the
+  frame's brand span on the stem while the landing is mounted
+  (`watchHeroWordmark`: applied at mount and again on any tree change,
+  restored on unmount), reaching that span the way `lms-theme.css` already
+  re-paints the frame through `#hero`; the full name stays on the same
+  span as its `aria-label` and `title`, so assistive tech and a hover
+  still carry the address. Safe against hydration: base's landing host
+  loads its sections on the client after the page hydrated, and React
+  never rewrites a text node whose content did not change. Metadata,
+  `<title>`, canonical, the Open Graph card and the header are untouched
+  (the header still shows the full name and folds it to the stem itself).
+* The hero wordmark's size follows the text (`lms-theme.css`): once the
+  stem is in, `--hero-chars` (the rendered text's character count, set
+  inline) sizes it as `min(72px, (100vw - 32px) / (chars * 0.68em))` -
+  the way base sizes its header stem from `--brand-chars` - so a stem of
+  any length fills the hero's usable width without crossing it and no
+  pixel is tuned to one brand: about 53px at 390 for 10 characters (the
+  1.21.0 clamp, sized for the 17-character dotted name, gave 33px), 72px
+  from 785 up. That clamp stays as the size of the server-rendered full
+  name for the moment before the sections load. The `::after` mark stays
+  switched off as 1.21.0 left it.
+* Tests: `TestBrandString` reads the stem rule's import, the accessible
+  name and the derived size, runs `heroWordmark` under node for a dotted,
+  a multi-dot, a trailing-dot, a leading-dot, an undotted, a padded and
+  an empty name, and holds the no-®-mark case; `TestHeaderCollapse` and
+  `TestVersion` follow the floor.
+
 ## 1.21.0
 
 * Site metadata origin moves to https://supacharge.school (Ray,

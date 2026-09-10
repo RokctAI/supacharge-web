@@ -49,6 +49,16 @@
 // on the light pill and white on the dark one, and base does that itself,
 // keyed on the file name; the coloured ones are never touched. No CSS for
 // them here, no CDN.
+//
+// Since 1.24.0 the wordmark slot is declared `brand: "stem"`: base_sdk
+// 1.32.0's hero renders the site name's STEM - brandStemOf(PLATFORM_NAME),
+// the part before the first dot, the whole name when it has none - as the
+// wordmark's text on the SERVER, with the full name on the element's
+// aria-label and title (Ray, 2026-09-10: the landing hero must not show
+// ".school"; "we not hard coding but saying if value of x has a dot, do
+// this"). The first HTML carries the stem; 1.22.0's client rewrite of the
+// frame's span (lms-hero-wordmark.ts) is retired. Metadata, <title>,
+// canonical, the Open Graph card and the header keep the full name.
 
 import type { HeroCopy } from "@/components/custom/landing/hero-copy";
 import type { HeroBadge } from "@/components/custom/landing/hero-config";
@@ -100,6 +110,8 @@ const LMS_HERO_COPY: HeroCopy = {
   // The frame draws this line over its badges, as rokct.ai's hero does.
   trustLine: ["Trusted by learners across South Africa"],
   badges: LMS_HERO_BADGES,
+  // The wordmark shows the site name's stem, rendered by base on the server.
+  brand: "stem",
 };
 
 export default LMS_HERO_COPY;

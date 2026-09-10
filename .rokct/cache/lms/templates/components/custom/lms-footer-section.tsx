@@ -14,8 +14,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-"use client";
-
 // The landing page's footer: the motto, the section links, the auth links
 // the page hands in, the app links and the copyright row. Copy:
 // LMS_LANDING_CONFIG.footer and, since 1.12.0, one link per shown app from
@@ -34,6 +32,14 @@
 // since 1.18.0 it does not: ./landing/lms-network-strip.ts registers the
 // footer surface off (Ray, 2026-09-09: "supacharge dont need the strip
 // yet"), so base's rule draws nothing here and this file passes nothing.
+
+// No "use client" here (1.24.0): base reads `meta` in the SERVER render,
+// where every export of a client module is a client reference (Next
+// compiles it to registerClientReference) whose properties read as
+// undefined - `meta.order`, `meta.nav` and `meta.renders` all lost, so the
+// section fell to order 100 and the nav listed it by file name. Nothing in
+// this module needs the client - no state, no effect, no browser API - so
+// it is a server module and its meta a plain object.
 
 import React from "react";
 import Link from "next/link";
