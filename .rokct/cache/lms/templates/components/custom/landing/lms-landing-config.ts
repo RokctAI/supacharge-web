@@ -58,6 +58,7 @@ import {
 } from "lucide-react";
 
 import type { HeaderMenuIcon } from "@/components/custom/landing/header-menu";
+import type { LandingNavBadge } from "@/components/custom/landing/landing-config";
 
 /** A link rendered as a call to action. */
 export interface LandingLink {
@@ -147,8 +148,24 @@ export interface Subject {
   tutors: [string, string];
 }
 
+/**
+ * One curriculum the lessons are built for. `badge` is base_sdk's
+ * new/soon vocabulary (LandingNavBadge): a curriculum marked "soon" is
+ * named in the line with the MenuLabel pill after it (1.25.0; Ray,
+ * 2026-09-10: "add soon label in curriculum for cambridge"). The names
+ * are spelled as the backend's CURRICULA tuple spells them
+ * (lms/frappe/src/tenant/rlms/api/student.py).
+ */
+export interface Curriculum {
+  name: string;
+  badge?: LandingNavBadge;
+}
+
 export interface SubjectsConfig {
+  /** The lead of the eyebrow; the curricula follow it: "Built for CAPS, IEB and Cambridge". */
   eyebrow: string;
+  /** The curricula, in the order the line names them (landing/lms-curricula.tsx renders it). */
+  curricula: Curriculum[];
   heading: string;
   blurb: string;
   grades: string;
@@ -266,6 +283,12 @@ export interface Feature {
   wide?: boolean;
   /** `numeral` only: the figure drawn large. Decorative - it repeats what `text` says. */
   figure?: string;
+  /**
+   * `list` only: lead with the curriculum line the subjects section's
+   * eyebrow carries (subjects.curricula through landing/lms-curricula.tsx,
+   * pill included), before `lines`.
+   */
+  curricula?: boolean;
   /** `list` only: the lines under the text, every one copy the page already carries. */
   lines?: string[];
 }
@@ -552,7 +575,8 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
   },
 
   subjects: {
-    eyebrow: "Built for CAPS and IEB",
+    eyebrow: "Built for",
+    curricula: [{ name: "CAPS" }, { name: "IEB" }, { name: "Cambridge", badge: "soon" }],
     heading: "Every subject, term by term.",
     blurb:
       "Lessons follow the CAPS annual teaching plan — the same national curriculum IEB schools teach — subject by subject and term by term, so what you learn tonight is what your teacher marks this term.",
@@ -734,7 +758,9 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
   // `treatment` is assigned so that no two neighbours share one at any
   // width. `figure` and `lines` are copy this file already carries: the
   // "2" is the Tutors card's own "Two tutors per subject", the two lines
-  // under Subjects are the subjects section's eyebrow and its grades line.
+  // under Subjects are the subjects section's eyebrow (`curricula`: the
+  // curriculum line with its pill, from subjects.curricula) and its grades
+  // line.
   features: {
     heading: "Your day, sorted.",
     blurb: "Everything in the app, in the order you use it.",
@@ -751,7 +777,8 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         text: "Browse every subject you take, term by term.",
         icon: BookOpenCheck,
         treatment: "list",
-        lines: ["Built for CAPS and IEB", "Grades 10, 11 and 12"],
+        curricula: true,
+        lines: ["Grades 10, 11 and 12"],
       },
       {
         name: "Tutors",

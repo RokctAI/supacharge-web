@@ -47,11 +47,28 @@
 // desktop app"). A group rather than flat `links` because base_sdk 1.18.0
 // draws an item that carries a `description` or an `icon` as a card - icon
 // box, label, one-line blurb - only inside the groups panel; a flat link is
-// a bare word. So the desktop bar leads with a single "Get the app" trigger
-// that opens the two cards, and the burger panel lists them under the same
-// heading. The entries are LMS_SHOWN_APPS from ./lms-landing-config.ts, the
-// one list the hero, the footer and the in-app download prompt also read:
-// iOS sits in LMS_APPS with shown: false and never reaches this menu.
+// a bare word. The entries are LMS_SHOWN_APPS from ./lms-landing-config.ts,
+// the one list the hero, the footer and the in-app download prompt also
+// read: iOS sits in LMS_APPS with shown: false and never reaches this menu.
+//
+// Since 1.23.0 most of the section links live in that panel too (Ray,
+// 2026-09-10, on supacharge.app: "some of menus in header i think there
+// should have gone to mega menu"). Seven bare words plus a trigger was a
+// bar, not a menu. Now the desktop bar reads `[Explore v]  Pricing  FAQ`:
+// base draws ONE trigger, the FIRST group's label, and its items as the
+// panel's 300px lead column, every later group as a headed column beside
+// it. So the groups are ordered for the render - "Explore" first (the
+// trigger; sessions, subjects, tutors), then "Platform" (features,
+// partners), then the apps - and each section entry is `{ anchor }`, the
+// same id-only form the flat list uses: base resolves it against the live
+// nav, so the word and any badge still come from the section's own
+// `meta.nav` (partners keeps its "new") and an entry whose section is not
+// on the page is dropped from the column the same way. Only `pricing` and
+// `faq` stay flat: the two a visitor arrives for. The burger panel lists
+// the same two links and the same three headed groups. The two group
+// labels are this module's own - a group is not a section, so there is no
+// `meta.nav` to lift them from - and lms is Supacharge's home SDK, so its
+// product words belong here.
 //
 // Since 1.13.0 the menu also says what the header's brand slot draws
 // (base_sdk >= 1.21.0, HeaderMenu.brand). Ray, 2026-09-09: "i saw
@@ -132,7 +149,8 @@ function marketCode(): string {
 /**
  * The sections Supacharge's header links to, in page order - the order
  * lms-*-section.tsx `meta.order` already puts them in, so reading down the
- * menu is reading down the page.
+ * menu (the panel's columns first, then the flat links) is reading down
+ * the page.
  *
  * `testimonials` is deliberately absent. The section no longer shows
  * [[TOKEN]] copy - since 1.8.0 its five quotes read as finished, and since
@@ -148,16 +166,22 @@ const LMS_HEADER_MENU: HeaderMenu = {
   // since 1.20.0 it folds into base's letter tile, with the market's code
   // beside it, after rokct.ai's 1500ms (Ray, 2026-09-10).
   brand: { logo: "none", collapse: { delayMs: 1500, code: marketCode } },
-  anchors: [
-    "sessions",
-    "subjects",
-    "tutors",
-    "features",
-    "partners",
-    "pricing",
-    "faq",
-  ],
+  // The two links that stay on the bar (since 1.23.0); the other five
+  // sections are the panel's first two columns below.
+  anchors: ["pricing", "faq"],
   groups: [
+    {
+      // First group = the bar's one trigger and the panel's lead column.
+      id: "explore",
+      label: "Explore",
+      items: [{ anchor: "sessions" }, { anchor: "subjects" }, { anchor: "tutors" }],
+    },
+    {
+      id: "platform",
+      label: "Platform",
+      // partners' "new" badge rides in from lms-partners-section.tsx's meta.nav.
+      items: [{ anchor: "features" }, { anchor: "partners" }],
+    },
     {
       id: "apps",
       // "Get the app" - the landing's own label for the download.

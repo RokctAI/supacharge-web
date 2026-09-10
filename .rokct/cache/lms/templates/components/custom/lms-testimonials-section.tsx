@@ -14,8 +14,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-"use client";
-
 // The landing page's testimonials: since 1.10.0 the same auto-scrolling row
 // rokct.ai runs (Ray, 2026-09-09: Supacharge is to inherit rokct.ai's
 // auto-scrolling testimonials), rendered through base_sdk >= 1.14.0's
@@ -39,6 +37,14 @@
 // The marquee is one horizontal row at every width, so the `sc-row` swipe
 // row this section used below 640px (1.8.0) is no longer needed here: the
 // cards move by themselves and, with motion turned off, scroll by hand.
+
+// No "use client" here (1.24.0): base reads `meta` in the SERVER render,
+// where every export of a client module is a client reference (Next
+// compiles it to registerClientReference) whose properties read as
+// undefined - `meta.order`, `meta.nav` and `meta.renders` all lost, so the
+// section fell to order 100 and the nav listed it by file name. Nothing in
+// this module needs the client - no state, no effect, no browser API - so
+// it is a server module and its meta a plain object.
 
 import React from "react";
 

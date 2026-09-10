@@ -53,6 +53,10 @@ CONFIG = os.path.join(LANDING, "lms-landing-config.ts")
 HEADER_MENU = os.path.join(LANDING, "lms-header-menu.ts")
 SITE_METADATA = os.path.join(LANDING, "lms-site-metadata.ts")
 WORDMARK = os.path.join(LANDING, "lms-wordmark.tsx")
+HERO_WORDMARK = os.path.join(LANDING, "lms-hero-wordmark.ts")
+THEME_TSX = os.path.join(LANDING, "lms-theme.tsx")
+THEME_SECTION = os.path.join(CUSTOM, "lms-theme-section.tsx")
+THEME_CLASSES = os.path.join(LANDING, "lms-theme-classes.ts")
 HERO_FORM = os.path.join(LANDING, "lms-hero-form.tsx")
 HERO_COPY = os.path.join(LANDING, "lms-hero-copy.ts")
 MARKS = os.path.join(TEMPLATES, "public", "brand", "marks")
@@ -66,9 +70,15 @@ NETWORK_STRIP_LINE = re.compile(
 )
 PROMPT = os.path.join(CUSTOM, "lms-download-app.tsx")
 TUTORS_SECTION = os.path.join(CUSTOM, "lms-tutors-section.tsx")
+# 1.24.0: the roster (deck or marquee) is the client half; the entry holds meta.
+TUTORS_CLIENT = os.path.join(CUSTOM, "lms-tutors-section.client.tsx")
 TESTIMONIALS_SECTION = os.path.join(CUSTOM, "lms-testimonials-section.tsx")
 LMS_MARQUEE = os.path.join(LANDING, "lms-marquee.tsx")
 FEATURES_SECTION = os.path.join(CUSTOM, "lms-features-section.tsx")
+SUBJECTS_SECTION = os.path.join(CUSTOM, "lms-subjects-section.tsx")
+# 1.25.0: the one curriculum line, Cambridge marked soon.
+CURRICULA = os.path.join(LANDING, "lms-curricula.tsx")
+PARTNERS_SECTION = os.path.join(CUSTOM, "lms-partners-section.tsx")
 FEATURES_CSS = os.path.join(LANDING, "lms-features.css")
 LESSON_PAGE = os.path.join(LESSON_DIR, "page.tsx")
 LESSON_PLAYBACK = os.path.join(LESSON_DIR, "_components", "lesson-playback.tsx")
@@ -139,6 +149,43 @@ def lift_apps(overrides=None, shown=False):
         raise unittest.SkipTest("node is not installed")
     with tempfile.TemporaryDirectory() as tmp:
         path = os.path.join(tmp, "apps.mts")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(script)
+        run = subprocess.run(
+            [node, "--experimental-strip-types", "--no-warnings", path],
+            capture_output=True, text=True, timeout=60,
+        )
+    if run.returncode != 0:
+        raise AssertionError(run.stderr)
+    return json.loads(run.stdout.strip().splitlines()[-1])
+
+
+def lift_header_menu():
+    """LMS_HEADER_MENU as node reads it: the literal lifted out of
+    lms-header-menu.ts with its three imports stubbed - the app label and
+    the shown apps as what lift_apps() gives (the real config, through the
+    same lift), the market code as a no-op - and printed as JSON. The menu
+    is a plain literal by design, so nothing else is needed."""
+    code = code_of(HEADER_MENU)
+    match = re.search(r"^const LMS_HEADER_MENU: HeaderMenu = \{\n.*?^\};", code, re.S | re.M)
+    if not match:
+        raise AssertionError("LMS_HEADER_MENU literal not found in lms-header-menu.ts")
+    literal = match.group(0).replace("const LMS_HEADER_MENU: HeaderMenu =", "const LMS_HEADER_MENU =", 1)
+    app_label = re.search(r'^  app: \{\n\s*label: "([^"]+)"', read(CONFIG), re.M)
+    if not app_label:
+        raise AssertionError("LMS_LANDING_CONFIG.app.label not found in lms-landing-config.ts")
+    script = (
+        "const LMS_LANDING_CONFIG = { app: { label: " + json.dumps(app_label.group(1)) + " } };\n"
+        "const LMS_SHOWN_APPS = " + json.dumps(lift_apps(shown=True)) + ";\n"
+        "const marketCode = () => \"\";\n"
+        + literal + "\n"
+        "console.log(JSON.stringify(LMS_HEADER_MENU));\n"
+    )
+    node = shutil.which("node")
+    if not node:
+        raise unittest.SkipTest("node is not installed")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "header-menu.mts")
         with open(path, "w", encoding="utf-8") as f:
             f.write(script)
         run = subprocess.run(
@@ -377,9 +424,11 @@ class TestSurfaces(unittest.TestCase):
         self.assertIn("label: LMS_LANDING_CONFIG.app.label", source)
         for field in ("description", "icon"):
             self.assertIn(field, source)
-        # The section anchors are still the menu's flat entries.
+        # Every section is still linked by id only - since 1.23.0 most of
+        # them from inside the panel (TestHeaderGroups) - never by href.
         for anchor in ("sessions", "subjects", "tutors", "features", "partners", "pricing", "faq"):
             self.assertIn(f'"{anchor}"', source)
+        self.assertNotIn('href: "#', code_of(HEADER_MENU))
 
     def test_header_declares_the_wordmark_is_the_logo(self):
         """1.13.0 (Ray, 2026-09-09: "supacharge text is the logo right now
@@ -417,8 +466,10 @@ class TestMarquee(unittest.TestCase):
         640px it is still the deck (Ray, 2026-09-08); the testimonials
         section still renders base's own TestimonialsMarquee; and the lms
         marquee runs on base's classes and base's stylesheet, so the two
-        rows share one rule set."""
-        tutors = code_of(TUTORS_SECTION)
+        rows share one rule set. Since 1.24.0 the roster is the section's
+        client half (lms-tutors-section.client.tsx), rendered by the
+        server-readable entry."""
+        tutors = code_of(TUTORS_CLIENT)
         self.assertIn('from "@/components/custom/landing/lms-marquee"', tutors)
         self.assertIn("<LmsMarquee", tutors)
         self.assertIn("<LmsCardDeck", tutors)
@@ -743,12 +794,93 @@ process.stdout.write(JSON.stringify(out));
         manifest = load_manifest()
         notes = manifest["_comment"]
         self.assertIn("1.28.0", notes["about"])
-        for key in ("components/custom/landing/header-menu.ts", "components/custom/header.tsx"):
+        # The header that draws the tile is 1.28.0's; the registry's floor
+        # moved on to 1.29.0 with the stem rule (TestBrandString).
+        floors = {
+            "components/custom/landing/header-menu.ts": "1.29.0",
+            "components/custom/header.tsx": "1.28.0",
+        }
+        for key, floor in floors.items():
             with self.subTest(key=key):
                 self.assertIn(key, manifest["requires"])
-                self.assertTrue(notes[key].startswith("installed by base_sdk >= 1.28.0"), notes[key])
+                self.assertTrue(notes[key].startswith(f"installed by base_sdk >= {floor}"), notes[key])
         changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
         self.assertIn("base_sdk >= 1.28.0", changelog.split("## 1.18.0")[0])
+
+
+class TestHeaderGroups(unittest.TestCase):
+    """1.23.0 (Ray, 2026-09-10: "some of menus in header i think there
+    should have gone to mega menu"): the bar reads `[Explore v]  Pricing
+    FAQ`; the panel is Explore (lead), Platform, Get the app."""
+
+    def setUp(self):
+        self.menu = lift_header_menu()
+
+    def test_groups_are_explore_platform_apps_in_that_order(self):
+        self.assertEqual([g["id"] for g in self.menu["groups"]], ["explore", "platform", "apps"])
+        self.assertEqual([g["label"] for g in self.menu["groups"]], ["Explore", "Platform", "Get the app"])
+
+    def test_the_trigger_is_explore_and_it_leads_with_the_sessions(self):
+        # base draws the FIRST group's label as the bar's one trigger and its
+        # items as the 300px lead column.
+        lead = self.menu["groups"][0]
+        self.assertEqual(lead["label"], "Explore")
+        self.assertEqual(lead["items"], [{"anchor": "sessions"}, {"anchor": "subjects"}, {"anchor": "tutors"}])
+        self.assertNotIn("badge", lead)
+
+    def test_platform_column_is_features_then_partners_by_anchor(self):
+        platform = self.menu["groups"][1]
+        self.assertEqual(platform["items"], [{"anchor": "features"}, {"anchor": "partners"}])
+
+    def test_section_items_carry_no_label_and_no_badge_of_their_own(self):
+        """Labels and badges are the sections' meta.nav: partners' "new" is
+        lms-partners-section.tsx's, resolved by base, never restated here."""
+        for group in self.menu["groups"][:2]:
+            for item in group["items"]:
+                with self.subTest(group=group["id"], item=item):
+                    self.assertEqual(set(item), {"anchor"})
+        self.assertIn('nav: [{ id: "partners", label: "Partners", badge: "new" }]', read(PARTNERS_SECTION))
+        code = code_of(HEADER_MENU)
+        self.assertNotIn('"new"', code)
+        for word in ("Sessions", "Subjects", "Tutors", "Features", "Partners", "Pricing", "FAQ"):
+            self.assertNotIn(f'"{word}"', code)
+
+    def test_apps_column_is_unchanged_and_still_last(self):
+        apps = self.menu["groups"][2]
+        self.assertEqual(apps["id"], "apps")
+        self.assertEqual([a["id"] for a in apps["items"]], [a["id"] for a in lift_apps(shown=True)])
+        for item in apps["items"]:
+            with self.subTest(item=item["id"]):
+                self.assertTrue(item.get("description") or item.get("icon"), "an app is a card")
+
+    def test_flat_links_are_pricing_then_faq_and_nothing_else(self):
+        self.assertEqual(self.menu["anchors"], ["pricing", "faq"])
+        self.assertNotIn("links", self.menu)
+        self.assertNotIn("actions", self.menu)
+
+    def test_pricing_is_still_dropped_when_no_plan_renders(self):
+        """The rule is lms-pricing.tsx's `renders` predicate, which base asks
+        before it lists a nav entry; the menu links the id and nothing else."""
+        pricing = read(os.path.join(CUSTOM, "lms-pricing.tsx"))
+        self.assertIn("renders: ({ plans }) => showsPricing(plans),", pricing)
+        self.assertNotIn("pricing", json.dumps(self.menu["groups"]))
+
+    def test_every_section_is_linked_exactly_once(self):
+        ids = list(self.menu["anchors"])
+        for group in self.menu["groups"][:2]:
+            ids += [item["anchor"] for item in group["items"]]
+        self.assertEqual(sorted(ids), sorted(["sessions", "subjects", "tutors", "features", "partners", "pricing", "faq"]))
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_manifest_and_changelog_record_the_fold(self):
+        manifest = load_manifest()
+        self.assertIn("Since 1.23.0", manifest["_comment"]["about"])
+        entry = next(i for i in manifest["installs"] if i["to"] == "components/custom/landing/lms-header-menu.ts")
+        self.assertIn("Since 1.23.0", entry["_comment"])
+        self.assertIn("[Explore v]  Pricing  FAQ", entry["_comment"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.22.0")[0]
+        self.assertIn("## 1.23.0", changelog)
+        self.assertIn("mega menu", changelog)
 
 
 class TestBrandString(unittest.TestCase):
@@ -756,7 +888,152 @@ class TestBrandString(unittest.TestCase):
     lowercase, wherever it is written as the brand. base_sdk 1.28.0's
     HeaderBrand has no name field - the wordmark text is the host's
     PLATFORM_NAME - so the name this SDK supplies is the site metadata's
-    siteName, and the footer wordmark's accessible name says the same."""
+    siteName, and the footer wordmark's accessible name says the same.
+
+    1.22.0 (Ray, 2026-09-10): the landing HERO shows the name's STEM, never
+    ".school" - derived from whatever name the shell renders ("we not hard
+    coding but saying if value of x has a dot, do this") through base_sdk
+    1.29.0's brandStemOf, the one stem rule the header already folds by.
+    Metadata, <title>, canonical, og and the header keep the full name.
+
+    1.24.0: base_sdk 1.32.0 renders that stem itself, on the server, when
+    the hero copy declares `brand: "stem"` - so the copy declares it, the
+    1.22.0 client rewrite is gone, and what this SDK still derives is the
+    stem's character COUNT for the size rule, by the same brandStemOf."""
+
+    # base_sdk 1.29.0's brandStemOf (components/custom/landing/header-menu.ts),
+    # restated for the bare-node run: the composed build imports the real
+    # one, which this SDK's tree does not carry. Same semantics, same edge
+    # cases as base's header-brand.test.mts.
+    BASE_BRAND_STEM_OF = """
+const brandStemOf = (name) => {
+  const trimmed = name?.trim() ?? "";
+  const dot = trimmed.indexOf(".");
+  if (dot <= 0) return null;
+  return trimmed.slice(0, dot);
+};
+"""
+
+    def hero_chars_under_node(self, names):
+        code = code_of(THEME_TSX)
+        match = re.search(r"^export function heroWordmarkChars\(.*?^}\n", code, re.S | re.M)
+        self.assertIsNotNone(match, "heroWordmarkChars must be a top-level function")
+        fn = match.group(0).replace("export function", "function", 1)
+        node = shutil.which("node")
+        if not node:
+            raise unittest.SkipTest("node is not installed")
+        driver = self.BASE_BRAND_STEM_OF + fn + """
+const names = JSON.parse(process.argv[2]);
+const out = {};
+for (const name of names) out[name] = heroWordmarkChars(name);
+process.stdout.write(JSON.stringify(out));
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "hero-chars.ts")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(driver)
+            run = subprocess.run(
+                [node, "--experimental-strip-types", "--no-warnings", path, json.dumps(names)],
+                capture_output=True, text=True, check=False,
+            )
+        self.assertEqual(run.returncode, 0, run.stderr)
+        return json.loads(run.stdout)
+
+    def test_hero_copy_declares_the_stem(self):
+        """base_sdk 1.32.0's HeroConfig.brand: "stem" renders
+        brandStemOf(PLATFORM_NAME) in the hero on the server, the full name
+        on the element's aria-label and title. The copy declares it and
+        spells no name of its own for the wordmark."""
+        code = code_of(HERO_COPY)
+        self.assertIn('brand: "stem",', code)
+        self.assertNotRegex(code, r'brand:\s*"name"')
+        self.assertNotRegex(code, r'(name|wordmark|text):\s*"[Ss]upacharge')
+
+    def test_no_client_rewrite_of_the_hero_wordmark_remains(self):
+        """1.22.0's lms-hero-wordmark.ts (a MutationObserver that rewrote
+        the frame's brand span to the stem after the sections loaded) is
+        gone: no module, no install, no watch, no attribute it keyed on."""
+        self.assertFalse(os.path.exists(HERO_WORDMARK), HERO_WORDMARK)
+        theme = code_of(THEME_TSX)
+        self.assertNotIn("watchHeroWordmark", theme)
+        self.assertNotIn("lms-hero-wordmark", theme)
+        self.assertNotIn("textContent", theme)
+        self.assertNotRegex(theme, r"observe\(root\.body")
+        self.assertNotIn("data-sc-brand-name", read(THEME_CSS))
+        manifest = load_manifest()
+        froms = [i["from"] for i in manifest["installs"]]
+        self.assertNotIn("templates/components/custom/landing/lms-hero-wordmark.ts", froms)
+        for root, _dirs, files in os.walk(TEMPLATES):
+            for name in files:
+                if name.endswith((".ts", ".tsx", ".css")):
+                    with self.subTest(file=name):
+                        self.assertNotIn("data-sc-brand-name", read(os.path.join(root, name)))
+
+    def test_hero_chars_read_the_stem_rule_from_base_and_write_no_brand(self):
+        """The count follows the very name base renders (PLATFORM_NAME) by
+        the very rule base derives the stem with (brandStemOf, imported -
+        not restated), so the size can never follow a different text."""
+        code = code_of(THEME_TSX)
+        self.assertIn('import { PLATFORM_NAME } from "@/app/config/platform";', code)
+        self.assertIn('import { brandStemOf } from "@/components/custom/landing/header-menu";', code)
+        self.assertRegex(code, r"return \(brandStemOf\(name\) \?\? name\)\.length;")
+        self.assertNotRegex(code, r"(?i)supacharge")
+        self.assertNotRegex(code, r'indexOf\("\."\)|split\("\."\)', "the dot rule belongs to base's brandStemOf")
+
+    def test_hero_chars_under_node(self):
+        got = self.hero_chars_under_node(["supacharge.school", "a.b.c", "x.", "  padded.name  ", "rokct", ".x", ""])
+        self.assertEqual(got["supacharge.school"], 10)
+        self.assertEqual(got["a.b.c"], 1)
+        self.assertEqual(got["x."], 1)
+        self.assertEqual(got["  padded.name  "], 6)
+        # No stem: the whole name is drawn, as base draws it (untrimmed).
+        self.assertEqual(got["rokct"], 5)
+        self.assertEqual(got[".x"], 2)
+        self.assertEqual(got[""], 0)
+
+    def test_hero_chars_are_in_the_first_html(self):
+        """LmsTheme renders one <style> rule putting --hero-chars on the
+        token class - a build constant, the same on the server and the
+        client, so hydration has nothing to reconcile - and no effect
+        sets it."""
+        code = code_of(THEME_TSX)
+        self.assertIn('HERO_CHARS_VAR = "--hero-chars"', code)
+        self.assertRegex(code, r"return `\.\$\{LMS_THEME_CLASS\}\{\$\{HERO_CHARS_VAR\}:\$\{heroWordmarkChars\(name\)\}\}`;")
+        self.assertIn("return <style>{heroCharsRule(PLATFORM_NAME)}</style>;", code)
+        self.assertNotIn("style.setProperty", code)
+
+    def test_hero_size_rule_is_keyed_on_the_span_base_renders(self):
+        """base fits the stem to its own 250px slot; the derived size stays
+        here, on the one span base's frame renders under brand: "stem"
+        (hero > column > brand row > slot > padding div > span), reading
+        --hero-chars with the large size as the no-count fallback. The
+        1.21.0 clamp for a client-rewritten full name is gone."""
+        css = read(THEME_CSS)
+        selector = ".sc-landing #hero > div > div:first-child > div > div:last-child > div > span"
+        rules = re.findall(re.escape(selector) + r" \{([^}]*)\}", css)
+        self.assertEqual(len(rules), 1, rules)
+        self.assertRegex(rules[0], r"font-size:\s*min\(72px, calc\(\(100vw - 32px\) / \(var\(--hero-chars, 1\) \* 0\.\d+\)\)\) !important;")
+        self.assertIn("font-family: var(--sc-font-brand) !important;", rules[0])
+        self.assertIn("color: var(--sc-ink) !important;", rules[0])
+        self.assertNotIn("clamp(28px, 8.5vw, 72px)", css)
+        self.assertNotIn("span > span", css)
+
+    def test_manifest_and_changelog_retire_the_rewrite_and_name_the_floor(self):
+        manifest = load_manifest()
+        notes = manifest["_comment"]
+        self.assertIn("Since 1.22.0 the hero wordmark shows the site name's STEM", notes["about"])
+        self.assertIn("Since 1.24.0 the theme class and the hero stem are in the FIRST HTML", notes["about"])
+        self.assertIn("lms-hero-wordmark.ts and the watch lms-theme.tsx started - is gone", notes["about"])
+        self.assertIn("base_sdk floor is 1.32.0 since 1.24.0", notes["about"])
+        self.assertIn("brandStemOf", notes["components/custom/landing/header-menu.ts"])
+        self.assertIn("app/config/platform.ts", manifest["requires"])
+        self.assertIn("PLATFORM_NAME", notes["app/config/platform.ts"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = changelog.split("## 1.23.0")[0]
+        self.assertIn("base_sdk >= 1.32.0", head)
+        self.assertIn("`brand: \"stem\"`", head)
+        self.assertIn("`lms-hero-wordmark.ts`", head)
+        self.assertIn("`heroWordmarkChars`", head)
 
     def test_site_name_is_the_brand_string(self):
         code = code_of(SITE_METADATA)
@@ -797,14 +1074,98 @@ class TestBrandString(unittest.TestCase):
         """1.21.0 (Ray, 2026-09-10: "hero dont show (R) for now i want to
         check if there is any trademark"): the hero wordmark's ::after rule
         is kept but switched off - `content: none` generates no box, so no ®
-        and no margin gap after the name - until the trademark check lands."""
+        and no margin gap after the name - until the trademark check lands.
+        Since 1.24.0 it sits on the span base renders."""
         css = read(THEME_CSS)
-        blocks = re.findall(r"span > span::after \{([^}]*)\}", css)
+        blocks = re.findall(r"div:last-child > div > span::after \{([^}]*)\}", css)
         self.assertEqual(len(blocks), 1, blocks)
         self.assertIn("content: none;", blocks[0])
         self.assertNotRegex(blocks[0], r'content:\s*"')
         self.assertNotIn("00ae", blocks[0])
         self.assertNotIn("\u00ae", blocks[0])
+
+
+class TestServerHooks(unittest.TestCase):
+    """1.24.0: base_sdk 1.32.0 renders the landing on the server, and the
+    theme class reaches the first HTML through PageSectionMeta.rootClass
+    (joined onto the landing root by base) instead of only through the
+    client effect that put it on <html> after mount - so the no-JS render
+    is themed. The effect stays for what only <html> can carry."""
+
+    def test_theme_section_declares_the_root_class(self):
+        code = code_of(THEME_SECTION)
+        self.assertIn("rootClass: LMS_ROOT_CLASS,", code)
+        self.assertRegex(code, r"export const meta: PageSectionMeta = \{\s*order: -2,\s*nav: \[\],\s*rootClass: LMS_ROOT_CLASS,\s*\};")
+        self.assertIn('import { LMS_ROOT_CLASS } from "@/components/custom/landing/lms-theme-classes";', code)
+        self.assertIn('import { LmsTheme } from "@/components/custom/landing/lms-theme";', code)
+
+    def test_meta_and_its_class_come_from_server_readable_modules(self):
+        """base reads meta in the server render; a "use client" module's
+        exports are client references there whose properties read as
+        undefined (Next compiles each to registerClientReference). So the
+        section and the classes module carry no directive, the component
+        it renders stays the client one, and the manifest installs the
+        classes module."""
+        for path in (THEME_SECTION, THEME_CLASSES):
+            with self.subTest(path=os.path.basename(path)):
+                self.assertNotIn("use client", code_of(path))
+        self.assertIn('"use client";', code_of(THEME_TSX))
+        classes = code_of(THEME_CLASSES)
+        self.assertIn('import { lmsBrand, lmsSans } from "./lms-fonts";', classes)
+        self.assertNotIn("useEffect", classes)
+        manifest = load_manifest()
+        pairs = {i["from"]: i["to"] for i in manifest["installs"]}
+        self.assertEqual(
+            pairs.get("templates/components/custom/landing/lms-theme-classes.ts"),
+            "components/custom/landing/lms-theme-classes.ts",
+        )
+
+    def test_root_class_and_effect_share_one_list(self):
+        """The server's list and the effect's list are the same constant:
+        the token class and the two next/font variables, joined for base."""
+        code = code_of(THEME_CLASSES)
+        self.assertIn('LMS_THEME_CLASS = "sc-landing"', code)
+        self.assertRegex(code, r"LMS_THEME_CLASSES: readonly string\[\] = \[\s*LMS_THEME_CLASS,\s*lmsSans\.variable,\s*lmsBrand\.variable,\s*\];")
+        self.assertIn('LMS_ROOT_CLASS = LMS_THEME_CLASSES.join(" ")', code)
+        theme = code_of(THEME_TSX)
+        self.assertIn('import { LMS_THEME_CLASS, LMS_THEME_CLASSES } from "./lms-theme-classes";', theme)
+        self.assertNotRegex(theme, r'LMS_THEME_CLASS = "')
+
+    def test_effect_is_idempotent_with_the_server_class(self):
+        """<html> gets only the classes it lacks, and only those come off on
+        unmount; the mode default and the mirror are unchanged."""
+        code = code_of(THEME_TSX)
+        self.assertIn("const added = LMS_THEME_CLASSES.filter((name) => !root.classList.contains(name));", code)
+        self.assertIn("added.forEach((name) => root.classList.add(name));", code)
+        self.assertIn("added.forEach((name) => root.classList.remove(name));", code)
+        self.assertIn('if (defaulted) root.classList.add("dark");', code)
+        self.assertIn('attributeFilter: ["class"]', code)
+
+    def test_stylesheet_paints_the_root_and_lands_the_light_set_on_it(self):
+        css = read(THEME_CSS)
+        self.assertIn(".sc-landing body,\n.sc-landing:not(html) {", css)
+        self.assertIn("html.sc-landing:not(.dark),\nhtml.light .sc-landing {", css)
+
+    def test_manifest_and_changelog_name_the_floor(self):
+        manifest = load_manifest()
+        notes = manifest["_comment"]
+        # 1.24.0 or any later release: the floor named here stays.
+        self.assertGreaterEqual(tuple(int(n) for n in manifest["version"].split(".")), (1, 24, 0))
+        for key in ("components/custom/landing/page-sections.ts", "components/custom/landing/hero-config.ts"):
+            with self.subTest(key=key):
+                self.assertIn(key, manifest["requires"])
+                self.assertIn("base_sdk >= 1.32.0", notes[key])
+        self.assertIn("rootClass", notes["components/custom/landing/page-sections.ts"])
+        self.assertIn("HeroConfig.brand", notes["components/custom/landing/hero-config.ts"])
+        pairs = {i["from"]: i for i in manifest["installs"]}
+        self.assertIn("rootClass", pairs["templates/components/custom/lms-theme-section.tsx"]["_comment"])
+        self.assertIn('brand: "stem"', pairs["templates/components/custom/landing/lms-hero-copy.ts"]["_comment"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = changelog.split("## 1.23.0")[0]
+        self.assertTrue(head.startswith("# Changelog\n\n## "))
+        self.assertIn("\n## 1.24.0\n", head)
+        self.assertIn("Requires base_sdk >= 1.32.0", head)
+        self.assertIn("`PageSectionMeta.rootClass`", head)
 
 
 class TestVersion(unittest.TestCase):
@@ -851,3 +1212,203 @@ class TestVersion(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+SECTION_LINE_RE = re.compile(r'\{ id: "([^"]+)", load: \(\) => import\("@/components/custom/([^"]+)"\) \}')
+USE_CLIENT_LINE_RE = re.compile(r'^\s*(?:"use client"|\'use client\');?\s*$', re.M)
+
+
+def registered_sections():
+    """(registry id, entry template path) for every page-sections line the
+    manifest injects - the modules base loads on the server."""
+    manifest = load_manifest()
+    lines = [i for i in manifest["integrations"] if i["target"] == "components/custom/landing/page-sections.ts"]
+    out = []
+    for line in lines:
+        match = SECTION_LINE_RE.search(line["replacement"])
+        assert match, line["replacement"]
+        out.append((match.group(1), os.path.join(CUSTOM, match.group(2) + ".tsx")))
+    return out
+
+
+class TestServerSafeSections(unittest.TestCase):
+    """1.24.0: base_sdk 1.32.0 loads every registered section on the server
+    and reads its `meta` there, where a "use client" module's exports are
+    client references whose properties read as undefined. So the ENTRY
+    module of every section has no directive and exports `meta`; whatever
+    needs the client lives in a sibling <name>.client.tsx that starts
+    with "use client", is rendered by the entry and is installed by the
+    manifest beside it."""
+
+    def test_the_registry_names_every_section(self):
+        ids = [i for i, _ in registered_sections()]
+        self.assertEqual(ids, [
+            "lms-theme-section", "lms-floating-nav", "lms-sessions-section",
+            "lms-subjects-section", "lms-tutors-section", "lms-features-section",
+            "lms-partners-section", "lms-pricing", "lms-faq-section",
+            "lms-testimonials-section", "lms-footer-section",
+        ])
+
+    def test_every_entry_is_installed_has_no_directive_and_exports_meta(self):
+        installed = {i["to"] for i in load_manifest()["installs"]}
+        for section_id, path in registered_sections():
+            with self.subTest(section=section_id):
+                self.assertTrue(os.path.exists(path), path)
+                self.assertIn(f"components/custom/{section_id}.tsx", installed)
+                code = code_of(path)
+                self.assertIsNone(USE_CLIENT_LINE_RE.search(code), f"{section_id}.tsx starts a client module")
+                self.assertRegex(code, r"export const meta: PageSectionMeta = ")
+                self.assertRegex(code, r"export default ")
+                for hook in ("useState(", "useEffect(", "useMemo(", "useMediaQuery(", "framer-motion", "window.", "document."):
+                    self.assertNotIn(hook, code, f"{section_id}.tsx keeps {hook} out of the server-readable entry")
+
+    def test_each_client_half_starts_with_the_directive_is_installed_and_rendered(self):
+        manifest = load_manifest()
+        pairs = {i["from"]: i["to"] for i in manifest["installs"]}
+        halves = 0
+        for section_id, path in registered_sections():
+            client = path[:-4] + ".client.tsx"
+            if not os.path.exists(client):
+                continue
+            halves += 1
+            with self.subTest(section=section_id):
+                code = code_of(client)
+                self.assertRegex(code.lstrip(), r'^"use client";', f"{section_id}.client.tsx must start with the directive")
+                self.assertNotIn("export const meta", code)
+                self.assertEqual(
+                    pairs.get(f"templates/components/custom/{section_id}.client.tsx"),
+                    f"components/custom/{section_id}.client.tsx",
+                )
+                entry = code_of(path)
+                self.assertIn(f'from "@/components/custom/{section_id}.client"', entry)
+        self.assertEqual(halves, 4, "floating nav, tutors, pricing and faq carry a client half")
+
+    def test_pricing_keeps_its_pure_rule_in_the_entry(self):
+        entry = code_of(os.path.join(CUSTOM, "lms-pricing.tsx"))
+        self.assertIn("const showsPricing = (plans: LandingPlan[]) =>", entry)
+        self.assertIn("renders: ({ plans }) => showsPricing(plans),", entry)
+        client = code_of(os.path.join(CUSTOM, "lms-pricing.client.tsx"))
+        self.assertNotIn("showsPricing", client)
+        self.assertIn("if (!config || plans.length === 0) return null;", client)
+
+    def test_manifest_and_changelog_state_the_contract(self):
+        about = load_manifest()["_comment"]["about"]
+        self.assertIn("Since 1.24.0 every registered section ENTRY module", about)
+        self.assertIn("<name>.client.tsx", about)
+        self.assertIn("`<name>.client.tsx`", read(os.path.join(SDK_ROOT, "CHANGELOG.md")))
+
+
+def lift_subjects():
+    """LMS_LANDING_CONFIG.subjects as node reads it: the block lifted out of
+    the config literal (strings and arrays only, so it evaluates bare)."""
+    source = read(CONFIG)
+    match = re.search(r"^  subjects: \{\n.*?^  \},$", source, re.S | re.M)
+    if not match:
+        raise AssertionError("subjects block not found in lms-landing-config.ts")
+    literal = "const S = {\n" + match.group(0)[len("  subjects: {\n"):-1] + ";"
+    script = literal + "\nconsole.log(JSON.stringify(S));\n"
+    node = shutil.which("node")
+    if not node:
+        raise unittest.SkipTest("node is not installed")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "subjects.mts")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(script)
+        run = subprocess.run(
+            [node, "--experimental-strip-types", "--no-warnings", path],
+            capture_output=True, text=True, timeout=60,
+        )
+    if run.returncode != 0:
+        raise AssertionError(run.stderr)
+    return json.loads(run.stdout.strip().splitlines()[-1])
+
+
+class TestCurricula(unittest.TestCase):
+    """1.25.0 - Ray, 2026-09-10: "add soon label in curriculum for
+    cambridge". Cambridge joins the curriculum line as the third
+    curriculum with base's MenuLabel pill after it; the subjects eyebrow
+    and the Subjects feature card both render the one line."""
+
+    def test_cambridge_is_the_last_curriculum_and_the_only_one_marked_soon(self):
+        subjects = lift_subjects()
+        self.assertEqual(subjects["eyebrow"], "Built for")
+        self.assertEqual([c["name"] for c in subjects["curricula"]], ["CAPS", "IEB", "Cambridge"])
+        self.assertEqual(subjects["curricula"][-1], {"name": "Cambridge", "badge": "soon"})
+        for c in subjects["curricula"][:-1]:
+            with self.subTest(curriculum=c["name"]):
+                self.assertNotIn("badge", c)
+
+    def test_the_word_soon_is_never_written_in_copy(self):
+        for path in (CONFIG, CURRICULA, SUBJECTS_SECTION, FEATURES_SECTION):
+            with self.subTest(path=os.path.basename(path)):
+                strings = re.findall(r'"([^"\n]*)"', code_of(path))
+                for text in strings:
+                    if re.search(r"\bsoon\b", text, re.I):
+                        self.assertEqual(text, "soon", f"'soon' only as the badge value, not copy: {text!r}")
+        self.assertNotIn("Built for CAPS and IEB", code_of(CONFIG))
+
+    def test_line_renders_the_pill_right_after_cambridge_and_nothing_disabled(self):
+        source = code_of(CURRICULA)
+        self.assertNotIn("use client", source)
+        self.assertIn('import { MenuLabel } from "@/components/custom/menu-label";', source)
+        self.assertIn('import type { Curriculum } from "@/components/custom/landing/lms-landing-config";', source)
+        # The name and its pill share one non-breaking span: the pill comes
+        # right after the name, on the same line, and nothing else follows.
+        self.assertRegex(
+            source,
+            r'<span className="[^"]*whitespace-nowrap[^"]*">\s*\{item\.name\}\s*<MenuLabel badge=\{item\.badge\} />\s*</span>',
+        )
+        self.assertNotIn("aria-disabled", source)
+        self.assertNotIn("<a", source)
+
+    def test_separators_read_caps_comma_ieb_and_cambridge(self):
+        fn = re.search(r"export function curriculumSeparator\(.*?\n\}", read(CURRICULA), re.S).group(0)
+        node = shutil.which("node")
+        if not node:
+            raise unittest.SkipTest("node is not installed")
+        script = fn + "\nconst names = ['CAPS', 'IEB', 'Cambridge'];\n" \
+            "console.log(JSON.stringify(names.map((n, i) => curriculumSeparator(i, names.length) + n).join('')));\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "sep.mts")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(script)
+            run = subprocess.run(
+                [node, "--experimental-strip-types", "--no-warnings", path],
+                capture_output=True, text=True, timeout=60,
+            )
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(json.loads(run.stdout.strip().splitlines()[-1]), "CAPS, IEB and Cambridge")
+
+    def test_eyebrow_and_subjects_card_both_render_the_one_line(self):
+        subjects = code_of(SUBJECTS_SECTION)
+        self.assertNotIn("use client", subjects)
+        self.assertRegex(subjects, r'<p className="sc-eyebrow">\s*<LmsCurricula />\s*</p>')
+        self.assertNotIn("config.eyebrow", subjects)
+        features = code_of(FEATURES_SECTION)
+        self.assertNotIn("use client", features)
+        self.assertIn('import { LmsCurricula } from "@/components/custom/landing/lms-curricula";', features)
+        self.assertRegex(features, r'feature\.curricula \? \(\s*<li className="sc-feature-line">\s*<span>\s*<LmsCurricula />')
+        card = [it for it in lift_features()["items"] if it["name"] == "Subjects"][0]
+        self.assertTrue(card.get("curricula"))
+        self.assertEqual(card["lines"], ["Grades 10, 11 and 12"])
+        for it in lift_features()["items"]:
+            if it["name"] != "Subjects":
+                with self.subTest(card=it["name"]):
+                    self.assertNotIn("curricula", it)
+
+    def test_manifest_and_changelog_record_cambridge(self):
+        manifest = load_manifest()
+        self.assertEqual(manifest["version"], "1.25.0")
+        entry = [e for e in manifest["installs"] if e["from"].endswith("landing/lms-curricula.tsx")]
+        self.assertEqual(len(entry), 1)
+        self.assertEqual(entry[0]["to"], "components/custom/landing/lms-curricula.tsx")
+        self.assertIn("Cambridge", entry[0]["_comment"])
+        self.assertIn("components/custom/menu-label.tsx", manifest["requires"])
+        self.assertIn("1.25.0", manifest["_comment"]["about"])
+        self.assertIn("Cambridge", manifest["_comment"]["components/custom/menu-label.tsx"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = changelog.split("## 1.24.0")[0]
+        self.assertIn("## 1.25.0", head)
+        self.assertIn("Cambridge", head)
+        self.assertIn("add soon label in curriculum for cambridge", head)
+        self.assertIn('LMS_LANDING_VERSION = "1.25.0"', read(FOOTER_CHROME))

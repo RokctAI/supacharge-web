@@ -20,9 +20,12 @@
  * lms_sdk, Supacharge's home SDK, renders every screen with) as CSS custom
  * properties, plus the handful of recurring pieces the landing sections
  * share (card, chip, badge, button). Scoped to the `sc-landing` class that
- * lms-theme.tsx puts on <html> while the landing is mounted, so nothing here
- * leaks into the handson pages. Plain CSS, no Tailwind directives: it works
- * in a shell with or without Tailwind. Token sheet: agent PR #242 (feel/tokens.md).
+ * lms-theme.tsx puts on <html> while the landing is mounted - and, since
+ * 1.24.0, that base_sdk 1.32.0 renders on the landing's ROOT element in the
+ * first HTML (lms-theme-section.tsx's meta.rootClass), so every rule here
+ * matches before any script runs and without JavaScript. Nothing leaks into
+ * the handson pages. Plain CSS, no Tailwind directives: it works in a shell
+ * with or without Tailwind. Token sheet: agent PR #242 (feel/tokens.md).
  *
  * Dark-first, like every Dart capture; the light set (AppStyle's light
  * counterparts) applies when the host's theme class is not `dark`.
@@ -70,8 +73,16 @@
  * above, not here; it also mirrors the class into `data-sc-theme` for anything
  * that would rather match an attribute, but that mirror is derived output, not
  * an input to this sheet.
+ *
+ * The landing ROOT carries the class from the first HTML too (1.24.0), and
+ * its own `.sc-landing` dark set would out-cascade what it inherits from
+ * <html>; so the light set also lands on the root, keyed on the shell's
+ * explicit `light` class (next-themes writes the chosen mode's name, and
+ * lms-theme.tsx reads the same word). A document with no mode at all - the
+ * render without JavaScript - keeps the dark set, Supacharge's default.
  */
-html.sc-landing:not(.dark) {
+html.sc-landing:not(.dark),
+html.light .sc-landing {
   --sc-primary-tint: #ffe7d6;
   --sc-surface: #ececef;
   --sc-card: #f9f9fb;
@@ -90,8 +101,14 @@ html.sc-landing:not(.dark) {
   color-scheme: light;
 }
 
-/* The shell's layout paints its own inline body colours; the landing paints the app's. */
-.sc-landing body {
+/*
+ * The shell's layout paints its own inline body colours; the landing paints
+ * the app's. The landing root paints itself the same way (1.24.0): it is the
+ * element the server-rendered class is on, under base's `bg-white
+ * dark:bg-black` utilities, so the no-JS render is Supacharge's surface too.
+ */
+.sc-landing body,
+.sc-landing:not(html) {
   background: var(--sc-surface) !important;
   color: var(--sc-ink) !important;
   font-family: var(--sc-font-sans) !important;
@@ -198,12 +215,12 @@ html.sc-landing:not(.dark) {
 }
 
 /*
- * base_sdk's hero frame (components/custom/hero.tsx, 1.7.0) paints its own
- * colours - `bg-white dark:bg-[#0a0a0a]`, a yellow serif rotating word, a
- * fixed 250 px wordmark slot that clips "Supacharge" - and exposes no
- * className or CSS-variable hook yet. Until it does, the landing's home SDK
- * re-paints it here from OUTSIDE the file, through the `#hero` id the frame
- * gets from LANDING_CONFIG.nav.hero and the frame's own element order:
+ * base_sdk's hero frame (components/custom/hero-view.tsx since 1.32.0;
+ * hero.tsx from 1.7.0) paints its own colours - `bg-white dark:bg-[#0a0a0a]`,
+ * a yellow serif rotating word, a fixed 250 px wordmark slot - and exposes
+ * no className or CSS-variable hook yet. Until it does, the landing's home
+ * SDK re-paints it here from OUTSIDE the file, through the `#hero` id the
+ * frame gets from LANDING_CONFIG.nav.hero and the frame's own element order:
  * hero > column > [brand row, headline, form, badges]. See the follow-up in
  * agent PR #242: the frame should take `--hero-accent`, `--hero-bg` and a
  * `brandClassName`, and drop the fixed wordmark width.
@@ -220,23 +237,32 @@ html.sc-landing:not(.dark) {
   width: auto !important;
 }
 /*
- * 1.15.0 (Ray, 2026-09-09: "the supacharge name in hero is small"): the
- * host shell's Branding (components/custom/branding.tsx) measures the
- * frame's 250px slot the moment it mounts - before lms-theme.tsx has put
- * sc-landing on <html>, so before the rule above has widened the slot -
- * and shrinks the wordmark to fit it with an inline transform and an
- * inline width on its wrapper (at 1280 a 72px "Supacharge" came out 36px
- * tall). The slot is auto-width here, so nothing needs to fit: undo both
- * inline styles and the wordmark renders at the size the rule below sets.
+ * The wordmark (1.24.0): lms-hero-copy.ts declares `brand: "stem"`, so
+ * base_sdk 1.32.0's frame renders the site name's stem as ONE text span in
+ * the slot - hero > column > brand row > slot > padding div > span - with
+ * the full name on its aria-label and title, from the first HTML. This is
+ * that span. Base draws it in its sans at `min(76px, 250px / (chars *
+ * 0.6em))` inline - fitted to the 250px slot the rule above has widened -
+ * so the face, the tracking and the SIZE are set here, with !important
+ * over the inline style. The size follows the text the way base's header
+ * sizes its stem wordmark from --brand-chars (BRAND_STEM_FONT_SIZE): the
+ * 72px of 1280 when the text fits, else what fits the hero column's usable
+ * width (100vw less the frame's 16px side padding each way) at 0.68em per
+ * character - a bound over the ~0.62em Montserrat Black Italic lowercase
+ * averages at this tracking (measured: 447px for 10 characters at 72px) -
+ * so a stem of any letters fills the width without crossing it and nothing
+ * is tuned to one brand. --hero-chars is the rendered text's character
+ * count, derived from the name base renders by the rule base derives it
+ * with and put in the first HTML by lms-theme.tsx (heroWordmarkChars, one
+ * <style> rule on .sc-landing); with no count at all the fallback of 1
+ * character resolves to the large size. 10 characters: about 53px at 390
+ * (328px wide, 365px right edge), 72px from 785 up.
  */
-.sc-landing #hero > div > div:first-child > div > div:last-child span {
-  width: auto !important;
-}
-.sc-landing #hero > div > div:first-child > div > div:last-child span > span {
+.sc-landing #hero > div > div:first-child > div > div:last-child > div > span {
   font-family: var(--sc-font-brand) !important;
   font-style: italic !important;
   font-weight: 900 !important;
-  font-size: clamp(28px, 8.5vw, 72px) !important;
+  font-size: min(72px, calc((100vw - 32px) / (var(--hero-chars, 1) * 0.68))) !important;
   letter-spacing: -0.03em !important;
   line-height: 1 !important;
   color: var(--sc-ink) !important;
@@ -247,7 +273,7 @@ html.sc-landing:not(.dark) {
  * restoring `content: "\00ae";` below. `content: none` generates no box, so
  * the margin-left leaves no gap after the wordmark while it is off.
  */
-.sc-landing #hero > div > div:first-child > div > div:last-child span > span::after {
+.sc-landing #hero > div > div:first-child > div > div:last-child > div > span::after {
   content: none;
   font-size: 0.3em;
   font-style: normal;

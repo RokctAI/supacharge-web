@@ -14,8 +14,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-"use client";
-
 // The landing page's "how a session works" section: the two-part lesson
 // and the rules a session keeps. Copy: LMS_LANDING_CONFIG.sessions.
 //
@@ -23,6 +21,14 @@
 // landing/lms-theme.css) - a swipe through the lesson reads the way the
 // lesson runs. The facts block underneath keeps stacking: those are three
 // bare paragraphs, not cards, and prose in a snap row reads as broken.
+
+// No "use client" here (1.24.0): base reads `meta` in the SERVER render,
+// where every export of a client module is a client reference (Next
+// compiles it to registerClientReference) whose properties read as
+// undefined - `meta.order`, `meta.nav` and `meta.renders` all lost, so the
+// section fell to order 100 and the nav listed it by file name. Nothing in
+// this module needs the client - no state, no effect, no browser API - so
+// it is a server module and its meta a plain object.
 
 import React from "react";
 import Link from "next/link";

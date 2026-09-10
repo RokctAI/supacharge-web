@@ -14,8 +14,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-"use client";
-
 // The landing page's feature cards: the app's screens in the order the
 // guided tour walks them. Copy, icons and each card's treatment:
 // LMS_LANDING_CONFIG.features.
@@ -29,7 +27,8 @@
 //
 //   glow      the icon over a soft radial accent, no tile
 //   numeral   a large figure taken from the card's own copy (`figure`)
-//   list      the two-line mini list under the text (`lines`)
+//   list      the two-line mini list under the text (`curricula`, the
+//             curriculum line with its pill, then `lines`)
 //   gradient  a diagonal wash from the primary tint into the card
 //   outlined  a transparent card with a primary-leaning stroke
 //
@@ -55,12 +54,21 @@
 // in mobile", because "im avoiding a long scroll"), with the wide cards
 // first there too.
 
+// No "use client" here (1.24.0): base reads `meta` in the SERVER render,
+// where every export of a client module is a client reference (Next
+// compiles it to registerClientReference) whose properties read as
+// undefined - `meta.order`, `meta.nav` and `meta.renders` all lost, so the
+// section fell to order 100 and the nav listed it by file name. Nothing in
+// this module needs the client - no state, no effect, no browser API - so
+// it is a server module and its meta a plain object.
+
 import React from "react";
 
 import {
   LMS_LANDING_CONFIG,
   type Feature,
 } from "@/components/custom/landing/lms-landing-config";
+import { LmsCurricula } from "@/components/custom/landing/lms-curricula";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
 
 import "@/components/custom/landing/lms-features.css";
@@ -109,9 +117,16 @@ function FeatureCard({ feature }: { feature: Feature }) {
         </p>
       </div>
 
-      {treatment === "list" && feature.lines && feature.lines.length > 0 ? (
+      {treatment === "list" && (feature.curricula || (feature.lines && feature.lines.length > 0)) ? (
         <ul className="sc-feature-lines mt-auto flex flex-col gap-1.5 text-sm font-medium text-[var(--sc-ink)]">
-          {feature.lines.map((line) => (
+          {feature.curricula ? (
+            <li className="sc-feature-line">
+              <span>
+                <LmsCurricula />
+              </span>
+            </li>
+          ) : null}
+          {(feature.lines ?? []).map((line) => (
             <li key={line} className="sc-feature-line">
               {line}
             </li>

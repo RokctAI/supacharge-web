@@ -14,18 +14,27 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-"use client";
-
 // The landing page's subject grid: the CAPS subjects Supacharge teaches and
-// the tutor duo on each. Copy: LMS_LANDING_CONFIG.subjects.
+// the tutor duo on each. Copy: LMS_LANDING_CONFIG.subjects. The eyebrow
+// is the curriculum line (landing/lms-curricula.tsx, 1.25.0): "Built for
+// CAPS, IEB and Cambridge", the soon pill after Cambridge.
 //
 // Ray, 2026-09-09, naming this section: "most cards should be one row in
 // mobile. even subjects cards". Six subjects stacked is six screens of
 // thumb, so below 640px the grid is one swipeable row (`sc-row`,
 // landing/lms-theme.css); from 640px up it is unchanged.
 
+// No "use client" here (1.24.0): base reads `meta` in the SERVER render,
+// where every export of a client module is a client reference (Next
+// compiles it to registerClientReference) whose properties read as
+// undefined - `meta.order`, `meta.nav` and `meta.renders` all lost, so the
+// section fell to order 100 and the nav listed it by file name. Nothing in
+// this module needs the client - no state, no effect, no browser API - so
+// it is a server module and its meta a plain object.
+
 import React from "react";
 
+import { LmsCurricula } from "@/components/custom/landing/lms-curricula";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
 
@@ -38,7 +47,7 @@ export function LmsSubjectsSection({ id }: { id?: string }) {
       <div className="container mx-auto px-4 xl:px-0 max-w-6xl flex flex-col gap-12">
         <div className="flex flex-col items-center text-center gap-5">
           <p className="sc-eyebrow">
-            {config.eyebrow}
+            <LmsCurricula />
           </p>
           <h2 className="text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
             {config.heading}

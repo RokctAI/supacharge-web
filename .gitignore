@@ -174,6 +174,7 @@ components/custom/theme-provider.tsx
 /components/custom/footer-chrome.tsx
 /components/custom/header-menu.tsx
 /components/custom/header.tsx
+/components/custom/hero-view.tsx
 /components/custom/hero.tsx
 /components/custom/landing-content.tsx
 /components/custom/landing/brand-marks.ts
@@ -184,7 +185,9 @@ components/custom/theme-provider.tsx
 /components/custom/landing/hero-form.ts
 /components/custom/landing/hero-sections.ts
 /components/custom/landing/landing-config.ts
+/components/custom/landing/landing-page.ts
 /components/custom/landing/lms-card-deck.tsx
+/components/custom/landing/lms-curricula.tsx
 /components/custom/landing/lms-features.css
 /components/custom/landing/lms-flip-card.tsx
 /components/custom/landing/lms-fonts.ts
@@ -198,6 +201,7 @@ components/custom/theme-provider.tsx
 /components/custom/landing/lms-plan-card.tsx
 /components/custom/landing/lms-plans-query.ts
 /components/custom/landing/lms-site-metadata.ts
+/components/custom/landing/lms-theme-classes.ts
 /components/custom/landing/lms-theme.css
 /components/custom/landing/lms-theme.tsx
 /components/custom/landing/lms-tutor-card.tsx
@@ -210,16 +214,20 @@ components/custom/theme-provider.tsx
 /components/custom/landing/team-assets.ts
 /components/custom/landing/testimonials-marquee.tsx
 /components/custom/lms-download-app.tsx
+/components/custom/lms-faq-section.client.tsx
 /components/custom/lms-faq-section.tsx
 /components/custom/lms-features-section.tsx
+/components/custom/lms-floating-nav.client.tsx
 /components/custom/lms-floating-nav.tsx
 /components/custom/lms-footer-section.tsx
 /components/custom/lms-partners-section.tsx
+/components/custom/lms-pricing.client.tsx
 /components/custom/lms-pricing.tsx
 /components/custom/lms-sessions-section.tsx
 /components/custom/lms-subjects-section.tsx
 /components/custom/lms-testimonials-section.tsx
 /components/custom/lms-theme-section.tsx
+/components/custom/lms-tutors-section.client.tsx
 /components/custom/lms-tutors-section.tsx
 /components/custom/menu-label.tsx
 /components/custom/nav/admin-nav.tsx
