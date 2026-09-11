@@ -1,6 +1,6 @@
 {
   "name": "base_sdk",
-  "version": "1.40.0",
+  "version": "1.41.0",
   "installs": [
     {
       "from": "src/services",
@@ -25,6 +25,10 @@
     {
       "from": "templates/components/custom/footer-chrome.tsx",
       "to": "components/custom/footer-chrome.tsx"
+    },
+    {
+      "from": "templates/components/custom/install-offer.tsx",
+      "to": "components/custom/install-offer.tsx"
     },
     {
       "from": "templates/components/custom/network-strip.tsx",
@@ -73,6 +77,18 @@
     {
       "from": "templates/components/custom/landing/footer-chrome-config.ts",
       "to": "components/custom/landing/footer-chrome-config.ts"
+    },
+    {
+      "from": "templates/components/custom/landing/download-platform.ts",
+      "to": "components/custom/landing/download-platform.ts"
+    },
+    {
+      "from": "templates/components/custom/landing/install-offer.ts",
+      "to": "components/custom/landing/install-offer.ts"
+    },
+    {
+      "from": "templates/components/custom/landing/platform-glyphs.tsx",
+      "to": "components/custom/landing/platform-glyphs.tsx"
     },
     {
       "from": "templates/components/custom/landing/legal-links.ts",

@@ -117,6 +117,23 @@ STATUS_ACTION = os.path.join(SDK_ROOT, "templates", "app", "actions", "base", "s
 STATUS_PROBES_TESTS = os.path.join(HERE, "status-probes.test.mts")
 # 1.40.0: the action itself, against a stub gateway.
 STATUS_ACTION_TESTS = os.path.join(HERE, "status.test.mts")
+# base_sdk 1.41.0: the footer's download icon buttons and the install
+# offer (Ray, 2026-09-11: "footer has  download links let them be platform
+# icons buttons"; "it should check the platform and offer app of that
+# platform"), pure rules beside the row and the client component.
+DOWNLOAD_PLATFORM = os.path.join(LANDING, "download-platform.ts")
+INSTALL_OFFER_RULES = os.path.join(LANDING, "install-offer.ts")
+PLATFORM_GLYPHS = os.path.join(LANDING, "platform-glyphs.tsx")
+INSTALL_OFFER = os.path.join(SDK_ROOT, "templates", "components", "custom", "install-offer.tsx")
+DOWNLOAD_PLATFORM_TESTS = os.path.join(HERE, "download-platform.test.mts")
+INSTALL_OFFER_TESTS = os.path.join(HERE, "install-offer.test.mts")
+DOWNLOADS_DOC = os.path.join(SDK_ROOT, "docs", "downloads-and-install.md")
+DOWNLOADS_INSTALLS = {
+    "templates/components/custom/install-offer.tsx": "components/custom/install-offer.tsx",
+    "templates/components/custom/landing/download-platform.ts": "components/custom/landing/download-platform.ts",
+    "templates/components/custom/landing/install-offer.ts": "components/custom/landing/install-offer.ts",
+    "templates/components/custom/landing/platform-glyphs.tsx": "components/custom/landing/platform-glyphs.tsx",
+}
 
 # base_sdk 1.26.0: the platform marks base serves itself (Ray, 2026-09-09:
 # "move to base, home sdk can choose to use them or not"), installed as a
@@ -1241,7 +1258,9 @@ class TestRegistryMarkers(unittest.TestCase):
         self.assertIn("const suffix = name.trim().slice(stem.length);", wordmark)
         # 1.39.0: the span shows the capitalised label of that same stem.
         self.assertIn("<span>{label}</span>", wordmark)
-        self.assertIn('<span className="min-w-0 overflow-hidden">{suffix}</span>', wordmark)
+        # 1.41.0: the suffix span is in the primary colour, with its own hook.
+        self.assertIn('<span data-brand-wordmark="tld" className="min-w-0 overflow-hidden text-primary">', wordmark)
+        self.assertNotIn('<span className="min-w-0 overflow-hidden">{suffix}</span>', wordmark)
         self.assertIn("aria-hidden={collapsed}", wordmark)
         # The suffix SLIDES into the stem (Ray: "not as a back type but like
         # sliding into what gets left"): its slot's width closes over hidden
@@ -2135,7 +2154,8 @@ class TestRegistryMarkers(unittest.TestCase):
 
     def test_hero_config_declares_the_brand_and_sections_the_root_class(self):
         config = read(os.path.join(LANDING, "hero-config.ts"))
-        self.assertIn('brand?: "name" | "stem";', config)
+        # 1.41.0: "stem-tld" joins the union (the suffix in primary).
+        self.assertIn('brand?: "name" | "stem" | "stem-tld";', config)
         self.assertIn('brand: "name",', config)
         code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", config))
         for host in ("supacharge", "rokct.ai", ".school", ".app"):
@@ -2709,6 +2729,272 @@ class TestRegistryMarkers(unittest.TestCase):
         passed = re.search(r"^# pass (\d+)$", run.stdout, re.M)
         self.assertIsNotNone(passed, run.stdout)
         self.assertGreaterEqual(int(passed.group(1)), 14)
+
+    # -- 1.41.0: the suffix in primary, the download buttons, the offer ---
+
+    def test_brand_suffix_is_in_the_primary_colour(self):
+        """1.41.0 (Ray, 2026-09-11 07:34:03Z: "also site name the .school
+        get primary color in nextjs"): the header's suffix span - the dot
+        and what follows the stem - carries `text-primary` (the theme
+        token; no brand colour is named) and its own
+        `data-brand-wordmark="tld"` hook; the stem span, the code span and
+        the wordmark's own class list are untouched. The hero has the
+        matching mode: `brand: "stem-tld"` resolves `suffix` beside the
+        stem and the view draws it after the stem in the same span, in
+        primary, with the same hook; `"stem"` draws what it drew."""
+        header = read(HEADER)
+        wordmark = header[header.index("function BrandStemWordmark("):header.index("function BrandBlock(")]
+        self.assertIn(
+            '<span data-brand-wordmark="tld" className="min-w-0 overflow-hidden text-primary">\n'
+            "          {suffix}\n"
+            "        </span>",
+            wordmark,
+        )
+        self.assertIn("<span>{label}</span>", wordmark)
+        self.assertIn(
+            'className="flex shrink-0 items-center whitespace-nowrap pt-0.5 font-bold tracking-tighter leading-none text-foreground"',
+            wordmark,
+        )
+        code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", header))
+        self.assertEqual(code.count('data-brand-wordmark="tld"'), 1)
+        self.assertEqual(code.count('data-brand-wordmark="stem"'), 1)
+        self.assertEqual(code.count("text-primary"), 2, "the 1.28.0 letter tile and the suffix, nothing else")
+        # The code span beside the stem is not the suffix: still foreground.
+        self.assertIn("fontSize: BRAND_STEM_CODE_FONT_SIZE }", header)
+        # The hero: the config names the mode, the resolver answers the
+        # suffix, the view draws it.
+        config = read(os.path.join(LANDING, "hero-config.ts"))
+        self.assertIn('brand?: "name" | "stem" | "stem-tld";', config)
+        resolver = read(LANDING_PAGE_RESOLVER)
+        self.assertIn("  suffix?: string;", resolver)
+        self.assertIn('if (brand !== "stem" && brand !== "stem-tld") return null;', resolver)
+        self.assertIn('if (brand === "stem-tld") {', resolver)
+        self.assertIn("if (label !== null) return { text: label, name, suffix: name.trim().slice(label.length) };", resolver)
+        self.assertIn("return { text: brandStemLabel(name) ?? name, name };", resolver)
+        view = read(HERO_VIEW)
+        slot = view[view.index("function HeroWordmarkSlot("):view.index("export interface HeroViewProps")]
+        self.assertIn("{wordmark.text}", slot)
+        self.assertIn(
+            "{wordmark.suffix && (\n"
+            '        <span data-brand-wordmark="tld" className="text-primary">\n'
+            "          {wordmark.suffix}\n"
+            "        </span>\n"
+            "      )}",
+            slot,
+        )
+        self.assertIn("wordmark.text.length + (wordmark.suffix?.length ?? 0)", slot)
+        view_code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", view))
+        self.assertEqual(view_code.count('data-brand-wordmark="tld"'), 1)
+        self.assertEqual(view_code.count('data-brand-wordmark="stem"'), 1)
+        for text in (header, resolver, view, config):
+            plain = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", text)).lower()
+            self.assertNotIn(".school", plain)
+            self.assertNotIn("supacharge", plain)
+        doc = read(DOWNLOADS_DOC)
+        self.assertIn('data-brand-wordmark="tld"', doc)
+        self.assertIn('brand: "stem-tld"', doc)
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        self.assertIn("## 1.41.0", changelog)
+        # The rulings are quoted verbatim, wrapped at the column: compare
+        # with the line breaks folded to one space.
+        head = re.sub(r"\s+", " ", changelog.split("## 1.40.0", 1)[0])
+        for ruling in (
+            "2026-09-11 07:34:03Z: \"also site name the .school get primary color in nextjs\"",
+            "2026-09-11 07:34:37Z: \"footer has  download links let them be platform icons buttons\"",
+            "2026-09-11 07:37:17Z: \"this nextjs has install, it does show on mobile though i havent seen "
+            "it in desktop i think it installs as pwa but i think it should check the platform and "
+            "offer app of that platform\"",
+        ):
+            self.assertIn(re.sub(r"\s+", " ", ruling), head, ruling)
+        self.assertNotRegex(changelog, re.compile(r"^#[^#\s]", re.M), "no CHANGELOG line starts with # and text")
+
+    def test_footer_downloads_seam_shape(self):
+        """1.41.0 (Ray, 2026-09-11 07:34:37Z: "footer has  download links
+        let them be platform icons buttons"): `FooterChromeConfig.downloads`
+        is a list of DownloadEntry - a closed platform set, a label, an
+        href, an optional mark by BRAND_MARKS key - and the row draws one
+        ICON BUTTON per entry in a `Downloads` nav beside the link groups:
+        an <a> with the label as aria-label and title, the mark through
+        next/image with markImageClass when named, else a neutral glyph
+        from platform-glyphs.tsx. Nothing in base declares an entry."""
+        config = read(FOOTER_CHROME_CONFIG)
+        for needle in (
+            'import type { BrandMarkId } from "@/components/custom/landing/brand-marks";',
+            "export type DownloadPlatform =",
+            '  | "ios"\n  | "android"\n  | "huawei"\n  | "macos"\n  | "windows"\n  | "linux"\n  | "web";',
+            "export interface DownloadEntry {",
+            "  platform: DownloadPlatform;",
+            "  mark?: BrandMarkId;",
+            "  downloads?: DownloadEntry[];",
+            '  downloads: "Downloads",',
+        ):
+            self.assertIn(needle, config)
+        self.assertLess(config.index("export interface FooterChromeConfig {"), config.index("  downloads?: DownloadEntry[];"))
+        rules = read(DOWNLOAD_PLATFORM)
+        for needle in (
+            "export const DOWNLOAD_PLATFORMS: readonly DownloadPlatform[] = [",
+            "export function isDownloadPlatform(value: unknown): value is DownloadPlatform {",
+            "export function isDownloadHref(href: unknown): href is string {",
+            "export function isDownloadEntry(value: unknown): value is DownloadEntry {",
+            "export function normaliseDownloads(value: unknown): DownloadEntry[] {",
+            "export function downloadTitle(entry: DownloadEntry): string {",
+        ):
+            self.assertIn(needle, rules)
+        footer = read(FOOTER_CHROME)
+        for needle in (
+            'import { InstallOffer } from "@/components/custom/install-offer";',
+            "const downloads = normaliseDownloads(config.downloads);",
+            "{(groups.length > 0 || downloads.length > 0) && (",
+            "{downloads.length > 0 && (",
+            "aria-label={labels.downloads}",
+            "data-footer-downloads={downloads.length}",
+            '{installOffer && <InstallOffer downloads={downloads} className="mr-2" />}',
+            "{downloads.map((entry) => (",
+            'target={entry.external ? "_blank" : undefined}',
+            'rel={entry.external ? "noreferrer" : undefined}',
+            "aria-label={entry.label}",
+            "title={downloadTitle(entry)}",
+            "data-download-platform={entry.platform}",
+            "className={DOWNLOAD_BUTTON_CLASS}",
+            "<DownloadMark entry={entry} />",
+            "installOffer = true,",
+        ):
+            self.assertIn(needle, footer)
+        # The offer is FIRST in the nav, the buttons after it; the nav sits
+        # beside the link groups, both above the copyright line.
+        self.assertLess(footer.index("<InstallOffer downloads={downloads}"), footer.index("{downloads.map((entry) => ("))
+        self.assertLess(footer.index('aria-label="Footer links"'), footer.index("aria-label={labels.downloads}"))
+        self.assertLess(footer.index("aria-label={labels.downloads}"), footer.index("© Copyright {year}"))
+        glyphs = read(PLATFORM_GLYPHS)
+        for needle in (
+            'import Image from "next/image";',
+            "export const DOWNLOAD_BUTTON_CLASS =\n"
+            '  "h-10 w-10 rounded-full border border-border bg-transparent hover:bg-muted flex items-center justify-center";',
+            'export type PlatformGlyphShape = "phone" | "laptop" | "terminal" | "globe";',
+            "export const PLATFORM_GLYPH_SHAPES: Readonly<Record<DownloadPlatform, PlatformGlyphShape>> = {",
+            "export function PlatformGlyph({",
+            "export function DownloadMark({",
+            "const mark = entry.mark ? BRAND_MARKS[entry.mark] : undefined;",
+            "const mono = markImageClass(mark.src);",
+            'stroke: "currentColor",',
+            "unoptimized",
+        ):
+            self.assertIn(needle, glyphs)
+        # Every platform has a glyph, and the glyphs are neutral shapes -
+        # never a store's or a vendor's mark drawn by hand.
+        shapes = glyphs[glyphs.index("PLATFORM_GLYPH_SHAPES"):glyphs.index("export const DOWNLOAD_BUTTON_CLASS")]
+        for platform in ("ios", "android", "huawei", "macos", "windows", "linux", "web"):
+            self.assertRegex(shapes, re.compile(rf'^  {platform}: "(?:phone|laptop|terminal|globe)",$', re.M))
+        # Still generic, and no brand mark is drawn by hand: the only paths
+        # the glyph file draws are the four shapes' own.
+        body = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", footer + config + rules + glyphs))
+        for word in ("rokct.ai", "supacharge", "https://", "play.google", "apps.apple", "appgallery.huawei", "demo", "sample", "lorem", "APK"):
+            self.assertNotIn(word, body, word)
+        # Installed, as a set.
+        by_from = {e["from"]: e["to"] for e in load_manifest()["installs"]}
+        for src, dst in DOWNLOADS_INSTALLS.items():
+            self.assertEqual(by_from.get(src), dst, src)
+            self.assertTrue(os.path.exists(os.path.join(SDK_ROOT, src)), src)
+        doc = read(DOWNLOADS_DOC)
+        self.assertIn("`downloads?: DownloadEntry[]`", doc)
+        self.assertIn('aria-label="Downloads"', doc)
+
+    def test_install_offer_is_a_client_component_that_checks_the_platform(self):
+        """1.41.0 (Ray, 2026-09-11 07:37:17Z: "this nextjs has install, it
+        does show on mobile though i havent seen it in desktop i think it
+        installs as pwa but i think it should check the platform and
+        offer app of that platform"): components/custom/install-offer.tsx
+        is a client component that reads the platform after mount
+        (install-offer.ts detectPlatform), hides on an installed page
+        (matchMedia standalone), links the download declared for the
+        platform as "Get the <label>", and falls back to the browser's
+        beforeinstallprompt as "Install"; the row mounts it first in the
+        Downloads nav and exports nothing new for the header: a home SDK
+        imports the component itself."""
+        offer = read(INSTALL_OFFER)
+        self.assertTrue(offer.lstrip().startswith("/*"), "licence header first")
+        self.assertIn('"use client";', offer)
+        self.assertLess(offer.index('"use client";'), offer.index("import React"))
+        for needle in (
+            "export function InstallOffer({",
+            "export interface InstallOfferProps {",
+            "  downloads: DownloadEntry[];",
+            "  labels?: Partial<InstallOfferLabels>;",
+            "  platform?: DownloadPlatform | null;",
+            "window.matchMedia(STANDALONE_MEDIA_QUERY).matches",
+            'window.addEventListener("beforeinstallprompt", onPrompt);',
+            'window.removeEventListener("beforeinstallprompt", onPrompt);',
+            "event.preventDefault();",
+            "setPlatform(forced === undefined ? detectPlatform() : forced);",
+            "const entry = platform ? pickDownload(downloads, platform) : null;",
+            "if (platform === undefined || standalone) return null;",
+            "const text = installOfferText(entry, words);",
+            "pending.prompt().catch(() => {",
+            "<span>{words.install}</span>",
+            "data-install-offer={entry.platform}",
+            'data-install-offer="prompt"',
+            "<DownloadMark entry={entry} />",
+            "export default InstallOffer;",
+        ):
+            self.assertIn(needle, offer)
+        # Everything is read in effects: the server and the first client
+        # render agree on nothing drawn.
+        code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", offer))
+        self.assertEqual(code.count("React.useEffect("), 2)
+        self.assertNotIn("typeof window", code.split("React.useEffect(")[0], "no window read at render")
+        rules = read(INSTALL_OFFER_RULES)
+        for needle in (
+            "export function detectPlatformFrom(hints: PlatformHints): DownloadPlatform | null {",
+            "export function detectPlatform(): DownloadPlatform | null {",
+            "nav.userAgentData?.platform ?? null,",
+            "export const DOWNLOAD_FALLBACKS: Readonly<Record<DownloadPlatform, readonly DownloadPlatform[]>> = {",
+            '  android: ["android", "huawei"],',
+            '  huawei: ["huawei", "android"],',
+            "export function pickDownload(",
+            'export const STANDALONE_MEDIA_QUERY = "(display-mode: standalone)";',
+            '  get: "Get the",',
+            '  install: "Install",',
+        ):
+            self.assertIn(needle, rules)
+        # The pure half reads no DOM at module load and names no product.
+        rules_code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", rules + offer)).lower()
+        for word in ("rokct.ai", "supacharge", "https://", "apk", "document.", "localstorage"):
+            self.assertNotIn(word, rules_code, word)
+        self.assertNotIn("APK", offer + rules, "the word is never rendered")
+        doc = read(DOWNLOADS_DOC)
+        self.assertIn("@/components/custom/install-offer", doc)
+        self.assertIn("beforeinstallprompt", doc)
+
+    def test_download_and_install_rules_under_node(self):
+        """The rules executed (tests/download-platform.test.mts and
+        tests/install-offer.test.mts): the platform set, the https-or-route
+        href rule, the entry shape and the row's normalisation; the
+        platform from client hints then the user-agent string, the
+        fallbacks between android and huawei, the pick and the words."""
+        node = shutil.which("node")
+        self.assertIsNotNone(node, "node (22.6+) is needed to execute the download rules")
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copy(FOOTER_CHROME_CONFIG, os.path.join(tmp, "footer-chrome-config.ts"))
+            for src, name in ((DOWNLOAD_PLATFORM, "download-platform.ts"), (INSTALL_OFFER_RULES, "install-offer.ts")):
+                staged = read(src).replace(
+                    'from "@/components/custom/landing/footer-chrome-config"', 'from "./footer-chrome-config.ts"'
+                )
+                self.assertNotIn('from "@/', staged, f"{name} imports something the stage does not cover")
+                with open(os.path.join(tmp, name), "w", encoding="utf-8") as f:
+                    f.write(staged)
+            shutil.copy(DOWNLOAD_PLATFORM_TESTS, os.path.join(tmp, "download-platform.test.mts"))
+            shutil.copy(INSTALL_OFFER_TESTS, os.path.join(tmp, "install-offer.test.mts"))
+            run = subprocess.run(
+                [node, "--experimental-strip-types", "--no-warnings", "--test",
+                 os.path.join(tmp, "download-platform.test.mts"),
+                 os.path.join(tmp, "install-offer.test.mts")],
+                capture_output=True, text=True, timeout=120, cwd=tmp,
+            )
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertRegex(run.stdout, re.compile(r"^# fail 0$", re.M), run.stdout)
+        passed = re.search(r"^# pass (\d+)$", run.stdout, re.M)
+        self.assertIsNotNone(passed, run.stdout)
+        self.assertGreaterEqual(int(passed.group(1)), 22)
 
 
 if __name__ == "__main__":

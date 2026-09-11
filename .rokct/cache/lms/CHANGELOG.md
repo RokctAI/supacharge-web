@@ -1,5 +1,82 @@
 # Changelog
 
+## 1.31.0
+
+* The name's suffix in the primary colour (Ray, 2026-09-11, 07:34:03Z:
+  "also site name the .school get primary color in nextjs"). The footer's
+  wordmark is `lms-wordmark.tsx`'s traced SVG, which draws the stem only;
+  `lms-footer-section.tsx` now draws the text after the stem of the name
+  the shell declares - `PLATFORM_NAME` cut by base's `brandStemOf`, the
+  one stem rule the header and the hero already fold by, never a
+  hard-coded ".school" - right after it, in the brand face (italic, 900,
+  `-0.03em`, sized to the trace's x-height), `aria-hidden` because the
+  SVG's `aria-label` already says the full name, on the
+  `data-brand-wordmark="tld"` hook. Requires base_sdk >= 1.41.0 for
+  `components/custom/header.tsx`: 1.41.0 puts the same hook on the suffix
+  span of the header's stem wordmark, so one rule reaches both.
+  * ONE new rule in `lms-theme.css`, `.sc-landing [data-brand-wordmark="tld"]`,
+    beside the header stem rule: `color: var(--sc-primary)` and nothing
+    else. Not scoped through `<header>` - the hook is the same on both
+    surfaces by design. No `!important`, no hard-coded colour, no brand
+    string. The hero stays on `brand: "stem"`; nothing about it moves.
+* The footer's download links are platform icon buttons (Ray, 2026-09-11,
+  07:34:37Z, verbatim:
+  "footer has  download links let them be platform icons buttons").
+  The text links the footer nav printed since 1.12.0 are gone
+  from `lms-footer-section.tsx` (Sign in and Create an account stay); the
+  downloads are declared once on `lms-footer-chrome.ts` as
+  `FooterChromeConfig.downloads` (base_sdk 1.41.0) and base's
+  `FooterChromeRow` draws them as icon buttons - one `<a>` per entry with
+  the store mark and an `aria-label`.
+  * `lms-landing-config.ts`: `LandingApp` gains `downloadPlatform` (base's
+    `DownloadPlatform`, restated as the local union
+    `"ios" | "android" | "huawei" | "macos" | "windows" | "linux" | "web"`
+    so the literal still lifts under bare node) and `mark` (a
+    `BRAND_MARKS` key, the local union `DownloadMark`). android is
+    `"android"` / `googlePlay`, huawei `"huawei"` / `appGallery`, desktop
+    `"windows"` / `windows`, ios `"ios"` / `appStore` and still
+    `shown: false`. The display `platform` field is untouched.
+  * `lms-footer-chrome.ts`: `LMS_FOOTER_DOWNLOADS`, one entry per
+    `LMS_SHOWN_APPS` app - `id`, `platform`, `label`, `href` (the store
+    listing when `storeUrl` is set, else the `/download` route, as
+    `LMS_SHOWN_APPS` resolves it), `external`, `title` (the description),
+    `mark` - typed off `FooterChromeConfig["downloads"]` so the entry
+    shape is base's own; `LMS_FOOTER_CHROME.downloads` carries it. Reads
+    the shown list, never the raw one: a demoted platform has no button.
+* The install offer is platform-aware (Ray, 2026-09-11, 07:37:17Z, verbatim:
+  "this nextjs has install, it does show on mobile though i havent seen it in desktop i think it installs as pwa but i think it should check the platform and offer app of that platform").
+  base_sdk 1.41.0's
+  `FooterChromeRow` mounts its `InstallOffer` beside the buttons; it
+  reads the same download entries, detects the visitor's platform and
+  offers that platform's build, the PWA install when none matches. This
+  SDK declares nothing more for it - the entries above are the whole
+  input - so nothing else in this SDK changes for it.
+* Requires base_sdk >= 1.41.0 for `components/custom/footer-chrome.tsx`
+  (the icon buttons and the install offer), for
+  `components/custom/landing/footer-chrome-config.ts`
+  (`FooterChromeConfig.downloads`; against 1.40.0 the field is a type
+  error) and for `components/custom/header.tsx` (the `tld` hook; against
+  1.40.0 the header's suffix simply stays in the foreground colour).
+  supacharge-web re-pins both after base 1.41.0 and this release merge.
+* `tests/test_landing_apps.py` (the suite goes from 134 to 140):
+  `TestFooterDownloads` holds that every shown app carries a
+  `downloadPlatform` from base's union and a `mark` that is a real
+  `BRAND_MARKS` key, with the mapping above; that the footer chrome maps
+  the shown list field for field and hands it to the row; that the footer
+  section prints no text download link, imports the shown list no more,
+  and draws the suffix span - derived, `aria-hidden`, hooked, in the
+  primary token and the brand face - after the wordmark; that the `tld`
+  rule exists exactly once with the colour and nothing else, so the sheet
+  now carries the hook twice; and that the manifest, the changelog and
+  `LMS_LANDING_VERSION` say 1.31.0 with the three floors at 1.41.0. The
+  footer surface in the shown-list check is now `lms-footer-chrome.ts`.
+* Version-only side effects: `manifest.json` 1.30.0 -> 1.31.0.
+  `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.31.0 with it.
+  The base_sdk floor for `components/custom/header.tsx` is 1.41.0 since
+  1.31.0 (it was 1.40.0 since 1.29.0); `components/custom/footer-chrome.tsx`
+  and `components/custom/landing/footer-chrome-config.ts` go from 1.12.0
+  to 1.41.0.
+
 ## 1.30.0
 
 * Cambridge and its soon pill sit in ONE border-only rectangle with a

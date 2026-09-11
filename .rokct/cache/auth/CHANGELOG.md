@@ -1,3 +1,43 @@
+## 1.7.2
+
+* **The composed `db/index.ts` asks for TLS again.** It built its client
+  from the raw variable - `postgres(process.env.POSTGRES_URL)` - and
+  postgres-js derives `ssl = false` from a URL that names no `sslmode`, so
+  the login, session and webhook traffic this module serves could reach
+  Postgres with no TLS requested at all. The host's own `db/queries.ts`
+  already merged `sslmode=require` for the very same variable, so one
+  deployment disagreed with itself about whether its database traffic was
+  encrypted: the chat path required TLS, everything composed from here did
+  not. `db/index.ts` now carries a `withSslMode` helper and hands the
+  merged URL to `postgres()`. Measured against postgres-js 3.4.9: a bare
+  URL and `?pgbouncer=true&connection_limit=1` both move from
+  `ssl = false` to `ssl = "require"`; `?sslmode=require` was already
+  `"require"` and stays it; `?sslmode=disable` stays `false`, because an
+  operator who has chosen a mode keeps it. Idempotent, and no other
+  parameter is touched.
+* **Merged through the URL's own parser, never appended.**
+  `${POSTGRES_URL}?sslmode=require` adds a SECOND `?` whenever the value
+  already carries a query string - the normal Neon/Supabase shape - and
+  the driver folds it into the last parameter it saw, which is how
+  `ssl = "require?sslmode=require"` (an unrecognised TLS mode, so full
+  certificate verification is demanded) and a corrupted
+  `connection_limit = "1?sslmode=require"` happen. The helper is a
+  deliberate DUPLICATE of the host's rather than an import of it:
+  `db/queries.ts` is not in this SDK's `requires` and belongs to the host,
+  so the template has to stand alone in a repo where that file does not
+  exist. The body is kept identical to the host's copy so the two diff
+  cleanly and stay in step. Its `catch` leaves nothing without TLS:
+  postgres-js runs the value through `new URL()` in its own `parseUrl`, so
+  a string the helper cannot parse the driver cannot parse either, and it
+  raises its own `Invalid URL`.
+* **`db/migrate.ts` is knowingly left inconsistent.** It sits in the same
+  directory with the same raw-string pattern and is deliberately not
+  changed: it runs during the host's build, those builds currently
+  succeed, and that success is the only evidence anyone has that Postgres
+  is reachable. Changing the one path that demonstrably works is not worth
+  the risk to a deploy in the same release that fixes the paths that do
+  not.
+
 ## 1.7.1
 
 * **`middleware.ts` type-checks again.** 1.7.0 imported `NextRequest` with

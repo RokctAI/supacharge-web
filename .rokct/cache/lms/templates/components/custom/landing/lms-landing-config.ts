@@ -69,11 +69,45 @@ export interface LandingLink {
 }
 
 /**
+ * The platform a download is FOR, as base_sdk's footer names it: the
+ * `DownloadPlatform` union of components/custom/landing/footer-chrome-config.ts
+ * (base_sdk >= 1.41.0), restated here member for member so this file
+ * stays a plain literal tests/test_landing_apps.py can lift under bare
+ * node. The install offer base's FooterChromeRow mounts (1.31.0; Ray,
+ * 2026-09-11: "i think it should check the platform and offer app of
+ * that platform") matches the visitor's device against this key, and the
+ * footer's icon button is keyed by it. Not a display name: `platform` is.
+ */
+export type DownloadPlatform =
+  | "ios"
+  | "android"
+  | "huawei"
+  | "macos"
+  | "windows"
+  | "linux"
+  | "web";
+
+/**
+ * The store mark a download button draws: a key of base_sdk's
+ * `BRAND_MARKS` (components/custom/landing/brand-marks.ts, `BrandMarkId`,
+ * base_sdk >= 1.26.0), restated here for the same bare-node reason. The
+ * files behind them are the ones LMS_APP_MARKS (lms-hero-copy.ts) names
+ * by path for the hero badges.
+ */
+export type DownloadMark =
+  | "googlePlay"
+  | "appGallery"
+  | "appStore"
+  | "windows"
+  | "chromeWebStore";
+
+/**
  * One downloadable build of the Supacharge app, as the landing offers it:
  * a header card (lms-header-menu.ts), a hero call to action
- * (lms-hero-form.tsx) and a footer link (lms-footer-section.tsx) all read
- * the same entry, so the label, the blurb and the destination are said
- * once.
+ * (lms-hero-form.tsx) and, since 1.31.0, a footer icon button and the
+ * install offer (lms-footer-chrome.ts, through base_sdk's FooterChromeRow)
+ * all read the same entry, so the label, the blurb and the destination
+ * are said once.
  */
 export interface LandingApp extends LandingLink {
   /** Stable key, unique among the apps. */
@@ -84,6 +118,23 @@ export interface LandingApp extends LandingLink {
    * say the platform). Never a file format.
    */
   platform: string;
+  /**
+   * The platform as base_sdk's footer keys it (1.31.0; Ray, 2026-09-11:
+   * "footer has  download links let them be platform icons buttons" and
+   * "i think it should check the platform and offer app of that
+   * platform"): what the footer's icon button is for and what the install
+   * offer matches the visitor's device against. The Huawei build is
+   * "huawei", never "android", so a Huawei device is offered AppGallery's
+   * entry and an Android device Google Play's; the desktop build is
+   * "windows", the only desktop platform with a build.
+   */
+  downloadPlatform: DownloadPlatform;
+  /**
+   * The store mark the footer's icon button draws (1.31.0): the same mark
+   * the hero badge carries, named by its BRAND_MARKS key rather than by
+   * file so base draws it from its own registry.
+   */
+  mark: DownloadMark;
   /**
    * The hero badge's two lines (1.16.0; Ray, 2026-09-09: "but eventually
    * we getting in those stores except windows"): the store's own badge
@@ -440,6 +491,11 @@ const RELEASES_URL = "https://github.com/RokctAI/supacharge/releases/latest";
 /**
  * Every build of the app the landing knows about, shown or not.
  *
+ * Since 1.31.0 each entry also says which of base_sdk's download
+ * platforms it is (`downloadPlatform`) and which store mark draws it
+ * (`mark`): the footer's icon buttons and the platform-aware install
+ * offer (lms-footer-chrome.ts) read both. The words stay the words.
+ *
  * Ray, 2026-09-09: "supacharge need to show these apps, ios is demoted for
  * now. apk and desktop app". The two shown entries are the two the release
  * lane actually publishes - an Android build (`app-v<version>.apk`, beside
@@ -457,6 +513,8 @@ const RELEASES_URL = "https://github.com/RokctAI/supacharge/releases/latest";
 export const LMS_APPS: LandingApp[] = [
   {
     id: "android",
+    downloadPlatform: "android",
+    mark: "googlePlay",
     label: "Android app",
     platform: "Android",
     // Google Play's own badge wording over the Play mark (Ray, 2026-09-09:
@@ -476,6 +534,8 @@ export const LMS_APPS: LandingApp[] = [
     // Huawei mark, on the same direct Android download until the
     // AppGallery listing exists - set storeUrl to it then.
     id: "huawei",
+    downloadPlatform: "huawei",
+    mark: "appGallery",
     label: "Huawei app",
     platform: "Huawei",
     badge: { eyebrow: "EXPLORE IT ON", label: "AppGallery" },
@@ -488,6 +548,8 @@ export const LMS_APPS: LandingApp[] = [
   },
   {
     id: "desktop",
+    downloadPlatform: "windows",
+    mark: "windows",
     label: "Desktop app",
     platform: "Windows",
     // No store, ever (Ray, 2026-09-09: "except windows"): the platform's
@@ -506,6 +568,8 @@ export const LMS_APPS: LandingApp[] = [
   {
     // demoted for now (Ray, 2026-09-09: "ios is demoted for now")
     id: "ios",
+    downloadPlatform: "ios",
+    mark: "appStore",
     label: "iOS app",
     platform: "iOS",
     badge: { eyebrow: "Download on the", label: "App Store" },

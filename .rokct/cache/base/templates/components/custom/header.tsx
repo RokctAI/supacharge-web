@@ -338,6 +338,15 @@ function BrandStemWordmark({
   // ([data-brand-wordmark="stem"]) instead of reaching one and not the
   // other. The code span beside it keeps its own font-medium at its
   // 1.36.0 cap. tests/test_manifest.py holds the two class lists equal.
+  //
+  // The suffix (1.41.0; Ray, 2026-09-11: "also site name the .school get
+  // primary color in nextjs"): the dot and what follows the stem sit in
+  // the shell's PRIMARY colour (`text-primary`, the theme token - no
+  // brand colour is named here) inside the sliding slot, and carry their
+  // own `data-brand-wordmark="tld"` hook so a home SDK can restyle the
+  // suffix alone; the stem span before it and the code span beside it
+  // keep `text-foreground`. The hero's `brand: "stem-tld"` draws the
+  // same suffix the same way (hero-view.tsx HeroWordmarkSlot).
   return (
     <span
       title={name.trim()}
@@ -351,7 +360,9 @@ function BrandStemWordmark({
         className="grid transition-all duration-500 ease-in-out"
         style={{ gridTemplateColumns: collapsed ? "0fr" : "1fr", opacity: collapsed ? 0 : 1 }}
       >
-        <span className="min-w-0 overflow-hidden">{suffix}</span>
+        <span data-brand-wordmark="tld" className="min-w-0 overflow-hidden text-primary">
+          {suffix}
+        </span>
       </span>
     </span>
   );
