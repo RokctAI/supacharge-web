@@ -4,7 +4,7 @@
   "app_type": "supacharge",
   "protocol": {
     "git": "https://github.com/RokctAI/The-Rokct-Protocol",
-    "ref": "3c4fae2d1dee7d7af7781095ee6cd246eaa7423b",
+    "ref": "52cdda6ad02f7421ead15c6433af601a75e9533e",
     "vendored": ".rokct/cache/_composer",
     "files": {
       "sdk_composer.py": "6f4e8762012ec10fd5ce8a689432a6d698be5e9f4e7a77f9c327eb9ff58eddd5",
@@ -67,10 +67,10 @@
       "git": "https://github.com/RokctAI/agent",
       "path": "../agent/lms/nextjs",
       "ref": "main",
-      "commit": "3c731c4c6a3bccaf091f09c372b8285c1bb44350",
-      "version": "1.27.0",
+      "commit": "e0572316a9b4dfb43a3e0d470c7e16db64a57e5d",
+      "version": "1.28.0",
       "install_py_sha256": "65a891707fd3c741b55681a8cb05ad4dd2d0833ee5643f490928267891144741",
-      "content_sha256": "5f07b209fcf2503bbb3d57c6a9abf1f0f0ae0733d688145d101571e36325354d"
+      "content_sha256": "89aac4887a1d4259be40d401e4fabc22608cbb617a04304da9f1d8c2d74fd24c"
     }
   ]
 }

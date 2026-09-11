@@ -1,5 +1,95 @@
 # Changelog
 
+## 1.28.0
+
+* The LIVING marketing calendar (Ray, 2026-09-11: "i want it alive like
+  schedule move as time pass"). The snapshot document that preceded it was
+  a table fixed on the day it was written; `/admin/calendar` computes the
+  same calendar on the day it is READ, so the countdowns move, "Now" is
+  where the school year actually is, and a window that has passed drops
+  off the list by itself. Two packaged anchors, both on the backend and
+  never fetched at runtime: the gazetted DBE term dates
+  (`lms/frappe/src/tenant/rlms/data/sa_school_terms.json`, read through
+  `term_report_rules.terms_for_year` / `resolve_term`; LEARNER dates,
+  never "corrected" to the educators' dates in the gazette's parentheses)
+  and NEW `data/nsc_exam_windows.json`: the published May/June 2026
+  (11 May to 24 Jun) and October/November 2026 (written papers 13 Oct to
+  26 Nov) windows with the DBE timetable's title, URL and retrieval date,
+  the 2027 windows as the customary pattern flagged `customary` with no
+  source, and the mid-January results release, `customary` until the DBE
+  announces it. September prelims are `school_set` and computed as the
+  last three weeks of Term 3 from the term data, never stored; so are the
+  grade 10 and 11 mid-year and year-end windows (last three weeks of
+  Terms 2 and 4).
+  * NEW backend module `rlms/marketing_calendar.py` beside
+    `term_report_rules.py`: `build_calendar(today, years)` answers the
+    ordered events (term open, learner close, holiday, exam window,
+    results, campaign window) each with `start`, `end`, `kind`, `status`
+    (gazetted / published / customary / school_set / approximate),
+    `label`, `theme` (the snapshot document's theme lines, verbatim),
+    `days_until` (negative once started) and `active`, plus `now` through
+    `resolve_term`: the term, its week and the days left, or in a holiday
+    the term that just ended and the countdown to the next opening. The
+    campaign lead times are one set of constants: 14 days before each
+    term opening, 28 before the finals, 21 before the May/June sitting,
+    7 before the prelims, the week after the results, and a report-review
+    window around each learner close. `render_ics` writes the feed:
+    all-day VEVENTs, one stable UID per event id, DTEND exclusive, lines
+    folded at 75 octets, `X-WR-CALNAME` "Supacharge marketing calendar",
+    CONFIRMED for gazetted and published dates and TENTATIVE for the rest.
+    Pure: no frappe import at module level.
+  * NEW endpoints `rlms/api/marketing_calendar.py`, registered in
+    `lms/frappe/manifest.json` as `api.lms.marketing_calendar`
+    (`get_calendar`: the JSON, System Manager only through
+    `frappe.only_for` exactly as `admin.py` and `announcements.py` gate,
+    `today` read in Africa/Johannesburg with an optional ISO override)
+    and `api.lms.marketing_calendar_ics` (`ics`: `text/calendar`, inline,
+    so Google Calendar and Outlook can subscribe). A calendar app cannot
+    sign in, so the feed is reachable with a per-site token from
+    `site_config.json` (`marketing_calendar_feed_token`); the URL that
+    carries it is handed only to a System Manager in `get_calendar`'s
+    `feed_url`, and without a configured or matching token the feed
+    falls back to the same System Manager gate. No secret in code.
+    `tests/test_marketing_calendar.py` (50 tests; the rlms suite goes
+    from 509 to 559) pins the holiday reading on 2026-07-06 (Term 2 just
+    ended, 15 days to Term 3), the last day of Term 3 2027, every lead
+    window, the published dates and their sources, the computed prelim
+    window, the feed's shape and UID uniqueness, the status vocabulary
+    and both gates.
+  * NEW `app/admin/calendar/page.tsx`, a server page (the data is loaded
+    in the render, never in an effect; `dynamic = "force-dynamic"` so
+    today's countdowns are never prerendered) over NEW
+    `components/custom/lms-marketing-calendar.tsx`: the "Now" card
+    (term, week, days left - or the holiday and the next opening), the
+    "Next" card (the next campaign window and its countdown), the
+    upcoming list (label, day-first dates, countdown, theme, status
+    badge) and the subscribe card (a `webcal://` link to the feed plus the
+    copy-link button, which is the one client control, in NEW
+    `lms-marketing-calendar.client.tsx`). No `"use client"` on the entry.
+    Every word is read through the shell's `t` (`app/lib/i18n`, which
+    joins `requires`) under `app.lms.calendar.*` with the English beside
+    each key as the fallback, the `agent-header-menu.ts` pattern; nothing
+    in this half names the brand or a host - the calendar's name and the
+    feed URL come from the backend's answer. NEW pure, import-free
+    `components/custom/landing/lms-calendar-rules.ts` holds the wire types
+    and the page's reading of the answer (underway windows first, then
+    what is to come, never the past; the countdown wording; the date
+    ranges; the badge variants; the webcal link), and
+    `app/actions/handson/all/lms/calendar/` (`fetchMarketingCalendar`,
+    gated by the host's `verifyLmsRole` first) and
+    `app/services/all/lms/marketing-calendar.ts`
+    (`api.lms.marketing_calendar` through the gateway) ride the existing
+    directory mappings. The shell's theme provider is dark by default and
+    the page paints only theme tokens.
+  * NEW `tests/test_marketing_calendar_page.py` (the suite goes from 104
+    to 128): the rules under node, the page's server shape, the labels'
+    keys, the manifest's four installs and the i18n requirement, and that
+    no file of this half writes the brand or a host.
+* Version-only side effects: `manifest.json` 1.27.0 -> 1.28.0, a minor
+  step for the new files and the new `requires` entry. `LMS_LANDING_VERSION`
+  in `lms-footer-chrome.ts` goes to 1.28.0 with it. No new `base_sdk`
+  seam or floor.
+
 ## 1.27.0
 
 * The founder card reaches the company's about page (Ray, 2026-09-10:
