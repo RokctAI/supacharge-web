@@ -99,6 +99,13 @@
 // compiles but the header folds into nothing, which is why the floor is
 // 1.28.0.
 //
+// Since 1.26.0 the apps go FIRST, in one row (Ray, 2026-09-10: "header
+// app links first. if possible put mobile apps in one row since supa dont
+// have much menu"): base_sdk 1.36.0's `layout: "row"` lays the three cards
+// side by side across a wider lead column, and its `megaLabel` keeps the
+// bar's trigger reading "Explore" while the apps lead the panel; Explore
+// and Platform are the headed columns beside them. Nothing else moves.
+//
 // The country code: rokct.ai's comes from a host-only branding cache the
 // visitor's geo lookup fills (rokctai_frontend's app/config/platform.ts),
 // which supacharge-web does not have - its getBrandingSync() answers an
@@ -169,23 +176,18 @@ const LMS_HEADER_MENU: HeaderMenu = {
   // The two links that stay on the bar (since 1.23.0); the other five
   // sections are the panel's first two columns below.
   anchors: ["pricing", "faq"],
+  // The bar's one trigger still reads "Explore" (since 1.26.0 the word is
+  // declared here, base_sdk 1.36.0's megaLabel, because the first group is
+  // no longer the Explore column).
+  megaLabel: "Explore",
   groups: [
     {
-      // First group = the bar's one trigger and the panel's lead column.
-      id: "explore",
-      label: "Explore",
-      items: [{ anchor: "sessions" }, { anchor: "subjects" }, { anchor: "tutors" }],
-    },
-    {
-      id: "platform",
-      label: "Platform",
-      // partners' "new" badge rides in from lms-partners-section.tsx's meta.nav.
-      items: [{ anchor: "features" }, { anchor: "partners" }],
-    },
-    {
+      // First group = the panel's lead column: the apps, in ONE row
+      // (since 1.26.0; base_sdk 1.36.0's layout).
       id: "apps",
       // "Get the app" - the landing's own label for the download.
       label: LMS_LANDING_CONFIG.app.label,
+      layout: "row",
       items: LMS_SHOWN_APPS.map(
         ({ id, label, href, external, description, icon }) => ({
           id,
@@ -196,6 +198,17 @@ const LMS_HEADER_MENU: HeaderMenu = {
           icon,
         }),
       ),
+    },
+    {
+      id: "explore",
+      label: "Explore",
+      items: [{ anchor: "sessions" }, { anchor: "subjects" }, { anchor: "tutors" }],
+    },
+    {
+      id: "platform",
+      label: "Platform",
+      // partners' "new" badge rides in from lms-partners-section.tsx's meta.nav.
+      items: [{ anchor: "features" }, { anchor: "partners" }],
     },
   ],
 };

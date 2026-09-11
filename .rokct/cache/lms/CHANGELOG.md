@@ -1,5 +1,138 @@
 # Changelog
 
+## 1.27.0
+
+* The founder card reaches the company's about page (Ray, 2026-09-10:
+  corporate_sdk owns `/about` and `/team` as renderers; their content
+  comes from the shell's `data/` folder or is empty, and Supacharge's
+  about page reuses lms's existing founder card). Requires base_sdk >=
+  1.38.0 for `components/custom/landing/page-sections.ts`
+  (`PageSectionMeta.page`, the page slot).
+  * `lms-tutor-card.tsx` gains the founder role, the Flutter card's
+    founder branch (`lms/dart/.../discovery/widgets/tutor_card.dart`)
+    ported unchanged in look: the WHO badge reads Founder - Co-Founder on
+    every founder card once the deck holds more than one - and there is
+    no grade badge; the back carries the subject alone, the bio and no
+    Style / Rating facts; where a tutor card offers its teaching snippet
+    a founder card offers "Hear more", the self-intro video - disabled,
+    never hidden, until the asset ships and the section wires it, and
+    playing in the card in place of the text while it runs; no Start
+    button. Tutor and assistant cards render byte for byte what they
+    rendered. The three words are `CardLabels.founder`, `coFounder` and
+    `hearMore` in `lms-landing-config.ts`.
+  * NEW `landing/lms-founders.ts`: `LMS_FOUNDERS`, the founders as
+    `seeded_tutor_catalog.dart`'s `founder_ray_thompson` carries them -
+    name, the title line, subject, bio, the `founders/Ray_Thompson`
+    persona folder (the already-shipped renders under `public/team/`,
+    listed in the generated `team-assets.ts`) and the intro video ref;
+    every string copied from the Dart source and held equal by the
+    tests. `founderIntroVideo()` answers the video only once
+    `team-assets.ts` lists it.
+  * NEW `lms-founder-section.tsx`, the server-readable entry (`meta`:
+    `page: "about"`, order 10, no nav entry, `renders` only with a
+    founder to draw; no `"use client"`) over NEW
+    `lms-founder-section.client.tsx` (the cards in the landing's token
+    scope - `LMS_ROOT_CLASS` on a wrapper, `lms-theme.css` imported - and
+    the one `useState`: which founder's video plays). Registered with one
+    line at the page-sections marker, after the footer; the landing never
+    draws it and lists no stop for it.
+* `LMS_LANDING_VERSION` is `1.27.0`.
+* Tests: `TestServerSafeSections` counts the founder entry and its client
+  half; NEW `TestFounderCard` reads the Dart catalogue and holds every
+  string of `lms-founders.ts` equal to it, the badge words, the card's
+  founder branch (no grade badge, no Start, "Hear more" disabled with no
+  video), the entry's page slot, the portrait's presence under
+  `public/team/`, and the manifest's floor.
+
+## 1.26.1
+
+* Four lines of landing copy described a phase the product does not have: a
+  learner asking a question DURING the break, and an assistant answering one
+  there. There is no composer in the break to ask with, and the assistant
+  does not answer in it. `LessonState.chatPhaseOpen`
+  (`lms/dart/lib/src/common/application/lesson/lesson_state.dart`) is
+  `completed || (!introActive && !breakActive && speakingRole !=
+  SpeakingRole.assistant)` - chat is open while the tutor is teaching and
+  CLOSED through the intro, the break and any assistant-held segment, and
+  `lesson_chat_gating_test.dart` pins exactly that across a break with
+  question beats in it. What the break actually does is read questions out
+  for the TUTOR to answer aloud; outside the break the assistant answers the
+  student itself, in chat, one on one
+  (`agent/frappe/src/tenant/brain/ask_assistant.py`).
+* The testimonial in `testimonials.items[0]` (Naledi) said "I can ask what I
+  missed without the whole class hearing me" - both halves wrong in the same
+  sentence, since the asking happens earlier and the hearing is the point of
+  the break. It now says the learner sends the question in while the tutor is
+  still teaching, unseen, and it comes back answered in the break. The
+  privacy claim moves to where the product actually keeps it: the SENDING is
+  private, not the hearing.
+* `team.assistants[1]` (Bianca) said "The break is hers - questions asked
+  privately". Asking is not what the break is for; it now reads "your
+  questions read out and answered, so you can say what did not land without
+  saying it to the class". Same promise, on the mechanic that exists, and in
+  step with `sessions.steps[1]` one screen up, which already says the
+  assistant "reads out the questions you would rather not ask out loud for
+  your tutor to answer".
+* `team.assistants[2]` (Mandy) said she "uses the break to clear up what part
+  one left behind" - the same defect one bio down, and the one that named the
+  assistant as the answerer outright. Mandy is an assistant, not a tutor
+  (`lms/team/tutor_catalog.json` gives her `"role": "assistant"` and
+  `"title": "Grade 12 session assistant"`, and `assistants/CAPS/roster.json`
+  maps `assistant_003` to her), so clearing up the maths is not hers to do.
+  It now reads "in the break she reads out what part one left behind so your
+  tutor can clear it up" - the same arc and the same sentence shape, with the
+  answering moved to the tutor where `sessions.steps[1]` already puts it.
+* The placeholder note above `testimonials` opened "these three are stand-ins"
+  and contradicted itself four lines later, where it says all FIVE are. It
+  says five from the first line now. Nothing else in the note changed - the
+  rest of it is deliberate, including the registry row it points at.
+* Unchanged on purpose: `sessions.steps[1]`, whose framing of the break
+  questions as the students' own is an approved product decision, not an
+  oversight; and the other four testimonials, which make no phase claim.
+* Version-only side effects: `manifest.json` 1.26.0 -> 1.26.1. A copy
+  correction with no new file, seam or floor is a patch, the way 1.4.1-1.4.3
+  and 1.5.1-1.5.2 were. `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes
+  to 1.26.1 with it, keeping the step it is supposed to keep. No Dart file
+  changed, so the Dart manifest stays at 1.16.9, and no new `base_sdk` seam
+  or floor.
+
+## 1.26.0
+
+* The apps lead the header's panel, in one row (Ray, 2026-09-10:
+  "header app links first. if possible put mobile apps in one row since
+  supa dont have much menu"). `lms-header-menu.ts` now declares the
+  groups as apps FIRST with `layout: "row"` (base_sdk 1.36.0's
+  `HeaderMenuGroup.layout`), then Explore, then Platform, and
+  `megaLabel: "Explore"` (base_sdk 1.36.0's `HeaderMenu.megaLabel`) so
+  the bar still reads `[Explore v]  Pricing  FAQ`: the panel opens on
+  the three app cards side by side across the widened lead column, with
+  Explore (sessions, subjects, tutors) and Platform (features, partners
+  with its badge) as the headed columns beside them. The items, the
+  anchors, the flat links and the brand declaration are unchanged; the
+  burger's stacked list shows the same three groups in the new order.
+* The base_sdk floor is 1.36.0 for `components/custom/landing/header-menu.ts`
+  and `components/custom/header-menu.tsx`: against 1.29.0-1.35.0 the two
+  fields are type errors. (1.36.0, not 1.33.0: core's header release was
+  re-versioned above base_sdk 1.35.0, which landed first.)
+* The footer's wordmark carries no registered mark (Ray, 2026-09-10:
+  "footer supa name has (r)"; the brand string is `supacharge.school`,
+  lowercase, never decorated). `lms-wordmark.tsx` traced the ® the Dart
+  app's AppHelpers appends after the name as the last five sub-paths of
+  `LMS_WORDMARK_PATH`, and the footer drew it at the end of the name
+  (`lms-footer-section.tsx` is the one place the shell draws the vector).
+  Those sub-paths are gone from the component and from the two installed
+  files (`public/brand/supacharge-wordmark.svg`, `-ink.svg`), and the
+  viewBox ends just past the "e" - 660 units, was 690 - so the vector
+  keeps its height and loses only the mark's width; the glyphs of the
+  name are untouched, as is the accessible name. The hero's stem was
+  clipped on its descenders and last glyph ("supa name in hero cut off
+  on g and e"): that is base_sdk 1.36.0's fix in `hero-view.tsx`, and
+  nothing here changes for it.
+* The site url is `https://supacharge.school` (Ray, 2026-09-10: the .app
+  domain is dropped entirely and must never be written into code again).
+  `lms-site-metadata.ts` already said so; `test_site_name_is_the_brand_string`
+  now also asserts that the .school host is the only host its code writes.
+
 ## 1.25.0
 
 * The curriculum line names Cambridge, marked soon (Ray, 2026-09-10:
