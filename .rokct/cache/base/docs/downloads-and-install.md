@@ -1,4 +1,4 @@
-# Downloads, the install offer and the suffix in primary
+# Downloads, the install offer, the suffix in primary and Back to top
 
 Three generic seams base_sdk 1.41.0 adds to the shell's chrome. Base
 declares NO entry, NO site name and NO colour for any of them: a home SDK
@@ -150,9 +150,48 @@ import { FOOTER_CHROME_CONFIG } from "@/components/custom/landing/footer-chrome-
 Every word, link and mark there is the home SDK's; the hrefs above are
 routes so this page names no host.
 
+## The floating "Back to top" button
+
+Ray, 2026-09-11 12:32Z: "whats missing is floating push to home, that
+button you press and it get you to top i just forgot what it says".
+
+`components/custom/back-to-top.tsx` (`"use client"`) exports
+`BackToTop({ threshold?, label?, className? })`, and
+`components/custom/landing-content.tsx` mounts it once, after `<main>`,
+so every composed landing - a base-only host and a home SDK's, whose `/`
+sends an anonymous visitor to `/landing` - has it with no host edit:
+
+1. Hidden at the top of the page; shown once the visitor has scrolled
+   past `threshold` pixels - one viewport height by default, read on
+   every check (`landing/back-to-top.ts` `resolveThreshold`,
+   `isPastThreshold`: strictly past, so the top is always hidden).
+2. Fixed at the bottom right (`bottom-4 right-4`, `md:bottom-6
+   md:right-6`, the safe-area inset as margin) at `z-30`: under the
+   sticky header (`z-50`) and its mobile panel (`z-40`), so an open menu
+   covers it, and clear of the left edge and the vertical middle a home
+   SDK's floating nav uses. The install offer above is inline in the
+   footer's Downloads nav, never fixed, so the two never meet.
+3. A click scrolls to the top - `"smooth"`, or `"auto"` (the instant
+   jump) when `(prefers-reduced-motion: reduce)` matches
+   (`scrollBehaviour`) - and blurs the button, which hides again.
+4. The scroll and resize listeners are passive and folded into one
+   `requestAnimationFrame` per frame; every window read is in the effect
+   or the click, so the server and the first client render agree.
+5. Always in the tree and fading (`motion-safe:transition-opacity`);
+   while hidden it carries `tabIndex={-1}`, `aria-hidden` and
+   `pointer-events-none`. Shown, it is a keyboard-focusable `<button>`
+   with `aria-label` and `title` "Back to top" (`BACK_TO_TOP_LABEL`;
+   `label` overrides).
+
+Lucide's `ArrowUp` is the icon; the classes are theme tokens only
+(`bg-background`, `border-border`, `text-primary`, `hover:bg-muted`,
+`ring-ring`). A host that wants the button on every page mounts
+`<BackToTop />` from `@/components/custom/back-to-top` in its own root
+layout; `className` adds to the button, `threshold` sets the distance.
+
 ## Tests
 
-`tests/download-platform.test.mts` and `tests/install-offer.test.mts`
-(node) execute the rules; `tests/test_manifest.py` holds the header's
+`tests/download-platform.test.mts`, `tests/install-offer.test.mts` and
+`tests/back-to-top.test.mts` (node) execute the rules; `tests/test_manifest.py` holds the header's
 suffix span, the hero mode, the seam's shape, the row's nav and button,
 the component's contract and the installs.

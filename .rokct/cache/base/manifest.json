@@ -1,6 +1,6 @@
 {
   "name": "base_sdk",
-  "version": "1.41.0",
+  "version": "1.42.0",
   "installs": [
     {
       "from": "src/services",
@@ -29,6 +29,10 @@
     {
       "from": "templates/components/custom/install-offer.tsx",
       "to": "components/custom/install-offer.tsx"
+    },
+    {
+      "from": "templates/components/custom/back-to-top.tsx",
+      "to": "components/custom/back-to-top.tsx"
     },
     {
       "from": "templates/components/custom/network-strip.tsx",
@@ -85,6 +89,10 @@
     {
       "from": "templates/components/custom/landing/install-offer.ts",
       "to": "components/custom/landing/install-offer.ts"
+    },
+    {
+      "from": "templates/components/custom/landing/back-to-top.ts",
+      "to": "components/custom/landing/back-to-top.ts"
     },
     {
       "from": "templates/components/custom/landing/platform-glyphs.tsx",

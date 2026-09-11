@@ -347,6 +347,20 @@ function BrandStemWordmark({
   // suffix alone; the stem span before it and the code span beside it
   // keep `text-foreground`. The hero's `brand: "stem-tld"` draws the
   // same suffix the same way (hero-view.tsx HeroWordmarkSlot).
+  //
+  // Room for the last glyph (1.42.0; Ray, 2026-09-11 13:57Z: the final
+  // "l" of the suffix was "a bit cut"): the suffix span clips its own
+  // overflow so the slot can close over it, and its box is exactly the
+  // text's advance width - but an italic face's last glyph leans PAST
+  // its advance (a 900 italic lowercase "l" by about 0.09em), and that
+  // overhang was sheared off at the box's right edge whenever a home SDK
+  // italicises the wordmark through the stem hook. `pr-[0.12em]` keeps
+  // the overhang inside the clipped box; the matching `-mr-[0.12em]`
+  // hands that width straight back to the grid, so the track, the stem's
+  // width and the code beside it measure exactly what they did, open
+  // and folded (folded, the padding-only box sits at opacity 0 outside
+  // a 0fr track). Neither number is a font's: any upright face has
+  // nothing to overhang and draws as before.
   return (
     <span
       title={name.trim()}
@@ -360,7 +374,7 @@ function BrandStemWordmark({
         className="grid transition-all duration-500 ease-in-out"
         style={{ gridTemplateColumns: collapsed ? "0fr" : "1fr", opacity: collapsed ? 0 : 1 }}
       >
-        <span data-brand-wordmark="tld" className="min-w-0 overflow-hidden text-primary">
+        <span data-brand-wordmark="tld" className="min-w-0 overflow-hidden pr-[0.12em] -mr-[0.12em] text-primary">
           {suffix}
         </span>
       </span>

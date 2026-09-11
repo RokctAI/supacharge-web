@@ -134,6 +134,18 @@ DOWNLOADS_INSTALLS = {
     "templates/components/custom/landing/install-offer.ts": "components/custom/landing/install-offer.ts",
     "templates/components/custom/landing/platform-glyphs.tsx": "components/custom/landing/platform-glyphs.tsx",
 }
+# base_sdk 1.42.0: the floating "Back to top" button (Ray, 2026-09-11
+# 12:32Z: "whats missing is floating push to home, that button you press
+# and it get you to top i just forgot what it says"), pure rules beside the
+# client component, mounted once by the landing shell.
+BACK_TO_TOP = os.path.join(SDK_ROOT, "templates", "components", "custom", "back-to-top.tsx")
+BACK_TO_TOP_RULES = os.path.join(LANDING, "back-to-top.ts")
+BACK_TO_TOP_TESTS = os.path.join(HERE, "back-to-top.test.mts")
+LANDING_CONTENT = os.path.join(SDK_ROOT, "templates", "components", "custom", "landing-content.tsx")
+BACK_TO_TOP_INSTALLS = {
+    "templates/components/custom/back-to-top.tsx": "components/custom/back-to-top.tsx",
+    "templates/components/custom/landing/back-to-top.ts": "components/custom/landing/back-to-top.ts",
+}
 
 # base_sdk 1.26.0: the platform marks base serves itself (Ray, 2026-09-09:
 # "move to base, home sdk can choose to use them or not"), installed as a
@@ -1259,7 +1271,7 @@ class TestRegistryMarkers(unittest.TestCase):
         # 1.39.0: the span shows the capitalised label of that same stem.
         self.assertIn("<span>{label}</span>", wordmark)
         # 1.41.0: the suffix span is in the primary colour, with its own hook.
-        self.assertIn('<span data-brand-wordmark="tld" className="min-w-0 overflow-hidden text-primary">', wordmark)
+        self.assertIn('<span data-brand-wordmark="tld" className="min-w-0 overflow-hidden pr-[0.12em] -mr-[0.12em] text-primary">', wordmark)
         self.assertNotIn('<span className="min-w-0 overflow-hidden">{suffix}</span>', wordmark)
         self.assertIn("aria-hidden={collapsed}", wordmark)
         # The suffix SLIDES into the stem (Ray: "not as a back type but like
@@ -2745,7 +2757,7 @@ class TestRegistryMarkers(unittest.TestCase):
         header = read(HEADER)
         wordmark = header[header.index("function BrandStemWordmark("):header.index("function BrandBlock(")]
         self.assertIn(
-            '<span data-brand-wordmark="tld" className="min-w-0 overflow-hidden text-primary">\n'
+            '<span data-brand-wordmark="tld" className="min-w-0 overflow-hidden pr-[0.12em] -mr-[0.12em] text-primary">\n'
             "          {suffix}\n"
             "        </span>",
             wordmark,
@@ -2761,6 +2773,43 @@ class TestRegistryMarkers(unittest.TestCase):
         self.assertEqual(code.count("text-primary"), 2, "the 1.28.0 letter tile and the suffix, nothing else")
         # The code span beside the stem is not the suffix: still foreground.
         self.assertIn("fontSize: BRAND_STEM_CODE_FONT_SIZE }", header)
+
+    def test_brand_suffix_has_room_for_its_italic_overhang(self):
+        """1.42.0 (Ray, 2026-09-11 13:57Z: the final "l" of the header's
+        suffix was "a bit cut"): the suffix span clips its own overflow so
+        the slot can close over it, and its box is the text's advance
+        width - so an italic face's last glyph, which leans past its
+        advance, was sheared off at the right edge once a home SDK
+        italicised the wordmark through the stem hook. The span pads its
+        right by `0.12em` (over the ~0.09em a 900 italic lowercase "l"
+        overhangs) and hands the same width back with `-mr-[0.12em]`, so
+        the grid track, the stem's width and the code beside it measure
+        what they did, open and folded. Clipping stays: the fold needs
+        it. The hero's suffix never clipped and carries neither."""
+        header = read(HEADER)
+        wordmark = header[header.index("function BrandStemWordmark("):header.index("function BrandBlock(")]
+        self.assertIn(
+            '<span data-brand-wordmark="tld" className="min-w-0 overflow-hidden pr-[0.12em] -mr-[0.12em] text-primary">',
+            wordmark,
+        )
+        self.assertNotIn('className="min-w-0 overflow-hidden text-primary"', wordmark)
+        # The padding and the negative margin are one number, in em, so
+        # the room scales with the wordmark's responsive size.
+        pad = re.search(r"pr-\[([0-9.]+)em\]", wordmark)
+        neg = re.search(r"-mr-\[([0-9.]+)em\]", wordmark)
+        self.assertIsNotNone(pad)
+        self.assertIsNotNone(neg)
+        self.assertEqual(pad.group(1), neg.group(1))
+        self.assertGreaterEqual(float(pad.group(1)), 0.09)
+        # No new size, face or colour: the stem's list and the code's cap are untouched.
+        self.assertIn(
+            'className="flex shrink-0 items-center whitespace-nowrap pt-0.5 font-bold tracking-tighter leading-none text-foreground"',
+            wordmark,
+        )
+        self.assertEqual(header.count("overflow-hidden pr-[0.12em]"), 1)
+        view = read(HERO_VIEW)
+        self.assertIn('<span data-brand-wordmark="tld" className="text-primary">', view)
+        self.assertNotIn("pr-[0.12em]", view)
         # The hero: the config names the mode, the resolver answers the
         # suffix, the view draws it.
         config = read(os.path.join(LANDING, "hero-config.ts"))
@@ -2995,6 +3044,180 @@ class TestRegistryMarkers(unittest.TestCase):
         passed = re.search(r"^# pass (\d+)$", run.stdout, re.M)
         self.assertIsNotNone(passed, run.stdout)
         self.assertGreaterEqual(int(passed.group(1)), 22)
+
+    # -- 1.42.0: the floating "Back to top" button ----------------------------
+
+    def test_back_to_top_is_a_client_component_mounted_in_the_landing_shell(self):
+        """1.42.0 (Ray, 2026-09-11 12:32Z: "whats missing is floating push
+        to home, that button you press and it get you to top i just forgot
+        what it says"): components/custom/back-to-top.tsx is a client
+        component, hidden at the top and shown past the threshold (one
+        viewport height by default), fixed bottom right under the header's
+        layers, named "Back to top", out of the tab order while hidden,
+        smooth or instant under reduced motion, with a passive listener
+        folded into one animation frame; the landing shell mounts it once
+        after <main>, the manifest installs the two files and the version
+        is bumped, the CHANGELOG quotes the ruling and the doc describes it."""
+        manifest = load_manifest()
+        self.assertGreaterEqual(tuple(int(p) for p in manifest["version"].split(".")), (1, 42, 0))
+        installs = {e["from"]: e["to"] for e in manifest["installs"]}
+        for src, dst in BACK_TO_TOP_INSTALLS.items():
+            self.assertEqual(installs.get(src), dst, src)
+            self.assertTrue(os.path.isfile(os.path.join(SDK_ROOT, src)), src)
+        button = read(BACK_TO_TOP)
+        self.assertTrue(button.lstrip().startswith("/*"), "licence header first")
+        self.assertIn('"use client";', button)
+        self.assertLess(button.index('"use client";'), button.index("import React"))
+        self.assertIn('import { ArrowUp } from "lucide-react";', button)
+        for needle in (
+            "export function BackToTop({",
+            "export interface BackToTopProps {",
+            "  threshold?: number;",
+            "  label?: string;",
+            "  className?: string;",
+            "label = BACK_TO_TOP_LABEL,",
+            "const [visible, setVisible] = React.useState(false);",
+            "setVisible(isPastThreshold(window.scrollY, resolveThreshold(threshold, window.innerHeight)));",
+            "frame = window.requestAnimationFrame(check);",
+            'window.addEventListener("scroll", onScroll, { passive: true });',
+            'window.addEventListener("resize", onScroll, { passive: true });',
+            'window.removeEventListener("scroll", onScroll);',
+            "if (frame !== 0) window.cancelAnimationFrame(frame);",
+            "window.matchMedia(REDUCED_MOTION_MEDIA_QUERY).matches;",
+            "window.scrollTo({ top: 0, behavior: scrollBehaviour(reducedMotion) });",
+            "event.currentTarget.blur();",
+            '      type="button"',
+            "      aria-label={label}",
+            "      title={label}",
+            "      aria-hidden={!visible}",
+            "      tabIndex={visible ? 0 : -1}",
+            '      data-back-to-top={visible ? "shown" : "hidden"}',
+            '${visible ? "opacity-100" : "pointer-events-none opacity-0"}',
+            '<ArrowUp className="h-5 w-5" aria-hidden="true" />',
+            "export default BackToTop;",
+        ):
+            self.assertIn(needle, button, needle)
+        # Fixed bottom right, under the header (z-50) and its mobile panel
+        # (z-40), in theme tokens only.
+        for token in (
+            "fixed bottom-4 right-4 z-30", "md:bottom-6 md:right-6", "rounded-full",
+            "border border-border bg-background text-primary", "hover:bg-muted",
+            "focus-visible:ring-2 focus-visible:ring-ring", "motion-safe:transition-opacity",
+        ):
+            self.assertIn(token, button, token)
+        header = read(HEADER)
+        self.assertIn('className="sticky top-0 z-50 w-full"', header)
+        self.assertIn("fixed inset-x-0 bottom-0 top-16 z-40", header)
+        code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", button))
+        self.assertEqual(code.count("React.useEffect("), 1)
+        self.assertNotIn("window", code.split("React.useEffect(")[0], "no window read at render")
+        self.assertNotRegex(code, re.compile(r"#[0-9a-fA-F]{3,8}\b"), "no colour is named")
+        rules = read(BACK_TO_TOP_RULES)
+        for needle in (
+            'export const BACK_TO_TOP_LABEL = "Back to top";',
+            'export const REDUCED_MOTION_MEDIA_QUERY = "(prefers-reduced-motion: reduce)";',
+            "export function resolveThreshold(threshold: number | undefined, viewportHeight: number): number {",
+            "export function isPastThreshold(scrollY: number, threshold: number): boolean {",
+            "return Number.isFinite(scrollY) && scrollY > threshold;",
+            "export function scrollBehaviour(reducedMotion: boolean): ScrollBehavior {",
+            'return reducedMotion ? "auto" : "smooth";',
+        ):
+            self.assertIn(needle, rules, needle)
+        plain = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", rules + button)).lower()
+        for word in ("rokct.ai", "supacharge", ".school", "https://", "document.", "localstorage", "window"):
+            if word == "window":
+                self.assertNotIn(word, LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", rules)).lower())
+            else:
+                self.assertNotIn(word, plain, word)
+        # Mounted once by the landing shell, after <main>, inside the root.
+        content = read(LANDING_CONTENT)
+        self.assertIn('import { BackToTop } from "@/components/custom/back-to-top";', content)
+        content_code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", content))
+        self.assertEqual(content_code.count("<BackToTop />"), 1)
+        self.assertLess(content.index("</main>"), content.index("<BackToTop />"))
+        self.assertLess(content.index("<BackToTop />"), content.index("</HeroResultsContext.Provider>"))
+        # The page that renders the shell is base's and untouched: a home
+        # SDK reaches it through /landing, so both hosts have the button.
+        page = read(os.path.join(SDK_ROOT, "templates", "app", "landing", "page.tsx"))
+        self.assertIn("<LandingContent", page)
+        doc = read(DOWNLOADS_DOC)
+        self.assertIn("@/components/custom/back-to-top", doc)
+        self.assertIn("prefers-reduced-motion", doc)
+        self.assertIn("`tests/back-to-top.test.mts`", doc)
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        self.assertIn("## 1.42.0", changelog)
+        head = re.sub(r"\s+", " ", changelog.split("## 1.41.0", 1)[0])
+        self.assertIn(
+            "2026-09-11 12:32Z: \"whats missing is floating push to home, that button you press "
+            "and it get you to top i just forgot what it says\"",
+            head,
+        )
+
+    def test_back_to_top_rules_under_node(self):
+        """The rules executed (tests/back-to-top.test.mts): the words, the
+        threshold (configured, else one viewport height, else 0), strictly
+        past it, and smooth or the instant jump."""
+        node = shutil.which("node")
+        self.assertIsNotNone(node, "node (22.6+) is needed to execute the back-to-top rules")
+        with tempfile.TemporaryDirectory() as tmp:
+            staged = read(BACK_TO_TOP_RULES)
+            self.assertNotIn('from "@/', staged, "the rules import nothing the stage does not cover")
+            with open(os.path.join(tmp, "back-to-top.ts"), "w", encoding="utf-8") as f:
+                f.write(staged)
+            shutil.copy(BACK_TO_TOP_TESTS, os.path.join(tmp, "back-to-top.test.mts"))
+            run = subprocess.run(
+                [node, "--experimental-strip-types", "--no-warnings", "--test",
+                 os.path.join(tmp, "back-to-top.test.mts")],
+                capture_output=True, text=True, timeout=120, cwd=tmp,
+            )
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertRegex(run.stdout, re.compile(r"^# fail 0$", re.M), run.stdout)
+        passed = re.search(r"^# pass (\d+)$", run.stdout, re.M)
+        self.assertIsNotNone(passed, run.stdout)
+        self.assertGreaterEqual(int(passed.group(1)), 11)
+
+    def test_back_to_top_type_checks_under_tsc(self):
+        """The component and its rules under tsc, strict and
+        isolatedModules with `jsx: preserve`, against a stub of the react
+        hooks and event it uses and of lucide-react's ArrowUp, with the
+        `@/` import pointed at the stage. Skips when no tsc is reachable."""
+        tsc = os.environ.get("ROKCT_TSC") or shutil.which("tsc")
+        if not tsc or not os.path.exists(tsc):
+            raise unittest.SkipTest("no tsc reachable (set ROKCT_TSC to a tsc binary)")
+        stubs = """
+declare namespace JSX {
+  interface Element {}
+  interface ElementChildrenAttribute { children: {} }
+  interface IntrinsicElements { [name: string]: unknown }
+}
+declare module "react" {
+  export interface MouseEvent<T = Element> { currentTarget: T }
+  export function useState<S>(initial: S | (() => S)): [S, (next: S | ((prev: S) => S)) => void];
+  export function useEffect(effect: () => void | (() => void), deps?: readonly unknown[]): void;
+  const React: { useState: typeof useState; useEffect: typeof useEffect };
+  export default React;
+}
+declare module "lucide-react" {
+  export function ArrowUp(props: { className?: string; "aria-hidden"?: boolean | "true" | "false" }): JSX.Element;
+}
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            button = read(BACK_TO_TOP).replace(
+                'from "@/components/custom/landing/back-to-top"', 'from "./back-to-top"'
+            )
+            self.assertNotIn('from "@/', button, "the component imports something the stage does not cover")
+            with open(os.path.join(tmp, "back-to-top.tsx"), "w", encoding="utf-8") as f:
+                f.write(button)
+            shutil.copy(BACK_TO_TOP_RULES, os.path.join(tmp, "back-to-top.ts"))
+            with open(os.path.join(tmp, "stubs.d.ts"), "w", encoding="utf-8") as f:
+                f.write(stubs)
+            config = dict(TSC_THEME_STAGE_CONFIG, include=["*.tsx", "*.ts", "*.d.ts"])
+            with open(os.path.join(tmp, "tsconfig.json"), "w", encoding="utf-8") as f:
+                json.dump(config, f)
+            run = subprocess.run(
+                [tsc, "-p", tmp], capture_output=True, text=True, timeout=300, cwd=tmp,
+            )
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
 
 if __name__ == "__main__":
