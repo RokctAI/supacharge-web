@@ -432,8 +432,12 @@ class TestManifest(unittest.TestCase):
         self.assertIn("i want it alive like schedule move as time pass", head)
         self.assertIn("nsc_exam_windows.json", head)
         self.assertIn("marketing_calendar_feed_token", head)
-        self.assertEqual(manifest["version"], "1.28.0")
-        self.assertIn('LMS_LANDING_VERSION = "1.28.0"', read(FOOTER_CHROME))
+        # 1.28.0 or any later release: the calendar stays, and the footer
+        # advertises the manifest version (test_landing_apps TestVersion).
+        self.assertGreaterEqual(
+            tuple(int(n) for n in manifest["version"].split(".")), (1, 28, 0)
+        )
+        self.assertIn(f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME))
         for line in changelog.splitlines():
             self.assertFalse(re.match(r"#[^#\s]", line), line)
 

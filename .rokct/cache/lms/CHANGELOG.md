@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.29.0
+
+* The header's stem wordmark is drawn in the brand face (Ray, 2026-09-11:
+  on supacharge.school the "Supacharge" wordmark was in the right font in
+  the hero and in the footer but not in the header). The hero's span is
+  painted by `lms-theme.css` through base's `#hero` element order - the
+  brand face, italic, 900, `-0.03em` - and the footer's wordmark is
+  `lms-wordmark.tsx`'s traced SVG, which carries the face in its paths;
+  the header's stem (`header.tsx` `BrandStemWordmark`, the wordmark
+  base's collapsing brand renders for a dotted name) had no rule here and
+  inherited the shell's sans at Tailwind's bold, upright. Requires
+  base_sdk >= 1.40.0 for `components/custom/header.tsx`: 1.40.0 puts
+  `data-brand-wordmark="stem"` on that span and on the hero's, the same
+  hook on both, and drops the hero span's own `font-sans`.
+  * ONE new rule in `lms-theme.css`,
+    `.sc-landing header [data-brand-wordmark="stem"]`: `font-family:
+    var(--sc-font-brand)`, `font-style: italic`, `font-weight: 900`,
+    `letter-spacing: -0.03em` - the hero wordmark rule's face, style,
+    weight and tracking, declaration for declaration, and nothing of its
+    size, line height, colour or transform: the header sizes its stem
+    from `--brand-chars` and keeps its own foreground token. The code
+    span beside the stem (the market's code at its 1.36.0 cap) is not
+    the wordmark and is untouched; so are the hero rule and the footer.
+    Scoped through `<header>` and reached from the `sc-landing` class
+    `lms-theme.tsx` puts on `<html>` while the landing is mounted. No
+    brand string: the rule keys on base's hook, not on a name.
+  * `tests/test_landing_apps.py` (the suite goes from 128 to 131): the
+    header rule exists exactly once and its family, style, weight and
+    tracking equal the hero rule's, parsed from both; it carries none of
+    the hero's size, line-height, colour or transform; and the manifest
+    floors `components/custom/header.tsx` at base_sdk 1.40.0 with the
+    changelog naming it.
+* Version-only side effects: `manifest.json` 1.28.0 -> 1.29.0.
+  `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.29.0 with it.
+  The base_sdk floor for `components/custom/header.tsx` is 1.40.0 since
+  1.29.0 (it was 1.28.0, the letter tile).
+
 ## 1.28.0
 
 * The LIVING marketing calendar (Ray, 2026-09-11: "i want it alive like

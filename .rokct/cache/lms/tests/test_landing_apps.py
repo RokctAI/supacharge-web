@@ -1015,9 +1015,11 @@ process.stdout.write(JSON.stringify(out));
         # The header that draws the tile is 1.28.0's; the registry's floor
         # moved on to 1.29.0 with the stem rule (TestBrandString).
         # 1.26.0 moved the registry's floor on again, to 1.36.0 (TestHeaderGroups).
+        # 1.29.0 moved the header's floor on to 1.40.0, the stem wordmark's
+        # hook (TestHeaderStemWordmark); the tile's 1.28.0 stays in the note.
         floors = {
             "components/custom/landing/header-menu.ts": "1.36.0",
-            "components/custom/header.tsx": "1.28.0",
+            "components/custom/header.tsx": "1.40.0",
         }
         for key, floor in floors.items():
             with self.subTest(key=key):
@@ -1026,6 +1028,10 @@ process.stdout.write(JSON.stringify(out));
                     notes[key].startswith(f"installed by base_sdk >= {floor}"),
                     notes[key],
                 )
+        self.assertIn(
+            "Before that: installed by base_sdk >= 1.28.0",
+            notes["components/custom/header.tsx"],
+        )
         changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
         self.assertIn("base_sdk >= 1.28.0", changelog.split("## 1.18.0")[0])
 
@@ -2144,3 +2150,86 @@ class TestCurricula(unittest.TestCase):
         self.assertIn(
             f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
         )
+
+
+class TestHeaderStemWordmark(unittest.TestCase):
+    """1.29.0 (Ray, 2026-09-11: on supacharge.school the "Supacharge"
+    wordmark was in the right font in the hero and in the footer but not
+    in the header): the header's stem wordmark - base's BrandStemWordmark,
+    which base_sdk 1.40.0 marks `data-brand-wordmark="stem"`, the hook it
+    also puts on the hero's span - takes the hero wordmark rule's face,
+    style, weight and tracking from ONE rule in lms-theme.css, and nothing
+    of the hero's size, line height, colour or transform."""
+
+    HERO = ".sc-landing #hero > div > div:first-child > div > div:last-child > div > span"
+    HEADER = '.sc-landing header [data-brand-wordmark="stem"]'
+    SHARED = ("font-family", "font-style", "font-weight", "letter-spacing")
+
+    @staticmethod
+    def declarations(block):
+        """`property: value` pairs of one rule body, `!important` stripped,
+        so a declaration the hero forces over base's inline style and the
+        header's plain one compare on their values."""
+        found = {}
+        for line in block.split(";"):
+            if ":" not in line:
+                continue
+            prop, _, value = line.partition(":")
+            found[prop.strip()] = " ".join(value.replace("!important", "").split())
+        return found
+
+    def rule(self, selector):
+        css = read(THEME_CSS)
+        rules = re.findall(re.escape(selector) + r" \{([^}]*)\}", css)
+        self.assertEqual(len(rules), 1, (selector, rules))
+        return self.declarations(rules[0])
+
+    def test_header_rule_carries_the_hero_wordmarks_face_style_weight_and_tracking(self):
+        hero = self.rule(self.HERO)
+        header = self.rule(self.HEADER)
+        for prop in self.SHARED:
+            with self.subTest(prop=prop):
+                self.assertIn(prop, hero)
+                self.assertIn(prop, header)
+                self.assertEqual(header[prop], hero[prop])
+        # The face is the token both read, never a family written twice.
+        self.assertEqual(header["font-family"], "var(--sc-font-brand)")
+        self.assertEqual(header["font-style"], "italic")
+        self.assertEqual(header["font-weight"], "900")
+        self.assertNotIn("Montserrat", read(THEME_CSS).split(self.HEADER)[1].split("}")[0])
+
+    def test_header_rule_leaves_the_heros_size_colour_and_the_code_alone(self):
+        header = self.rule(self.HEADER)
+        self.assertEqual(set(header), set(self.SHARED))
+        css = read(THEME_CSS)
+        # One header rule, keyed on base's hook, scoped through <header>;
+        # nothing else in the sheet reaches the hook or the header's stem.
+        self.assertEqual(css.count("[data-brand-wordmark"), 1)
+        self.assertEqual(css.count(self.HEADER), 1)
+        # The hero rule is untouched (TestBrandString holds its size).
+        hero = self.rule(self.HERO)
+        self.assertIn("font-size", hero)
+        self.assertEqual(hero["line-height"], "1")
+        self.assertEqual(hero["color"], "var(--sc-ink)")
+        # No brand string anywhere near the rule: the hook is the key.
+        for name in ("supacharge", "Supacharge"):
+            self.assertNotIn(name, css.split("data-brand-wordmark")[1].split("}")[0])
+
+    def test_manifest_and_changelog_floor_the_header_at_the_hook(self):
+        manifest = load_manifest()
+        self.assertGreaterEqual(
+            tuple(int(n) for n in manifest["version"].split(".")), (1, 29, 0)
+        )
+        notes = manifest["_comment"]
+        self.assertIn("components/custom/header.tsx", manifest["requires"])
+        note = notes["components/custom/header.tsx"]
+        self.assertTrue(note.startswith("installed by base_sdk >= 1.40.0 ("), note)
+        self.assertIn('data-brand-wordmark="stem"', note)
+        self.assertIn("1.29.0", note)
+        self.assertIn("base_sdk floor for components/custom/header.tsx is 1.40.0 since 1.29.0", notes["about"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.28.0")[0].split())
+        self.assertIn("## 1.29.0", head)
+        self.assertIn("base_sdk >= 1.40.0", head)
+        self.assertIn('`.sc-landing header [data-brand-wordmark="stem"]`', head)
+        self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.29.0", head)
