@@ -74,12 +74,15 @@ components/custom/theme-provider.tsx
 /app/actions/base/admin/system.ts
 /app/actions/base/landing.ts
 /app/actions/base/legal.ts
+/app/actions/base/network-sites.ts
 /app/actions/base/status.ts
 /app/actions/corporate/legal.ts
 /app/actions/handson/all/lms/assignments/actions.ts
 /app/actions/handson/all/lms/assignments/types.ts
 /app/actions/handson/all/lms/batches/actions.ts
 /app/actions/handson/all/lms/batches/types.ts
+/app/actions/handson/all/lms/calendar/actions.ts
+/app/actions/handson/all/lms/calendar/types.ts
 /app/actions/handson/all/lms/courses/actions.ts
 /app/actions/handson/all/lms/courses/types.ts
 /app/actions/handson/all/lms/discussions/actions.ts
@@ -98,6 +101,7 @@ components/custom/theme-provider.tsx
 /app/actions/telemetry/admin/reports.ts
 /app/actions/telemetry/dashboard.ts
 /app/actions/telemetry/reports.ts
+/app/admin/calendar/page.tsx
 /app/admin/content/blogs/page.tsx
 /app/admin/content/faqs/page.tsx
 /app/admin/page.tsx
@@ -157,6 +161,7 @@ components/custom/theme-provider.tsx
 /app/services/all/lms/discussions.ts
 /app/services/all/lms/events.ts
 /app/services/all/lms/jobs.ts
+/app/services/all/lms/marketing-calendar.ts
 /app/services/all/lms/quiz.ts
 /app/services/all/lms/reviews.ts
 /app/services/all/lms/user.ts
@@ -199,6 +204,7 @@ components/custom/theme-provider.tsx
 /components/custom/landing/landing-config.ts
 /components/custom/landing/landing-page.ts
 /components/custom/landing/legal-links.ts
+/components/custom/landing/lms-calendar-rules.ts
 /components/custom/landing/lms-card-deck.tsx
 /components/custom/landing/lms-curricula.tsx
 /components/custom/landing/lms-features.css
@@ -239,6 +245,8 @@ components/custom/theme-provider.tsx
 /components/custom/lms-footer-section.tsx
 /components/custom/lms-founder-section.client.tsx
 /components/custom/lms-founder-section.tsx
+/components/custom/lms-marketing-calendar.client.tsx
+/components/custom/lms-marketing-calendar.tsx
 /components/custom/lms-partners-section.tsx
 /components/custom/lms-pricing.client.tsx
 /components/custom/lms-pricing.tsx

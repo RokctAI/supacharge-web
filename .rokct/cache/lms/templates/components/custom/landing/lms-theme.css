@@ -294,6 +294,33 @@ html.light .sc-landing {
 }
 
 /*
+ * The header's stem wordmark (1.29.0; Ray, 2026-09-11: "Supacharge" was in
+ * the right font in the hero and in the footer but not in the header). The
+ * hero span above is drawn in the brand face by the frame's element order;
+ * the footer's wordmark is lms-wordmark.tsx's traced SVG, which carries the
+ * face in its paths; the header's stem (header.tsx BrandStemWordmark, the
+ * one collapsing brand renders for a dotted name) had no rule here and
+ * inherited the shell's sans at Tailwind's bold, upright. base_sdk 1.40.0
+ * puts `data-brand-wordmark="stem"` on that span - and on the hero's, the
+ * same hook on both - so this is the header's rule: the SAME face, style,
+ * weight and tracking as the hero rule above, in the one place the two are
+ * declared (tests hold them equal), and nothing of the hero's size, line
+ * height, colour or transform: the header sizes its stem from
+ * --brand-chars (BRAND_STEM_FONT_SIZE) and keeps its own foreground token.
+ * The code span beside the stem (the market's code, at its 1.36.0 cap) is
+ * not the wordmark and is untouched. Scoped through <header> so a hook base
+ * may later put on another stem is not swept up; the class reaches the
+ * header from <html>, where lms-theme.tsx puts it while the landing is
+ * mounted. No !important: the utilities this out-cascades are classes.
+ */
+.sc-landing header [data-brand-wordmark="stem"] {
+  font-family: var(--sc-font-brand);
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+/*
  * The deck (landing/lms-card-deck.tsx): lms/dart's CardDeck as one
  * swipeable row.
  *
