@@ -68,6 +68,7 @@ components/custom/theme-provider.tsx
 /app/(auth)/tenant-link-database.ts
 /app/(auth)/tenant-link-single.ts
 /app/(auth)/tenant-link.ts
+/app/about/page.tsx
 /app/actions/base/admin/content.ts
 /app/actions/base/admin/settings.ts
 /app/actions/base/admin/system.ts
@@ -169,12 +170,19 @@ components/custom/theme-provider.tsx
 /app/services/control/global_settings.ts
 /app/styles/rokct-marquee.css
 /app/styles/rokct-scroll.css
+/app/team/page.tsx
 /app/twitter-image.tsx
 /components/admin/GenericReport.tsx
 /components/custom/app-sidebar.tsx
 /components/custom/auth-form.tsx
 /components/custom/auth/register-registry.ts
 /components/custom/beta-toggle.tsx
+/components/custom/company/company-frame.tsx
+/components/custom/company/company-pages.ts
+/components/custom/company/company-sections.tsx
+/components/custom/company/markdown-parser.ts
+/components/custom/company/markdown.tsx
+/components/custom/company/team-grid.tsx
 /components/custom/footer-chrome.tsx
 /components/custom/header-menu.tsx
 /components/custom/header.tsx
@@ -197,6 +205,7 @@ components/custom/theme-provider.tsx
 /components/custom/landing/lms-flip-card.tsx
 /components/custom/landing/lms-fonts.ts
 /components/custom/landing/lms-footer-chrome.ts
+/components/custom/landing/lms-founders.ts
 /components/custom/landing/lms-header-menu.ts
 /components/custom/landing/lms-hero-copy.ts
 /components/custom/landing/lms-hero-form.tsx
@@ -228,6 +237,8 @@ components/custom/theme-provider.tsx
 /components/custom/lms-floating-nav.client.tsx
 /components/custom/lms-floating-nav.tsx
 /components/custom/lms-footer-section.tsx
+/components/custom/lms-founder-section.client.tsx
+/components/custom/lms-founder-section.tsx
 /components/custom/lms-partners-section.tsx
 /components/custom/lms-pricing.client.tsx
 /components/custom/lms-pricing.tsx

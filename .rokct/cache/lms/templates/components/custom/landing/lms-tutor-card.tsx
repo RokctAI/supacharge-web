@@ -33,6 +33,16 @@
 // Assistants host rather than teach, so their back carries no Start
 // button, as in the app.
 //
+// FOUNDER (1.27.0, the Flutter card's founder branch): the WHO badge reads
+// Founder - Co-Founder on every founder card once the deck holds more than
+// one - and there is no grade badge (a founder is bound to no grade); the
+// back carries the subject alone, the bio and no facts (founders do not
+// teach), and where a tutor card offers its teaching snippet a founder
+// card offers "Hear more", the self-intro video: disabled, never hidden,
+// until the asset ships and the host wires `onHearMore`, and playing IN
+// the card in place of the text while it runs. No Start button - founders
+// are not bookable.
+//
 // Portraits come from the generated team-assets.ts (lms/dart/tool/
 // sync_team_assets.dart copies lms/team's renders into this SDK's
 // templates/public/team/, installed at public/team/, so `/team/...`
@@ -44,6 +54,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import type { Founder } from "@/components/custom/landing/lms-founders";
 import {
   LMS_LANDING_CONFIG,
   type Assistant,
@@ -88,15 +99,30 @@ function Fact({ label, value }: { label: string; value: string }) {
   );
 }
 
+export type LmsTutorCardRole = "tutor" | "assistant" | "founder";
+
 export interface LmsTutorCardProps {
-  /** A tutor from LMS_LANDING_CONFIG.tutors.tutors, or an assistant (role "assistant"). */
-  persona: Tutor | (Assistant & { title?: string; subject?: string; bio?: string });
-  role?: "tutor" | "assistant";
+  /** A tutor from LMS_LANDING_CONFIG.tutors.tutors, an assistant (role "assistant") or a founder (role "founder", lms-founders.ts). */
+  persona: Tutor | Founder | (Assistant & { title?: string; subject?: string; bio?: string });
+  role?: LmsTutorCardRole;
   /** Where "Start with <name>" goes (the page's signupUrl). */
   signupUrl: string;
   /** Sets the eager/priority hint on the first row of portraits. */
   priority?: boolean;
   className?: string;
+  /**
+   * Founder cards: how many founders the deck holds - the badge reads
+   * `founder` for exactly one and `coFounder` on every card once more
+   * join. Ignored for the other roles.
+   */
+  founderCount?: number;
+  /**
+   * Founder cards: what "Hear more" does. Absent (no video asset shipped,
+   * no player wired by the section) leaves the button disabled.
+   */
+  onHearMore?: () => void;
+  /** Founder cards: the intro video playing in the card, in place of the text, while it runs. */
+  introVideo?: { src: string; onEnded: () => void };
 }
 
 export function LmsTutorCard({
@@ -105,6 +131,9 @@ export function LmsTutorCard({
   signupUrl,
   priority = false,
   className = "",
+  founderCount = 1,
+  onHearMore,
+  introVideo,
 }: LmsTutorCardProps) {
   const labels = LMS_LANDING_CONFIG.tutors?.cards;
   if (!labels) return null;
@@ -116,8 +145,18 @@ export function LmsTutorCard({
   const title = tutor.title;
   const bio = tutor.bio ?? "";
   const isTutor = role === "tutor";
-  const grade = gradeLabel(labels, tutor.grades);
+  const isFounder = role === "founder";
+  // Founders carry no grade badge, whatever the persona lists.
+  const grade = isFounder ? null : gradeLabel(labels, tutor.grades);
   const rating = typeof tutor.rating === "number" ? tutor.rating : null;
+  const whoBadge = isFounder
+    ? founderCount > 1
+      ? labels.coFounder
+      : labels.founder
+    : isTutor
+      ? labels.tutor
+      : labels.assistant;
+  const playing = isFounder && introVideo !== undefined;
 
   const front = (
     <div className="relative size-full overflow-hidden rounded-3xl border border-[var(--sc-stroke-subtle)] bg-gradient-to-br from-[var(--sc-card)] to-[var(--sc-surface)] shadow-lg">
@@ -140,7 +179,7 @@ export function LmsTutorCard({
         </div>
       )}
       <div className="absolute left-3 top-3">
-        <Badge>{isTutor ? labels.tutor : labels.assistant}</Badge>
+        <Badge>{whoBadge}</Badge>
       </div>
       {grade && (
         <div className="absolute right-3 top-3">
@@ -183,16 +222,52 @@ export function LmsTutorCard({
         </span>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-        {bio && (
-          <p className="text-sm leading-relaxed text-[var(--sc-ink-2)]">{bio}</p>
-        )}
-        {isTutor && (
-          <div className="flex flex-col gap-2">
-            {tutor.style && <Fact label={labels.style} value={tutor.style} />}
-            {rating !== null && <Fact label={labels.rating} value={`${rating.toFixed(1)} ★`} />}
-          </div>
+        {playing ? (
+          /* The intro video replaces the text block while it runs, the way
+             the Flutter back's playing surface does; its own controls and
+             its end hand the text back. */
+          <video
+            src={introVideo.src}
+            controls
+            autoPlay
+            playsInline
+            onEnded={introVideo.onEnded}
+            onClick={stopFlip}
+            className="w-full rounded-xl bg-black"
+            data-founder-intro=""
+          />
+        ) : (
+          <>
+            {bio && (
+              <p className="text-sm leading-relaxed text-[var(--sc-ink-2)]">{bio}</p>
+            )}
+            {isTutor && (
+              <div className="flex flex-col gap-2">
+                {tutor.style && <Fact label={labels.style} value={tutor.style} />}
+                {rating !== null && <Fact label={labels.rating} value={`${rating.toFixed(1)} ★`} />}
+              </div>
+            )}
+          </>
         )}
       </div>
+      {isFounder && !playing && (
+        <button
+          type="button"
+          disabled={!onHearMore}
+          onClick={(event) => {
+            stopFlip(event);
+            onHearMore?.();
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--sc-stroke-subtle)] py-2.5 text-[13px] font-medium text-[var(--sc-ink)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:text-[var(--sc-ink-3)] disabled:hover:opacity-100"
+          data-hear-more=""
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <path d="m10 8 6 4-6 4z" />
+          </svg>
+          {labels.hearMore}
+        </button>
+      )}
       {isTutor && (
         <Link
           href={signupUrl}
@@ -212,7 +287,7 @@ export function LmsTutorCard({
       flipLabel={`${labels.flip}: ${name}`}
       flipBackLabel={`${labels.flipBack}: ${name}`}
       className={`aspect-[3/4] w-full rounded-3xl ${className}`}
-      data-card={`tutor:${persona.slug ?? name}`}
+      data-card={`${isFounder ? "founder" : "tutor"}:${persona.slug ?? name}`}
     />
   );
 }

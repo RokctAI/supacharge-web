@@ -70,6 +70,20 @@ NETWORK_STRIP_LINE = re.compile(
 )
 PROMPT = os.path.join(CUSTOM, "lms-download-app.tsx")
 TUTORS_SECTION = os.path.join(CUSTOM, "lms-tutors-section.tsx")
+# 1.27.0: the founder card on corporate_sdk's /about through base 1.38.0's page slot.
+TUTOR_CARD = os.path.join(LANDING, "lms-tutor-card.tsx")
+FOUNDERS = os.path.join(LANDING, "lms-founders.ts")
+FOUNDER_SECTION = os.path.join(CUSTOM, "lms-founder-section.tsx")
+FOUNDER_CLIENT = os.path.join(CUSTOM, "lms-founder-section.client.tsx")
+TEAM_ASSETS = os.path.join(LANDING, "team-assets.ts")
+DART_CATALOG = os.path.join(
+    SDK_ROOT, os.pardir, "dart", "lib", "src", "common", "infrastructure", "repositories",
+    "seeded_tutor_catalog.dart",
+)
+DART_TUTOR_CARD = os.path.join(
+    SDK_ROOT, os.pardir, "dart", "lib", "src", "common", "presentation", "pages", "discovery",
+    "widgets", "tutor_card.dart",
+)
 # 1.24.0: the roster (deck or marquee) is the client half; the entry holds meta.
 TUTORS_CLIENT = os.path.join(CUSTOM, "lms-tutors-section.client.tsx")
 TESTIMONIALS_SECTION = os.path.join(CUSTOM, "lms-testimonials-section.tsx")
@@ -903,7 +917,8 @@ class TestHeaderGroups(unittest.TestCase):
         """1.26.0: the two base fields ship in base_sdk 1.36.0, so the
         registry and the panel partials both floor there."""
         manifest = load_manifest()
-        self.assertEqual(manifest["version"], "1.26.0")
+        # 1.26.0 or any later release: the apps-first layout and the floor stay.
+        self.assertGreaterEqual(tuple(int(n) for n in manifest["version"].split(".")), (1, 26, 0))
         notes = manifest["_comment"]
         for key in ("components/custom/landing/header-menu.ts", "components/custom/header-menu.tsx"):
             with self.subTest(key=key):
@@ -1286,6 +1301,152 @@ class TestVersion(unittest.TestCase):
         self.assertIn("base_sdk >= 1.26.0", changelog.split("## 1.16.0")[0])
 
 
+def dart_founder():
+    """The `founder_ray_thompson` TutorProfile as seeded_tutor_catalog.dart
+    writes it: each named string argument, adjacent single-quoted literals
+    joined the way Dart joins them, comments dropped."""
+    source = read(DART_CATALOG)
+    start = source.index("id: 'founder_ray_thompson'")
+    block = source[start:source.index("),", start)]
+    block = re.sub(r"//[^\n]*", "", block)
+    fields = {}
+    for match in re.finditer(r"(\w+):\s*((?:'(?:[^'\\]|\\.)*'\s*)+)", block):
+        literals = re.findall(r"'((?:[^'\\]|\\.)*)'", match.group(2))
+        fields[match.group(1)] = "".join(literals)
+    return fields
+
+
+def ts_founder():
+    """The one LMS_FOUNDERS entry as lms-founders.ts writes it."""
+    source = code_of(FOUNDERS)
+    block = source[source.index("export const LMS_FOUNDERS"):]
+    block = block[:block.index("];")]
+    return dict(re.findall(r'(\w+):\s*\n?\s*"((?:[^"\\]|\\.)*)"', block))
+
+
+class TestFounderCard(unittest.TestCase):
+    """1.27.0 (Ray, 2026-09-10: corporate_sdk owns /about and /team as
+    renderers; Supacharge's about page reuses lms's existing founder
+    card). The Flutter founder card, ported unchanged in look and copy:
+    every string is the Dart catalogue's, the badge and "Hear more" words
+    are the card's, the section names the about page and never the
+    landing, and the base floor is the page slot's."""
+
+    def test_every_string_is_the_dart_catalogues(self):
+        dart = dart_founder()
+        ts = ts_founder()
+        self.assertEqual(ts["id"], dart["id"])
+        for field in ("name", "title", "subject", "bio"):
+            with self.subTest(field=field):
+                self.assertEqual(ts[field], dart[field], field)
+        self.assertEqual(dart["name"], "Ray Thompson")
+        self.assertEqual(dart["title"], "To the next level")
+        self.assertEqual(dart["subject"], "Supacharge")
+        # The portrait and the video are the same persona folder the Dart
+        # half vendors (assets/team/founders/Ray_Thompson), served by the
+        # shell at /team/...: the Dart path's tail is the web path's tail.
+        self.assertEqual(ts["slug"], "founders/Ray_Thompson")
+        self.assertTrue(dart["photo"].endswith("/Ray_Thompson/appearance/renders/card_1080x1440.webp"), dart["photo"])
+        self.assertTrue(dart["introVideoRef"].endswith("/Ray_Thompson/appearance/intro.mp4"), dart["introVideoRef"])
+        self.assertEqual(ts["introVideo"], "/team/founders/Ray_Thompson/appearance/intro.mp4")
+        # No other prose is written: the entry has exactly these fields.
+        self.assertEqual(set(ts), {"id", "name", "title", "subject", "bio", "slug", "introVideo"})
+
+    def test_the_portrait_is_already_shipped_and_listed(self):
+        assets = read(TEAM_ASSETS)
+        self.assertIn('"founders/Ray_Thompson": [', assets)
+        self.assertIn('"/team/founders/Ray_Thompson/appearance/renders/card_1080x1440.webp",', assets)
+        self.assertTrue(os.path.isfile(os.path.join(
+            TEMPLATES, "public", "team", "founders", "Ray_Thompson", "appearance", "renders", "card_1080x1440.webp")))
+        founders = code_of(FOUNDERS)
+        self.assertIn('import { teamAssetsFor } from "@/components/custom/landing/team-assets";', founders)
+        self.assertIn("return teamAssetsFor(founder.slug).includes(founder.introVideo) ? founder.introVideo : undefined;", founders)
+
+    def test_badge_and_hear_more_words_are_the_flutter_cards(self):
+        """tutor_card.dart: 'founder' for exactly one founder, 'co-founder'
+        once more join, 'hear_more' on the back; the card reads the three
+        from CardLabels and writes none of them itself."""
+        dart = read(DART_TUTOR_CARD)
+        for key in ("'founder'", "'co-founder'", "'hear_more'"):
+            self.assertIn(key, dart)
+        config = code_of(CONFIG)
+        self.assertIn('founder: "Founder",', config)
+        self.assertIn('coFounder: "Co-Founder",', config)
+        self.assertIn('hearMore: "Hear more",', config)
+        for key in ("  founder: string;", "  coFounder: string;", "  hearMore: string;"):
+            self.assertIn(key, config)
+        card = code_of(TUTOR_CARD)
+        for word in ("Founder", "Co-Founder", "Hear more", "Tutor", "Assistant"):
+            self.assertNotIn(f'"{word}"', card, f"the card writes {word} itself")
+        self.assertIn("labels.coFounder", card)
+        self.assertIn("labels.founder", card)
+        self.assertIn("{labels.hearMore}", card)
+
+    def test_card_founder_branch_mirrors_the_flutter_card(self):
+        card = code_of(TUTOR_CARD)
+        self.assertIn('export type LmsTutorCardRole = "tutor" | "assistant" | "founder";', card)
+        self.assertIn('const isFounder = role === "founder";', card)
+        # No grade badge, whatever the persona lists; Co-Founder past one.
+        self.assertIn("const grade = isFounder ? null : gradeLabel(labels, tutor.grades);", card)
+        self.assertIn("founderCount > 1", card)
+        # The back: subject alone (the grade line is guarded by `grade`),
+        # facts for tutors only, "Hear more" for founders only, disabled
+        # with nothing wired, and the Start commitment for tutors only.
+        self.assertRegex(card, r'\{isTutor && \(\s*<div className="flex flex-col gap-2">')
+        self.assertIn("{isFounder && !playing && (", card)
+        self.assertIn("disabled={!onHearMore}", card)
+        self.assertRegex(card, r"\{isTutor && \(\s*<Link")
+        self.assertEqual(card.count("labels.startWith"), 1)
+        # The video plays in the card, in place of the text, and ends back to it.
+        self.assertIn("const playing = isFounder && introVideo !== undefined;", card)
+        self.assertIn("onEnded={introVideo.onEnded}", card)
+        # Tutor and assistant cards keep their data-card prefix.
+        self.assertIn('data-card={`${isFounder ? "founder" : "tutor"}:${persona.slug ?? name}`}', card)
+
+    def test_section_names_the_about_page_and_keeps_the_contract(self):
+        entry = code_of(FOUNDER_SECTION)
+        self.assertIsNone(USE_CLIENT_LINE_RE.search(entry))
+        self.assertIn("export const meta: PageSectionMeta = {", entry)
+        self.assertIn('  page: "about",', entry)
+        self.assertIn("  nav: [],", entry)
+        self.assertIn("  renders: () => LMS_FOUNDERS.length > 0,", entry)
+        self.assertIn('from "@/components/custom/lms-founder-section.client"', entry)
+        client = code_of(FOUNDER_CLIENT)
+        self.assertRegex(client.lstrip(), r'^"use client";')
+        self.assertIn("useState<string | null>(null)", client)
+        self.assertIn('role="founder"', client)
+        self.assertIn("founderCount={founders.length}", client)
+        self.assertIn("onHearMore={video ? () => setPlaying(founder.id) : undefined}", client)
+        self.assertIn('import "@/components/custom/landing/lms-theme.css";', client)
+        self.assertIn("${LMS_ROOT_CLASS}", client)
+        # The landing's own sections never render it, and nothing on the
+        # landing links to a founders anchor.
+        for path in (TUTORS_SECTION, TUTORS_CLIENT, HEADER_MENU):
+            self.assertNotIn("founder", code_of(path).lower(), path)
+        registered = dict(registered_sections())
+        self.assertEqual(registered["lms-founder-section"], FOUNDER_SECTION)
+        self.assertEqual(list(registered)[-1], "lms-founder-section")
+
+    def test_manifest_and_changelog_name_the_floor(self):
+        manifest = load_manifest()
+        notes = manifest["_comment"]
+        self.assertIn("1.27.0", notes["about"])
+        self.assertIn("1.38.0", notes["about"])
+        self.assertTrue(notes["components/custom/landing/page-sections.ts"].startswith("installed by base_sdk >= 1.38.0"))
+        self.assertIn("PageSectionMeta.page", notes["components/custom/landing/page-sections.ts"])
+        pairs = {i["from"]: i["to"] for i in manifest["installs"]}
+        for name in ("landing/lms-founders.ts", "lms-founder-section.tsx", "lms-founder-section.client.tsx"):
+            self.assertEqual(pairs[f"templates/components/custom/{name}"], f"components/custom/{name}")
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = changelog.split("## 1.26.0")[0]
+        self.assertIn("\n## 1.27.0\n", head)
+        self.assertIn("base_sdk >=\n  1.38.0", head)
+        self.assertIn("`PageSectionMeta.page`", head)
+        for line in head.splitlines():
+            if line.startswith("#") and line != "# Changelog":
+                self.assertRegex(line, r"^## \d+\.\d+\.\d+$", line)
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -1323,6 +1484,9 @@ class TestServerSafeSections(unittest.TestCase):
             "lms-subjects-section", "lms-tutors-section", "lms-features-section",
             "lms-partners-section", "lms-pricing", "lms-faq-section",
             "lms-testimonials-section", "lms-footer-section",
+            # 1.27.0: the founder card, registered here and drawn on /about
+            # only (meta.page "about"), never on the landing.
+            "lms-founder-section",
         ])
 
     def test_every_entry_is_installed_has_no_directive_and_exports_meta(self):
@@ -1357,7 +1521,7 @@ class TestServerSafeSections(unittest.TestCase):
                 )
                 entry = code_of(path)
                 self.assertIn(f'from "@/components/custom/{section_id}.client"', entry)
-        self.assertEqual(halves, 4, "floating nav, tutors, pricing and faq carry a client half")
+        self.assertEqual(halves, 5, "floating nav, tutors, pricing, faq and the founder section carry a client half")
 
     def test_pricing_keeps_its_pure_rule_in_the_entry(self):
         entry = code_of(os.path.join(CUSTOM, "lms-pricing.tsx"))

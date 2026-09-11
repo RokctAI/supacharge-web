@@ -222,6 +222,15 @@ export interface CardLabels {
   tutor: string;
   /** Corner badge on an assistant card. */
   assistant: string;
+  /**
+   * Corner badge on a founder card (1.27.0, lms-founders.ts): `founder`
+   * while the deck holds exactly one founder, `coFounder` on every
+   * founder card once more join - the Flutter card's rule.
+   */
+  founder: string;
+  coFounder: string;
+  /** The founder card's back entry that plays the self-intro video. */
+  hearMore: string;
   /** Grade badge, before the range: "Grade 10-12". */
   grade: string;
   style: string;
@@ -718,13 +727,13 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         slug: "assistant_002",
         name: "Bianca",
         role: "Grade 11 session assistant",
-        bio: "Bianca runs the Grade 11 room. The break is hers - questions asked privately, so you can say what did not land without saying it to the class.",
+        bio: "Bianca runs the Grade 11 room. The break is hers - your questions read out and answered, so you can say what did not land without saying it to the class.",
       },
       {
         slug: "assistant_003",
         name: "Mandy",
         role: "Grade 12 session assistant",
-        bio: "Mandy takes Grade 12 from the intro to the sign-off, and uses the break to clear up what part one left behind before the simplifier picks the topic up again.",
+        bio: "Mandy takes Grade 12 from the intro to the sign-off, and in the break she reads out what part one left behind so your tutor can clear it up before the simplifier picks the topic up again.",
       },
     ],
     cards: {
@@ -732,6 +741,9 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       startWith: "Start with",
       tutor: "Tutor",
       assistant: "Assistant",
+      founder: "Founder",
+      coFounder: "Co-Founder",
+      hearMore: "Hear more",
       grade: "Grade",
       style: "Style",
       rating: "Rating",
@@ -921,7 +933,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     ],
   },
 
-  // PLACEHOLDER CONTENT - these three are stand-ins, not real customers.
+  // PLACEHOLDER CONTENT - these five are stand-ins, not real customers.
   // Ray asked for the section to read as finished ahead of launch and will
   // replace them with genuine quotes; LMS_LANDING_PLACEHOLDERS still carries
   // the row, because the need for real ones is real and unmet. All FIVE are
@@ -942,7 +954,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     items: [
       {
         quote:
-          "The break is the part I did not expect to need. I can ask what I missed without the whole class hearing me, and then the second teacher explains it another way anyway.",
+          "The break is the part I did not expect to need. I send in what I missed while the tutor is still teaching without anyone seeing me do it, and it comes back answered in the break, and the second teacher explains it another way anyway.",
         author: "Naledi",
         role: "Grade 11 learner",
       },

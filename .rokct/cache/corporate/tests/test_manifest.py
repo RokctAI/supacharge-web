@@ -33,6 +33,9 @@ base_sdk's own tests/test_manifest.py takes.
 import json
 import os
 import re
+import shutil
+import subprocess
+import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -49,8 +52,28 @@ LEGAL_COMPONENTS = os.path.join(TEMPLATES, "components", "custom", "legal")
 DOC_VIEW = os.path.join(LEGAL_COMPONENTS, "legal-doc.tsx")
 FRAME = os.path.join(LEGAL_COMPONENTS, "legal-frame.tsx")
 LOADER = os.path.join(LEGAL_COMPONENTS, "load-legal-doc.ts")
+# 1.1.0: the about and team pages and their parts.
+ABOUT_PAGE = os.path.join(TEMPLATES, "app", "about", "page.tsx")
+TEAM_PAGE = os.path.join(TEMPLATES, "app", "team", "page.tsx")
+COMPANY_COMPONENTS = os.path.join(TEMPLATES, "components", "custom", "company")
+COMPANY_PAGES = os.path.join(COMPANY_COMPONENTS, "company-pages.ts")
+COMPANY_FRAME = os.path.join(COMPANY_COMPONENTS, "company-frame.tsx")
+COMPANY_SECTIONS = os.path.join(COMPANY_COMPONENTS, "company-sections.tsx")
+MARKDOWN_PARSER = os.path.join(COMPANY_COMPONENTS, "markdown-parser.ts")
+MARKDOWN_VIEW = os.path.join(COMPANY_COMPONENTS, "markdown.tsx")
+TEAM_GRID = os.path.join(COMPANY_COMPONENTS, "team-grid.tsx")
+MARKDOWN_TESTS = os.path.join(HERE, "markdown.test.mts")
 
 BASE_FLOOR = "1.37.0"
+# 1.1.0: the page slot and the site-data reader, each read at its floor.
+BASE_138_REQUIRES = (
+    "components/custom/landing/landing-page.ts",
+    "components/custom/landing/page-sections.ts",
+)
+BASE_135_REQUIRES = (
+    "lib/site-data/read-site-data.ts",
+    "lib/site-data/kinds.ts",
+)
 # The base_sdk 1.37.0 files this SDK reads: each must be a declared
 # prerequisite with its floor in the manifest comment.
 BASE_134_REQUIRES = (
@@ -95,7 +118,7 @@ class TestCorporateNextjs(unittest.TestCase):
     def test_identity_and_version(self):
         self.assertEqual(self.manifest["name"], "corporate_sdk")
         self.assertRegex(self.manifest["version"], r"^\d+\.\d+\.\d+$")
-        self.assertEqual(self.manifest["version"], "1.0.0")
+        self.assertEqual(self.manifest["version"], "1.1.0")
         self.assertIn("sdk_name = 'corporate_sdk'", read(INSTALL_PY))
         self.assertTrue(read(INSTALL_PY).startswith("# " + LICENSE_HEAD))
         # Same shape as the sibling halves: one flat installs list, no
@@ -129,6 +152,27 @@ class TestCorporateNextjs(unittest.TestCase):
         self.assertTrue(os.path.isfile(INDEX_PAGE))
         self.assertTrue(os.path.isfile(DOC_PAGE))
 
+    def test_the_company_pages_and_their_parts_are_installed(self):
+        pairs = {(e["from"], e["to"]) for e in self.manifest["installs"]}
+        for pair in (
+            ("templates/app/about", "app/about"),
+            ("templates/app/team", "app/team"),
+            ("templates/components/custom/company/company-pages.ts", "components/custom/company/company-pages.ts"),
+            ("templates/components/custom/company/company-frame.tsx", "components/custom/company/company-frame.tsx"),
+            ("templates/components/custom/company/company-sections.tsx", "components/custom/company/company-sections.tsx"),
+            ("templates/components/custom/company/markdown-parser.ts", "components/custom/company/markdown-parser.ts"),
+            ("templates/components/custom/company/markdown.tsx", "components/custom/company/markdown.tsx"),
+            ("templates/components/custom/company/team-grid.tsx", "components/custom/company/team-grid.tsx"),
+        ):
+            self.assertIn(pair, pairs)
+        for path in (ABOUT_PAGE, TEAM_PAGE, COMPANY_PAGES, COMPANY_FRAME, COMPANY_SECTIONS,
+                     MARKDOWN_PARSER, MARKDOWN_VIEW, TEAM_GRID):
+            self.assertTrue(os.path.isfile(path), path)
+        # No markdown library: the composed shells carry none, and this
+        # SDK declares no dependency.
+        self.assertEqual(self.manifest["dependencies"], {})
+        self.assertNotIn("site_data", self.manifest, "every kind is optional; an absent file is the empty state")
+
     def test_requires_are_not_installed(self):
         targets = {e["to"] for e in self.manifest["installs"]}
         for req in self.manifest["requires"]:
@@ -145,6 +189,15 @@ class TestCorporateNextjs(unittest.TestCase):
             self.assertIn(f"base_sdk >= {BASE_FLOOR}", comment[path], path)
         self.assertIn(f"base_sdk >= {BASE_FLOOR}", comment["about"])
         self.assertIn("home_sdk false", comment["about"])
+        # 1.1.0: the page slot (1.38.0) and the reader (1.35.0).
+        for path in BASE_138_REQUIRES:
+            self.assertIn(path, requires, path)
+            self.assertIn("base_sdk >= 1.38.0", comment[path], path)
+        for path in BASE_135_REQUIRES:
+            self.assertIn(path, requires, path)
+            self.assertIn("base_sdk >= 1.35.0", comment[path], path)
+        self.assertIn("base_sdk >= 1.38.0", comment["about"])
+        self.assertIn("base_sdk >= 1.35.0", comment["about"])
         # Every other prerequisite names who installs it too.
         for req in requires:
             self.assertIn(req, comment, f"{req} has no owner comment")
@@ -171,14 +224,21 @@ class TestCorporateNextjs(unittest.TestCase):
         on the server carries no "use client"; the only directive here is
         the action's "use server"."""
         directive = re.compile(r"""^\s*["']use (client|server)["'];?\s*$""", re.M)
-        for path in (INDEX_PAGE, DOC_PAGE, DOC_VIEW, FRAME, LOADER):
+        entries = (INDEX_PAGE, DOC_PAGE, DOC_VIEW, FRAME, LOADER,
+                   ABOUT_PAGE, TEAM_PAGE, COMPANY_PAGES, COMPANY_FRAME, COMPANY_SECTIONS,
+                   MARKDOWN_PARSER, MARKDOWN_VIEW, TEAM_GRID)
+        for path in entries:
             self.assertIsNone(directive.search(code_of(path)), os.path.relpath(path, SDK_ROOT))
         self.assertRegex(read(ACTION), re.compile(r'^"use server";$', re.M))
         self.assertNotRegex(code_of(ACTION), re.compile(r"""^\s*["']use client["']""", re.M))
-        for path in (INDEX_PAGE, DOC_PAGE, DOC_VIEW, FRAME):
+        for path in entries:
             body = code_of(path)
-            for hook in ("useState", "useEffect", "useRef", "usePathname", "window.", "localStorage"):
+            for hook in ("useState", "useEffect", "useRef", "usePathname", "window.", "localStorage", "document."):
                 self.assertNotIn(hook, body, f"{os.path.relpath(path, SDK_ROOT)} uses {hook}")
+        # Nothing this SDK renders sets HTML from a string.
+        for path in template_files():
+            self.assertNotIn("dangerouslySetInnerHTML", read(path), os.path.relpath(path, SDK_ROOT))
+            self.assertNotIn("innerHTML", read(path), os.path.relpath(path, SDK_ROOT))
 
     def test_document_page_reads_through_the_seam_and_404s(self):
         src = read(DOC_PAGE)
@@ -246,6 +306,116 @@ class TestCorporateNextjs(unittest.TestCase):
             for word in ("demo", "sample", "example", "lorem", "https://", "http://", "rokct.ai", "supacharge"):
                 self.assertNotIn(word, body, f"{rel} carries {word}")
             self.assertIn(LICENSE_HEAD, read(path), f"{rel} has no licence header")
+
+    # -- 1.1.0: the about and team pages ---------------------------------------
+
+    def test_about_page_reads_the_folder_and_the_slot(self):
+        src = read(ABOUT_PAGE)
+        self.assertIn('import { hasSiteData, readSiteData, siteDataMode } from "@/lib/site-data/read-site-data";', src)
+        self.assertIn('import { pageSectionsFor } from "@/components/custom/landing/landing-page";', src)
+        self.assertIn('const about = hasSiteData("about") ? (readSiteData("about") ?? "").trim() : "";', src)
+        self.assertIn('pageSectionsFor("about", { plans: [], session, dataMode }),', src)
+        self.assertIn("<Markdown source={about} />", src)
+        self.assertIn("<CompanySections sections={sections} session={session} dataMode={dataMode} />", src)
+        self.assertIn("const empty = about.length === 0 && sections.length === 0;", src)
+        self.assertIn("{COMPANY_EMPTY_STATE.about}", src)
+        self.assertIn("buildPageMetadata({ title: COMPANY_PAGES.about.label })", src)
+        self.assertIn('<CompanyFrame page="about" terms={terms}>', src)
+        self.assertIn('export const dynamic = "force-dynamic";', src)
+        body = code_of(ABOUT_PAGE)
+        for word in ("platformCall", "getPublicTerm", "notFound"):
+            self.assertNotIn(word, body)
+
+    def test_team_page_reads_the_folder_and_the_slot(self):
+        src = read(TEAM_PAGE)
+        self.assertIn('import { hasSiteData, readSiteData, siteDataMode } from "@/lib/site-data/read-site-data";', src)
+        self.assertIn('const members = hasSiteData("team") ? (readSiteData("team")?.members ?? []) : [];', src)
+        self.assertIn('pageSectionsFor("team", { plans: [], session, dataMode }),', src)
+        self.assertIn("<TeamGrid members={members} />", src)
+        self.assertIn("<CompanySections sections={sections} session={session} dataMode={dataMode} />", src)
+        self.assertIn("const empty = members.length === 0 && sections.length === 0;", src)
+        self.assertIn("{COMPANY_EMPTY_STATE.team}", src)
+        self.assertIn("buildPageMetadata({ title: COMPANY_PAGES.team.label })", src)
+        self.assertIn('<CompanyFrame page="team" terms={terms}>', src)
+        grid = read(TEAM_GRID)
+        self.assertIn('import type { SiteTeamMember } from "@/lib/site-data/kinds";', grid)
+        for field in ("member.photo", "member.name", "member.role", "member.links"):
+            self.assertIn(field, grid)
+        self.assertIn("initialsOf(member.name)", grid)
+        self.assertIn('rel="noopener noreferrer"', grid)
+
+    def test_sections_render_with_the_landing_contract(self):
+        src = read(COMPANY_SECTIONS)
+        self.assertIn('import type { LoadedSection } from "@/components/custom/landing/landing-page";', src)
+        self.assertIn('import { LANDING_CONFIG } from "@/components/custom/landing/landing-config";', src)
+        for prop in ("id={domId}", "signupUrl={LANDING_CONFIG.signupUrl}", "loginUrl={LANDING_CONFIG.loginUrl}",
+                     "session={session}", "plans={[]}", "nav={[]}", "dataMode={dataMode}"):
+            self.assertIn(prop, src, prop)
+        self.assertIn("if (sections.length === 0) return null;", src)
+
+    def test_company_words_are_the_only_words_and_the_empty_states_are_neutral(self):
+        src = code_of(COMPANY_PAGES)
+        self.assertIn('about: { route: "/about", label: "About" },', src)
+        self.assertIn('team: { route: "/team", label: "Team" },', src)
+        self.assertIn('about: "There is nothing on this page yet.",', src)
+        self.assertIn('team: "No team members have been listed yet.",', src)
+        frame = read(COMPANY_FRAME)
+        self.assertIn('import { PLATFORM_NAME } from "@/app/config/platform";', frame)
+        self.assertIn("legalFooterLinks(terms)", frame)
+        self.assertIn("<FooterChromeRow config={config} />", frame)
+        self.assertIn('aria-current={key === page ? "page" : undefined}', frame)
+        self.assertIn("{terms.length > 0 && (", frame)
+
+    def test_markdown_is_rendered_as_elements(self):
+        view = read(MARKDOWN_VIEW)
+        self.assertIn('from "@/components/custom/company/markdown-parser"', view)
+        self.assertIn("parseMarkdown(source)", view)
+        for tag in ("<p ", "<ol ", "<ul ", "<blockquote ", "<pre ", "<hr ", "<strong ", "<em ", "<code "):
+            self.assertIn(tag, view, tag)
+        self.assertIn('rel="noopener noreferrer"', view)
+        parser = read(MARKDOWN_PARSER)
+        self.assertIn("export function parseMarkdown(source: string): MarkdownBlock[] {", parser)
+        self.assertIn("export function parseInline(text: string): MarkdownInline[] {", parser)
+        self.assertIn("export function isSafeHref(href: string): boolean {", parser)
+        self.assertNotIn('from "@/', parser, "the parser is pure and stages bare")
+
+    def test_markdown_parser_behaviour_under_node(self):
+        node = shutil.which("node")
+        self.assertIsNotNone(node, "node (22.6+) is needed to execute markdown-parser.ts")
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copy(MARKDOWN_PARSER, os.path.join(tmp, "markdown-parser.ts"))
+            shutil.copy(MARKDOWN_TESTS, os.path.join(tmp, "markdown.test.mts"))
+            run = subprocess.run(
+                [node, "--experimental-strip-types", "--no-warnings", "--test",
+                 os.path.join(tmp, "markdown.test.mts")],
+                capture_output=True, text=True, timeout=120, cwd=tmp,
+            )
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertRegex(run.stdout, re.compile(r"^# fail 0$", re.M), run.stdout)
+        passed = re.search(r"^# pass (\d+)$", run.stdout, re.M)
+        self.assertIsNotNone(passed, run.stdout)
+        self.assertGreaterEqual(int(passed.group(1)), 8)
+
+    def test_legal_loader_falls_back_to_the_folder(self):
+        loader = read(LOADER)
+        self.assertIn('import { resolveTenantBaseUrl } from "@/app/services/base/platform-gateway";', loader)
+        self.assertIn('import { hasSiteData, readSiteData, siteDataMode } from "@/lib/site-data/read-site-data";', loader)
+        self.assertIn("export async function siteLegalDocs(): Promise<SiteLegal | null> {", loader)
+        self.assertIn('if (!hasSiteData("legal")) return null;', loader)
+        self.assertIn('if (siteDataMode() !== "local") {', loader)
+        self.assertIn("backend = await resolveTenantBaseUrl();", loader)
+        self.assertIn("if (backend) return null;", loader)
+        self.assertIn('return readSiteData("legal") ?? null;', loader)
+        self.assertIn("export function legalDocFromSiteData(slug: string, docs: SiteLegal): LegalDoc | null {", loader)
+        self.assertIn("return { name: slug, title: page.title, body: page.markdown, disabled: false };", loader)
+        # Both seams ask the folder first, and the pages still read only the seams.
+        self.assertIn("const local = await siteLegalDocs();\n  if (local) return legalDocFromSiteData(slug, local);", loader)
+        self.assertIn("const local = await siteLegalDocs();\n  if (local) {", loader)
+        self.assertIn(".sort()", loader)
+        for path in (INDEX_PAGE, DOC_PAGE):
+            body = code_of(path)
+            self.assertNotIn("site-data", body)
+            self.assertNotIn("siteLegalDocs", body)
 
     # -- changelog ------------------------------------------------------------
 
