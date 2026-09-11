@@ -538,9 +538,12 @@ describe('BRAND_STEM_FONT_SIZE: the stem wordmark fits the bar (1.29.0)', () => 
     assert.ok(!wordmark.includes('text-['));
     assert.equal(wordmark.match(/fontSize/g)?.length, 1);
     // Neither inner span sizes itself: the stem (its 1.39.0 label) and the
-    // suffix inherit.
+    // suffix inherit. 1.41.0: the suffix span is in the primary colour and
+    // carries its own hook (Ray, 2026-09-11: "also site name the .school
+    // get primary color in nextjs").
     assert.ok(wordmark.includes('<span>{label}</span>'));
-    assert.ok(wordmark.includes('<span className="min-w-0 overflow-hidden">{suffix}</span>'));
+    assert.ok(wordmark.includes('<span data-brand-wordmark="tld" className="min-w-0 overflow-hidden text-primary">'));
+    assert.ok(!wordmark.includes('<span className="min-w-0 overflow-hidden">{suffix}</span>'));
     // The 1.24.0 Branding slot keeps its 60px literal.
     assert.ok(header.includes('<Branding className="text-[60px] tracking-tighter leading-none" />'));
   });

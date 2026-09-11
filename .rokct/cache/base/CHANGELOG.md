@@ -1,5 +1,81 @@
 # Changelog
 
+## 1.41.0
+
+* The site name's suffix is in the primary colour. Ray, 2026-09-11
+  07:34:03Z: "also site name the .school get primary color in nextjs".
+  The header's stem wordmark (`components/custom/header.tsx`
+  `BrandStemWordmark`) draws the dot and what follows the stem in
+  `text-primary` - the theme token, no brand colour named - with its own
+  `data-brand-wordmark="tld"` hook on that span
+  (`<span data-brand-wordmark="tld" className="min-w-0 overflow-hidden text-primary">`);
+  the stem span, the country-code span, the wordmark's class list and
+  the slide are untouched. The hero has the matching mode:
+  `HeroConfig.brand` accepts `"stem-tld"` (`landing/hero-config.ts`),
+  `resolveHeroWordmark` (`landing/landing-page.ts`) answers
+  `{ text, name, suffix }` for it - `HeroWordmark.suffix?` is the trimmed
+  name after the stem - and `HeroWordmarkSlot` (`hero-view.tsx`) draws the
+  suffix after the stem inside the same span, in primary with the same
+  hook, sized over the stem and the suffix together; `"stem"` and `"name"`
+  draw exactly what they drew. `docs/downloads-and-install.md` describes
+  both.
+* The footer's downloads are icon buttons. Ray, 2026-09-11 07:34:37Z:
+  "footer has  download links let them be platform icons buttons". NEW
+  `FooterChromeConfig.downloads?: DownloadEntry[]`
+  (`landing/footer-chrome-config.ts`): `DownloadPlatform` is the closed
+  set `ios | android | huawei | macos | windows | linux | web`, and
+  `DownloadEntry` is `{ id, platform, label, href, external?, title?,
+  mark?: BrandMarkId }`. `FooterChromeRow` (`components/custom/footer-chrome.tsx`)
+  draws them as `<nav aria-label="Downloads">` beside the link groups,
+  above the copyright line, one `<a>` per entry - the label as
+  aria-label and title, external ones `target="_blank"
+  rel="noreferrer"`, `h-10 w-10 rounded-full border border-border
+  bg-transparent hover:bg-muted flex items-center justify-center` - with
+  the named mark from `BRAND_MARKS` through `next/image` and
+  `markImageClass`, else a neutral glyph from NEW
+  `landing/platform-glyphs.tsx` (`PlatformGlyph`: a phone, a laptop, a
+  terminal, a globe in `currentColor`; `DownloadMark`; the button class
+  `DOWNLOAD_BUTTON_CLASS`) - never a third-party mark drawn by hand. NEW
+  `landing/download-platform.ts` is the pure half: `DOWNLOAD_PLATFORMS`,
+  `isDownloadPlatform`, `isDownloadHref` (https with a host, or a route
+  with one leading slash), `isDownloadEntry`, `normaliseDownloads`,
+  `downloadTitle`. `FooterChromeLabels.downloads` ("Downloads") names the
+  nav. Nothing declared draws nothing; base declares no entry.
+* The install offer checks the platform. Ray, 2026-09-11 07:37:17Z:
+  "this nextjs has install, it does show on mobile though i havent seen
+  it in desktop i think it installs as pwa but i think it should check
+  the platform and offer app of that platform". NEW client component
+  `components/custom/install-offer.tsx` `InstallOffer({ downloads,
+  labels?, platform?, className? })`: nothing on the server and the first
+  client render; after mount it hides when
+  `matchMedia("(display-mode: standalone)")` matches, reads the platform
+  (NEW `landing/install-offer.ts` `detectPlatform()`:
+  `navigator.userAgentData.platform`, then the user-agent string -
+  iPhone/iPad, HarmonyOS/HUAWEI, Android, Windows, Mac, Linux/X11 - and
+  `detectPlatformFrom(hints)` for tests), picks the entry
+  (`pickDownload(entries, platform)`: its own platform first, android and
+  huawei standing in for each other, the desktops and iOS their own
+  only, `DOWNLOAD_FALLBACKS`) and draws one icon button with "Get the
+  <label>" linking there; with none it listens for `beforeinstallprompt`,
+  keeps the event and draws "Install", which calls `prompt()`; with
+  neither it draws nothing. `INSTALL_OFFER_LABELS` (`get`, `install`) and
+  `installOfferText` hold the words; `platform` forces one for a preview.
+  `FooterChromeRow` mounts it FIRST in the Downloads nav (`installOffer`
+  prop, default true); a home SDK that wants it in a header slot imports
+  `@/components/custom/install-offer` itself - no header change in base.
+* Tests: NEW `tests/download-platform.test.mts` and
+  `tests/install-offer.test.mts` (node) execute the rules;
+  `landing-page.test.mts` covers `"stem-tld"`; `header-brand.test.mts`
+  reads the suffix span's new markup; `test_manifest.py` gains
+  `test_brand_suffix_is_in_the_primary_colour`,
+  `test_footer_downloads_seam_shape`,
+  `test_install_offer_is_a_client_component_that_checks_the_platform` and
+  `test_download_and_install_rules_under_node`, and reads the suffix
+  span's new markup in the 1.29.0 test. Manifest installs the four new
+  files.
+* Home SDKs: lms_sdk 1.31.0 declares its entries (the marks by key, its
+  own hrefs) on its footer config; supacharge re-pins after.
+
 ## 1.40.0
 
 * The network strip's sites come from the home SDK that owns them, or

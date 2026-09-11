@@ -126,10 +126,13 @@ RELEASES_PAGE = "https://github.com/RokctAI/supacharge/releases/latest"
 # raw LMS_APPS, so a demoted entry cannot leak through one of them. Since
 # 1.15.0 the hero's surface is its copy (the badges the frame draws), not
 # its form, which draws nothing.
+# Since 1.31.0 the footer's surface is its chrome config (the download
+# entries base draws as icon buttons), not the section, which prints no
+# app link of its own any more.
 APP_SURFACES = {
     "header menu": HEADER_MENU,
     "hero copy": HERO_COPY,
-    "footer section": FOOTER_SECTION,
+    "footer chrome": FOOTER_CHROME,
     "download prompt": PROMPT,
 }
 
@@ -1016,10 +1019,11 @@ process.stdout.write(JSON.stringify(out));
         # moved on to 1.29.0 with the stem rule (TestBrandString).
         # 1.26.0 moved the registry's floor on again, to 1.36.0 (TestHeaderGroups).
         # 1.29.0 moved the header's floor on to 1.40.0, the stem wordmark's
-        # hook (TestHeaderStemWordmark); the tile's 1.28.0 stays in the note.
+        # hook (TestHeaderStemWordmark), and 1.31.0 on to 1.41.0, the suffix
+        # hook (TestFooterDownloads); the tile's 1.28.0 stays in the note.
         floors = {
             "components/custom/landing/header-menu.ts": "1.36.0",
-            "components/custom/header.tsx": "1.40.0",
+            "components/custom/header.tsx": "1.41.0",
         }
         for key, floor in floors.items():
             with self.subTest(key=key):
@@ -2205,8 +2209,10 @@ class TestHeaderStemWordmark(unittest.TestCase):
         self.assertEqual(set(header), set(self.SHARED))
         css = read(THEME_CSS)
         # One header rule, keyed on base's hook, scoped through <header>;
-        # nothing else in the sheet reaches the hook or the header's stem.
-        self.assertEqual(css.count("[data-brand-wordmark"), 1)
+        # the only other rule on the hook is 1.31.0's `tld` colour rule
+        # (TestFooterDownloads), which never reaches the stem.
+        self.assertEqual(css.count("[data-brand-wordmark"), 2)
+        self.assertEqual(css.count('[data-brand-wordmark="stem"]'), 1)
         self.assertEqual(css.count(self.HEADER), 1)
         # The hero rule is untouched (TestBrandString holds its size).
         hero = self.rule(self.HERO)
@@ -2225,7 +2231,10 @@ class TestHeaderStemWordmark(unittest.TestCase):
         notes = manifest["_comment"]
         self.assertIn("components/custom/header.tsx", manifest["requires"])
         note = notes["components/custom/header.tsx"]
-        self.assertTrue(note.startswith("installed by base_sdk >= 1.40.0 ("), note)
+        # 1.31.0 moved the floor on to 1.41.0 (the suffix hook); the stem
+        # hook's 1.40.0 stays in the note as the floor before that.
+        self.assertTrue(note.startswith("installed by base_sdk >= 1.41.0 ("), note)
+        self.assertIn("Before that: installed by base_sdk >= 1.40.0 (", note)
         self.assertIn('data-brand-wordmark="stem"', note)
         self.assertIn("1.29.0", note)
         self.assertIn("base_sdk floor for components/custom/header.tsx is 1.40.0 since 1.29.0", notes["about"])
@@ -2333,3 +2342,225 @@ class TestCambridgeOutline(unittest.TestCase):
         self.assertIn(
             f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
         )
+
+
+class TestFooterDownloads(unittest.TestCase):
+    """1.31.0 (Ray, 2026-09-11: "also site name the .school get primary
+    color in nextjs"; "footer has  download links let them be platform
+    icons buttons"; "this nextjs has install, it does show on mobile
+    though i havent seen it in desktop i think it installs as pwa but i
+    think it should check the platform and offer app of that platform"):
+    the footer's downloads are FooterChromeConfig.downloads entries base
+    draws as icon buttons and its InstallOffer reads, one per shown app,
+    each keyed by base's DownloadPlatform with a real BRAND_MARKS key; the
+    text links are gone from the section; and the name's suffix follows
+    the traced wordmark in the primary colour on base's `tld` hook."""
+
+    # base_sdk 1.41.0's DownloadPlatform and 1.26.0's BrandMarkId,
+    # restated: the unions lms-landing-config.ts declares locally must be
+    # these members and no other.
+    PLATFORMS = {"ios", "android", "huawei", "macos", "windows", "linux", "web"}
+    MARKS = {"googlePlay", "appGallery", "appStore", "windows", "chromeWebStore"}
+    EXPECTED = {
+        "android": ("android", "googlePlay"),
+        "huawei": ("huawei", "appGallery"),
+        "desktop": ("windows", "windows"),
+        "ios": ("ios", "appStore"),
+    }
+    TLD_RULE = '.sc-landing [data-brand-wordmark="tld"]'
+
+    @staticmethod
+    def union(name):
+        code = code_of(CONFIG)
+        match = re.search(
+            r"^export type " + name + r" =\n((?:\s*\|\s*\"[a-zA-Z]+\"\n?)+);",
+            code,
+            re.M,
+        )
+        assert match, name
+        return set(re.findall(r'"([a-zA-Z]+)"', match.group(1)))
+
+    def test_every_app_names_a_download_platform_and_a_real_mark(self):
+        apps = lift_apps()
+        self.assertEqual({app["id"] for app in apps}, set(self.EXPECTED))
+        for app in apps:
+            with self.subTest(app=app["id"]):
+                platform, mark = self.EXPECTED[app["id"]]
+                self.assertEqual(app["downloadPlatform"], platform)
+                self.assertEqual(app["mark"], mark)
+                self.assertIn(app["downloadPlatform"], self.PLATFORMS)
+                self.assertIn(app["mark"], self.MARKS)
+                # The display name is untouched beside the new key.
+                self.assertIsInstance(app["platform"], str)
+                self.assertNotEqual(app["platform"], app["downloadPlatform"])
+        # The local unions are base's, member for member.
+        self.assertEqual(self.union("DownloadPlatform"), self.PLATFORMS)
+        self.assertEqual(self.union("DownloadMark"), self.MARKS)
+        code = code_of(CONFIG)
+        self.assertIn("downloadPlatform: DownloadPlatform;", code)
+        self.assertIn("mark: DownloadMark;", code)
+        # Shown: android, huawei, desktop - ios stays demoted, so no button.
+        shown = lift_apps(shown=True)
+        self.assertEqual(
+            [(a["downloadPlatform"], a["mark"]) for a in shown],
+            [("android", "googlePlay"), ("huawei", "appGallery"), ("windows", "windows")],
+        )
+
+    def test_footer_chrome_maps_the_shown_list_into_the_downloads_field(self):
+        code = code_of(FOOTER_CHROME)
+        self.assertIn("LMS_SHOWN_APPS", code)
+        self.assertNotRegex(code, r"\bLMS_APPS\b")
+        self.assertIn(
+            'export const LMS_FOOTER_DOWNLOADS: NonNullable<FooterChromeConfig["downloads"]> =',
+            code,
+        )
+        body = code.split("LMS_SHOWN_APPS.map((app) => ({")[1].split("}));")[0]
+        for field in (
+            "id: app.id",
+            "platform: app.downloadPlatform",
+            "label: app.label",
+            "href: app.href",
+            "external: app.external",
+            "title: app.description",
+            "mark: app.mark",
+        ):
+            with self.subTest(field=field):
+                self.assertIn(field, body)
+        # No hand-written entry: the store URL, the route and the words all
+        # come through the shown list.
+        self.assertNotIn("/download/", code)
+        self.assertNotRegex(code, r"[\"']ios[\"']")
+        self.assertIn("downloads: LMS_FOOTER_DOWNLOADS,", code)
+        chrome = code.split("export const LMS_FOOTER_CHROME: FooterChromeConfig = {")[1]
+        self.assertIn("downloads: LMS_FOOTER_DOWNLOADS,", chrome)
+
+    def test_footer_section_prints_no_text_download_link(self):
+        code = code_of(FOOTER_SECTION)
+        self.assertNotIn("LMS_SHOWN_APPS", code)
+        self.assertNotRegex(code, r"\bLMS_APPS\b")
+        self.assertNotIn("app.label", code)
+        self.assertNotIn("app.href", code)
+        self.assertNotIn("{LMS_", code.split("<nav")[1].split("</nav>")[0])
+        # Sign in and Create an account stay; the row still ends the page
+        # with the chrome config that carries the downloads.
+        self.assertIn("Sign in", code)
+        self.assertIn("Create an account", code)
+        self.assertIn("<FooterChromeRow", code)
+        self.assertIn("config={LMS_FOOTER_CHROME}", code)
+        # Nothing here draws a button or an offer of its own: base does.
+        self.assertNotIn("InstallOffer", code)
+        self.assertNotIn("downloads", code)
+
+    def test_footer_draws_the_derived_suffix_after_the_wordmark_on_the_hook(self):
+        code = code_of(FOOTER_SECTION)
+        self.assertIn('import { PLATFORM_NAME } from "@/app/config/platform";', code)
+        self.assertIn(
+            'import { brandStemOf } from "@/components/custom/landing/header-menu";',
+            code,
+        )
+        self.assertIn("const stem = brandStemOf(name);", code)
+        self.assertIn('const suffix = stem === null ? "" : name.slice(stem.length);', code)
+        # Never the suffix written by hand.
+        self.assertNotIn(".school", code)
+        self.assertNotIn('"school"', code)
+        span = re.search(
+            r"<LmsWordmark[^>]*/>\s*\{suffix \? \(\s*<span\s+(.*?)>\s*\{suffix\}\s*</span>",
+            code,
+            re.S,
+        )
+        self.assertIsNotNone(span, "the suffix span does not follow the wordmark")
+        attrs = " ".join(span.group(1).split())
+        self.assertIn('aria-hidden="true"', attrs)
+        self.assertIn('data-brand-wordmark="tld"', attrs)
+        classes = re.search(r'className="([^"]+)"', attrs).group(1).split()
+        for cls in (
+            "font-[family-name:var(--sc-font-brand)]",
+            "italic",
+            "font-black",
+            "text-[var(--sc-primary)]",
+        ):
+            with self.subTest(cls=cls):
+                self.assertIn(cls, classes)
+        # The one place the hook is written in this SDK's markup.
+        self.assertEqual(code.count('data-brand-wordmark="tld"'), 1)
+        for path in (HERO_COPY, HERO_FORM, HEADER_MENU, CONFIG):
+            with self.subTest(path=os.path.basename(path)):
+                self.assertNotIn("data-brand-wordmark", code_of(path))
+
+    def test_the_tld_rule_is_the_primary_colour_and_nothing_else(self):
+        css = read(THEME_CSS)
+        rules = re.findall(re.escape(self.TLD_RULE) + r" \{([^}]*)\}", css)
+        self.assertEqual(len(rules), 1, rules)
+        rule = TestHeaderStemWordmark.declarations(rules[0])
+        self.assertEqual(rule, {"color": "var(--sc-primary)"})
+        block = css.split(self.TLD_RULE + " {")[1].split("}")[0]
+        self.assertNotIn("!important", block)
+        self.assertNotIn("#", block)
+        for name in ("supacharge", "Supacharge", "school"):
+            self.assertNotIn(name, block)
+        # The hook is in the sheet exactly twice: the stem rule and this one.
+        self.assertEqual(css.count("[data-brand-wordmark"), 2)
+        self.assertEqual(css.count(self.TLD_RULE), 1)
+        # Beside the header stem rule, after it.
+        self.assertLess(
+            css.index('.sc-landing header [data-brand-wordmark="stem"] {'),
+            css.index(self.TLD_RULE + " {"),
+        )
+        self.assertLess(css.index(self.TLD_RULE + " {"), css.index(".sc-deck"))
+
+    def test_manifest_changelog_and_footer_say_1_31_0_and_floor_base_at_1_41_0(self):
+        manifest = load_manifest()
+        self.assertGreaterEqual(
+            tuple(int(n) for n in manifest["version"].split(".")), (1, 31, 0)
+        )
+        notes = manifest["_comment"]
+        self.assertIn("1.31.0", notes["about"])
+        for ruling in (
+            "also site name the .school get primary color in nextjs",
+            "footer has  download links let them be platform icons buttons",
+            "it should check the platform and offer app of that platform",
+        ):
+            with self.subTest(ruling=ruling[:30]):
+                self.assertIn(ruling, notes["about"])
+        for key in (
+            "components/custom/footer-chrome.tsx",
+            "components/custom/landing/footer-chrome-config.ts",
+            "components/custom/header.tsx",
+        ):
+            with self.subTest(key=key):
+                self.assertIn(key, manifest["requires"])
+                self.assertTrue(
+                    notes[key].startswith("installed by base_sdk >= 1.41.0 ("), notes[key]
+                )
+                self.assertIn("Before that: installed by base_sdk >= 1.", notes[key])
+        self.assertIn(
+            "base_sdk floor for components/custom/footer-chrome.tsx, components/custom/landing/footer-chrome-config.ts and components/custom/header.tsx is 1.41.0 since 1.31.0",
+            notes["about"],
+        )
+        for name in ("lms-footer-chrome.ts", "lms-footer-section.tsx", "lms-landing-config.ts"):
+            with self.subTest(install=name):
+                entry = [e for e in manifest["installs"] if e["from"].endswith("/" + name)][0]
+                self.assertIn("Since 1.31.0", entry["_comment"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.30.0")[0].split())
+        self.assertIn("## 1.31.0", head)
+        for ruling in (
+            "also site name the .school get primary color in nextjs",
+            "footer has  download links let them be platform icons buttons",
+            "this nextjs has install, it does show on mobile though i havent seen it in desktop i think it installs as pwa but i think it should check the platform and offer app of that platform",
+        ):
+            with self.subTest(ruling=ruling[:30]):
+                # The changelog quotes the ruling verbatim, double space and
+                # all; `head` is whitespace-collapsed, so compare it so.
+                self.assertIn(ruling, changelog)
+                self.assertIn(" ".join(ruling.split()), head)
+        self.assertIn("base_sdk >= 1.41.0", head)
+        self.assertIn("`.sc-landing [data-brand-wordmark=\"tld\"]`", head)
+        self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.31.0", head)
+        self.assertIn(
+            f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
+        )
+        # Never the file format, the demo words or the other curriculum name.
+        for word in ("APK", "demo", "sample", "example", "lorem", "CAIE"):
+            with self.subTest(word=word):
+                self.assertNotRegex(head, r"(?i)\b" + word + r"\b")
