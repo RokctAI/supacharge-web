@@ -208,6 +208,22 @@ html.light .sc-landing {
   text-transform: uppercase;
   color: var(--sc-ink-2);
 }
+/*
+ * The badged curriculum and its pill in ONE border-only rectangle (Ray,
+ * 2026-09-10: "i think cambridge and its label should be in a border only
+ * rectangle to give it distiction."; 2026-09-11: "give the border primary
+ * color"). lms-curricula.tsx puts this class on the non-breaking span a
+ * badged name and its MenuLabel already share, so one outline holds both;
+ * an unbadged name has no span and no outline. The primary token
+ * .sc-chip-primary draws its edge with, no fill, 10px corners, padding
+ * tight to the text.
+ */
+.sc-curriculum-outlined {
+  border: 1px solid var(--sc-primary);
+  border-radius: 10px;
+  padding: 2px 8px;
+  background: transparent;
+}
 .sc-brand {
   font-family: var(--sc-font-brand);
   font-style: italic;
