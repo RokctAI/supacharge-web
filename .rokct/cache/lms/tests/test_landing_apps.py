@@ -2064,9 +2064,11 @@ class TestCurricula(unittest.TestCase):
         )
         # The name and its pill share one non-breaking span: the pill comes
         # right after the name, on the same line, and nothing else follows.
+        # Since 1.30.0 the span is also the border-only rectangle
+        # (TestCambridgeOutline): the class and the attribute ride it.
         self.assertRegex(
             source,
-            r'<span className="[^"]*whitespace-nowrap[^"]*">\s*\{item\.name\}\s*<MenuLabel badge=\{item\.badge\} />\s*</span>',
+            r'<span\s+className="[^"]*whitespace-nowrap[^"]*"\s+data-curriculum-outlined=""\s*>\s*\{item\.name\}\s*<MenuLabel badge=\{item\.badge\} />\s*</span>',
         )
         self.assertNotIn("aria-disabled", source)
         self.assertNotIn("<a", source)
@@ -2233,3 +2235,101 @@ class TestHeaderStemWordmark(unittest.TestCase):
         self.assertIn("base_sdk >= 1.40.0", head)
         self.assertIn('`.sc-landing header [data-brand-wordmark="stem"]`', head)
         self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.29.0", head)
+
+
+class TestCambridgeOutline(unittest.TestCase):
+    """1.30.0 (Ray, 2026-09-10: "i think cambridge and its label should be
+    in a border only rectangle to give it distiction."): the badged
+    curriculum and its pill sit in ONE border-only rectangle - the span
+    lms-curricula.tsx already gives a badged name, now carrying
+    `sc-curriculum-outlined` and `data-curriculum-outlined` - drawn by one
+    rule in lms-theme.css with the primary token (Ray, 2026-09-11: "give
+    the border primary color"), no fill and 10px corners. An unbadged name
+    (CAPS, IEB) has no span and no outline."""
+
+    RULE = ".sc-curriculum-outlined"
+
+    def rule(self):
+        css = read(THEME_CSS)
+        rules = re.findall(re.escape(self.RULE) + r" \{([^}]*)\}", css)
+        self.assertEqual(len(rules), 1, rules)
+        return TestHeaderStemWordmark.declarations(rules[0])
+
+    def test_only_the_badged_branch_wraps_and_the_wrapper_carries_the_hooks(self):
+        source = code_of(CURRICULA)
+        body = re.search(
+            r"function CurriculumName\(.*?\n\}", source, re.S
+        ).group(0)
+        # The unbadged branch returns the bare name: no span, no class.
+        self.assertIn("if (!item.badge) return <>{item.name}</>;", body)
+        self.assertEqual(body.count("<span"), 1)
+        self.assertEqual(body.count("sc-curriculum-outlined"), 1)
+        self.assertEqual(body.count("data-curriculum-outlined"), 1)
+        # Class and attribute are on the one span that holds name and pill.
+        self.assertRegex(
+            body,
+            r'<span\s+className="sc-curriculum-outlined [^"]*whitespace-nowrap[^"]*"\s+data-curriculum-outlined=""\s*>\s*\{item\.name\}\s*<MenuLabel badge=\{item\.badge\} />\s*</span>',
+        )
+        # Nothing else in the sheet or the landing markup takes the hook.
+        self.assertEqual(code_of(CURRICULA).count("data-curriculum-outlined"), 1)
+        for path in (SUBJECTS_SECTION, FEATURES_SECTION, CONFIG):
+            with self.subTest(path=os.path.basename(path)):
+                self.assertNotIn("sc-curriculum-outlined", code_of(path))
+                self.assertNotIn("data-curriculum-outlined", code_of(path))
+        # Cambridge is still the only badged curriculum, so the only outline.
+        badged = [c["name"] for c in lift_subjects()["curricula"] if c.get("badge")]
+        self.assertEqual(badged, ["Cambridge"])
+
+    def test_the_rule_is_a_primary_border_only_rectangle_with_10px_corners(self):
+        rule = self.rule()
+        self.assertEqual(rule["border"], "1px solid var(--sc-primary)")
+        self.assertEqual(rule["background"], "transparent")
+        self.assertEqual(rule["border-radius"], "10px")
+        self.assertEqual(rule["padding"], "2px 8px")
+        self.assertEqual(
+            set(rule), {"border", "background", "border-radius", "padding"}
+        )
+        css = read(THEME_CSS)
+        self.assertEqual(css.count(self.RULE), 1)
+        block = css.split(self.RULE + " {")[1].split("}")[0]
+        self.assertNotIn("!important", block)
+        self.assertNotIn("#", block)  # the token, never a hard-coded colour
+        for name in ("supacharge", "Supacharge", "Cambridge", "CAIE"):
+            self.assertNotIn(name, block)
+        # The primary token the rule reads is the one .sc-chip-primary
+        # borders with (one definition, both themes), never a hex here.
+        self.assertRegex(css, r"--sc-primary:\s*#[0-9a-fA-F]{6};")
+        chip_primary = css.split(".sc-chip-primary {")[1].split("}")[0]
+        self.assertIn("border-color: var(--sc-primary);", chip_primary)
+
+    def test_manifest_changelog_and_footer_say_1_30_0(self):
+        manifest = load_manifest()
+        self.assertGreaterEqual(
+            tuple(int(n) for n in manifest["version"].split(".")), (1, 30, 0)
+        )
+        notes = manifest["_comment"]
+        self.assertIn("1.30.0", notes["about"])
+        self.assertIn("border-only rectangle", notes["about"])
+        self.assertIn("give the border primary color", notes["about"])
+        entry = [
+            e
+            for e in manifest["installs"]
+            if e["from"].endswith("landing/lms-curricula.tsx")
+        ][0]
+        self.assertIn("Since 1.30.0", entry["_comment"])
+        self.assertIn("sc-curriculum-outlined", entry["_comment"])
+        # The base floors are where 1.29.0 left them.
+        self.assertIn("base_sdk >= 1.40.0", notes["components/custom/header.tsx"])
+        self.assertIn("base_sdk >= 1.14.0", notes["components/custom/menu-label.tsx"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.29.0")[0].split())
+        self.assertIn("## 1.30.0", head)
+        self.assertIn("i think cambridge and its label should be in a border only rectangle", head)
+        self.assertIn("`.sc-curriculum-outlined`", head)
+        self.assertIn("give the border primary color", head)
+        self.assertIn("`border: 1px solid var(--sc-primary)`", head)
+        self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.30.0", head)
+        self.assertIn("No base_sdk floor moves", head)
+        self.assertIn(
+            f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
+        )

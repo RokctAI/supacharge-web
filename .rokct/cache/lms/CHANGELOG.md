@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.30.0
+
+* Cambridge and its soon pill sit in ONE border-only rectangle with a
+  primary-colour border (Ray, 2026-09-10: "i think cambridge and its label
+  should be in a border only rectangle to give it distiction."; 2026-09-11:
+  "give the border primary color"). The curriculum line, "Built for CAPS,
+  IEB and Cambridge", already gave a badged name and its pill one
+  non-breaking span in `lms-curricula.tsx`; that span is now the rectangle.
+  CAPS and IEB carry no badge, get no span and render exactly as before;
+  the pill itself is untouched.
+  * `lms-curricula.tsx`: the badged span takes the class
+    `sc-curriculum-outlined` and `data-curriculum-outlined=""`; nothing
+    else in the markup moves, and the gap between the name and the pill is
+    what it was. Base's `MenuLabel` is untouched: the rectangle is lms's
+    own markup around it.
+  * ONE new rule in `lms-theme.css`, `.sc-curriculum-outlined`, beside
+    `.sc-eyebrow`: `border: 1px solid var(--sc-primary)` (the primary
+    token `.sc-chip-primary` already draws its edge with, so the border is
+    the brand orange in both themes), `border-radius: 10px`,
+    `padding: 2px 8px`, `background: transparent`. No fill, no
+    `!important`, no hard-coded colour, no brand string.
+  * `tests/test_landing_apps.py` (the suite goes from 131 to 134):
+    `TestCambridgeOutline` holds that only the badged branch wraps and
+    that the wrapper carries the class and the attribute, that the rule
+    exists exactly once with the 1px primary-token border, the transparent
+    background and the 10px radius, and that the manifest, the changelog
+    and `LMS_LANDING_VERSION` say 1.30.0. `TestCurricula`'s markup
+    regex admits the attribute.
+* Version-only side effects: `manifest.json` 1.29.0 -> 1.30.0.
+  `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.30.0 with it.
+  No base_sdk floor moves: `components/custom/header.tsx` stays at 1.40.0
+  (since 1.29.0) and `components/custom/menu-label.tsx` at 1.14.0.
+
 ## 1.29.0
 
 * The header's stem wordmark is drawn in the brand face (Ray, 2026-09-11:

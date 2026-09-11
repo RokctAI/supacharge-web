@@ -31,6 +31,14 @@
 // plain text - no link, no choice to disable - so nothing carries
 // aria-disabled.
 //
+// Ray, 2026-09-10: "i think cambridge and its label should be in a border
+// only rectangle to give it distiction."; 2026-09-11: "give the border
+// primary color". The non-breaking span a badged name and its pill already
+// share is that rectangle: it carries `sc-curriculum-outlined`
+// (lms-theme.css: a 1px primary-token border, no fill, 10px corners, tight
+// padding) and `data-curriculum-outlined` for the tests. An unbadged name has no span, so CAPS and IEB are exactly as they
+// were.
+//
 // No "use client": MenuLabel is a plain component, so both server entries
 // (lms-subjects-section.tsx, lms-features-section.tsx) render this on the
 // server and the pill is in the first HTML.
@@ -54,7 +62,10 @@ export function curriculumSeparator(index: number, count: number): string {
 function CurriculumName({ item }: { item: Curriculum }) {
   if (!item.badge) return <>{item.name}</>;
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap align-baseline">
+    <span
+      className="sc-curriculum-outlined inline-flex items-center gap-1.5 whitespace-nowrap align-baseline"
+      data-curriculum-outlined=""
+    >
       {item.name}
       <MenuLabel badge={item.badge} />
     </span>
