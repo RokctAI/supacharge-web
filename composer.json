@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Active Next.js SDK list for the supacharge-web shell (composed by The-Rokct-Protocol core/utils/nextjs/sdk_composer.py)",
   "_comment": "Registry templates are canonical: when core/utils/frappe/composer/supacharge.json carries an 'sdks' array, the composer materializes composer.json from it and that wins over this committed copy (same clobber semantics as the flutter lane). That template now DOES carry an 'sdks' array, so every compose replaces this file with the registry's text; this committed copy is kept only as the offline record of this shell's Next.js composition floor per SDK_ECOSYSTEM.md hard invariant 9. Change the registry template first, then mirror it here so the two do not drift.",
+  "data": "hybrid",
+  "_data_comment": "Shell-owned key (the composer's SHELL_OWNED_COMPOSER_KEYS carries it across every materialised template). base_sdk 1.35.0 site-data mode: hybrid bundles whatever data/ holds at build time (package.json prebuild -> lib/site-data/generate.mjs) and falls back to the backend for every kind with no file. Since base_sdk 1.45.0 the public terms list (/legal, the footer's Legal row) falls back to bundled data/legal/<slug>.md when the backend publishes nothing - Ray, 2026-09-11 20:36Z: \"still no legal pages in supa\". The documents themselves are Ray's to supply under data/legal/; until they exist the mode changes nothing.",
   "sdks": [
     {
       "name": "telemetry_sdk",

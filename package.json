@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node lib/site-data/generate.mjs",
     "dev": "next dev --turbo",
+    "prebuild": "node lib/site-data/generate.mjs",
     "build": "next build",
     "start": "next start",
     "db:migrate": "tsx -r dotenv/config db/migrate",
