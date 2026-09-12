@@ -1,5 +1,69 @@
 # Changelog
 
+## 1.31.1
+
+* The footer shows Ray's traced SVG wordmark alone again, as it did through
+  1.30.0 (Ray, 2026-09-11, 20:33:16Z, verbatim:
+  "i dont think i told you to add .school to footer"). 1.31.0 drew the
+  site name's suffix after the footer's wordmark in the primary colour,
+  reading the 07:34:03Z ruling ("also site name the .school get primary
+  color in nextjs") as reaching the footer; that ruling covered the site
+  name in the header only. The header is untouched: base_sdk 1.41.0's
+  suffix span in the header's stem wordmark still reads primary through the
+  same `lms-theme.css` rule.
+  * `lms-footer-section.tsx`: the suffix span on the
+    `data-brand-wordmark="tld"` hook, its `PLATFORM_NAME` / `brandStemOf`
+    derivation and the two sizing constants are gone; the wordmark renders
+    as `<LmsWordmark height={34} />` alone, the markup 1.30.0 had. No file
+    of this SDK carries the hook now. The SVG's own `aria-label`, which
+    names the full site name, is `lms-wordmark.tsx`'s (1.21.0) and stays;
+    the artwork is untouched.
+  * `lms-theme.css`: the rule `.sc-landing [data-brand-wordmark="tld"]` is
+    unchanged - it is what colours the header's suffix, the one Ray asked
+    for - and its comment now says the header's span is the one element it
+    reaches. Base's mechanism is left whole.
+  * No base_sdk floor moves. `LMS_LANDING_VERSION` in `lms-footer-chrome.ts`
+    goes to 1.31.1; the manifest's `about` and the footer section's install
+    note say why.
+  * Tests: `TestFooterDownloads` no longer expects a footer suffix; it
+    asserts the footer wordmark has no `tld` or suffix node and that
+    1.31.1's manifest and changelog quote the ruling.
+* The hero headline is the rotating word alone (Ray, 2026-09-11, 20:39:47Z,
+  verbatim: `hero drop "with suparcharge"`). `lms-hero-copy.ts` declares
+  `headlineSuffix: ""` in place of the `"with Supacharge"` that followed
+  every headline word since the hero copy existed; the three words are
+  unchanged and each verb stays empty, so no headline string ends with
+  "with" and nothing in the `<h1>` names the brand. The hero's wordmark
+  slot above the headline - base's `HeroWordmarkSlot`, filled by the copy's
+  `brand: "stem"` - is a different element and is untouched: it is what
+  keeps ".school" out of the hero (1.24.0), and without it base draws the
+  host's full-name branding. Base is not edited.
+  * Tests: `TestHeroHeadline` asserts the suffix is empty, that no headline
+    word or verb ends with "with", and that the copy requests no brand
+    wordmark in the headline (`brand` names the slot only).
+* The company pages are linked from the site (Ray, 2026-09-11, 20:44:16Z,
+  verbatim: "https://supacharge.school/about we have no way to get here and
+  its so disconnected to the rest of the site"). corporate_sdk 1.1.0
+  installs `app/about/page.tsx` and `app/team/page.tsx` on the school, and
+  lms's founder card fills the about page (1.27.0), but no menu of this SDK
+  linked either route: every header entry and every footer link was a
+  section anchor on the landing page.
+  * `lms-header-menu.ts`: one fixed link, `{ id: "about", label: "About",
+    href: "/about" }` (`HeaderMenu.links`, base's own fixed-link shape, the
+    one agent_sdk's header menu uses), beside the two anchors, so the bar reads
+    `[Explore v]  Pricing  FAQ  About`. A route, not a section id, so it is
+    not an anchor base resolves against the live nav and the label is this
+    module's own. The groups are unchanged.
+  * `lms-landing-config.ts`: `footer.links` gains `About` -> `/about` and
+    `Team` -> `/team` after the five section anchors; `lms-footer-section.tsx`
+    renders the list as it did. Team is the footer's alone. No other route
+    is added: these are the two corporate_sdk 1.1.0 installs.
+  * Tests: `TestCompanyLinks` (new) asserts the header's one fixed link is
+    About -> /about, the footer's last two links are About and Team, no
+    other route href appears in either, and the manifest and this entry
+    quote the ruling; `TestHeaderGroups` now expects that one fixed link
+    in place of none.
+
 ## 1.31.0
 
 * The name's suffix in the primary colour (Ray, 2026-09-11, 07:34:03Z:

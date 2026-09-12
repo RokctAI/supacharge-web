@@ -57,6 +57,7 @@ components/custom/theme-provider.tsx
 /app/(auth)/auth.config.ts
 /app/(auth)/auth.ts
 /app/(auth)/forgot-password/page.tsx
+/app/(auth)/login/brand-heading.ts
 /app/(auth)/login/login-view.tsx
 /app/(auth)/login/page.tsx
 /app/(auth)/register-link.ts

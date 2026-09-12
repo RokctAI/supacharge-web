@@ -1057,6 +1057,14 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       { label: "Tutors", href: "#tutors" },
       { label: "Partners", href: "#partners" },
       { label: "FAQ", href: "#faq" },
+      // The company pages, since 1.31.1 (Ray, 2026-09-11, 20:44:16Z:
+      // "https://supacharge.school/about we have no way to get here and
+      // its so disconnected to the rest of the site"): the two routes
+      // corporate_sdk 1.1.0 installs, app/about/page.tsx and
+      // app/team/page.tsx, and no other. The header menu links About too
+      // (lms-header-menu.ts); Team is the footer's alone.
+      { label: "About", href: "/about" },
+      { label: "Team", href: "/team" },
     ],
     legal: `© ${new Date().getFullYear()} ROKCT INTELLIGENCE (PTY) LTD`,
   },

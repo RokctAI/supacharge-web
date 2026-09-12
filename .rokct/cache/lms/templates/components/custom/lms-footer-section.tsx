@@ -14,10 +14,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// The landing page's footer: the wordmark with the name's suffix in the
-// primary colour, the motto, the section links, the auth links the page
-// hands in, and the copyright row with the app download buttons and the
-// install offer. Copy: LMS_LANDING_CONFIG.footer.
+// The landing page's footer: the wordmark, the motto, the section links,
+// the auth links the page hands in, and the copyright row with the app
+// download buttons and the install offer. Copy: LMS_LANDING_CONFIG.footer.
 //
 // The app links (1.12.0-1.30.0: one text link per shown app in the nav)
 // are gone from this file since 1.31.0 (Ray, 2026-09-11: "footer has
@@ -27,15 +26,14 @@
 // InstallOffer beside them offering the build for the visitor's own
 // device. Sign in and Create an account stay where they were.
 //
-// The wordmark's suffix (1.31.0; Ray, 2026-09-11: "also site name the
-// .school get primary color in nextjs"): the traced SVG draws the name's
-// stem only, so the text after the first dot of the name the shell
-// declares (PLATFORM_NAME, cut by base's brandStemOf - the one stem rule
-// the header and the hero fold by; never a hard-coded suffix) is drawn
-// after it in the brand face, in the primary colour, on the same
-// `data-brand-wordmark="tld"` hook base_sdk 1.41.0 puts on the header's
-// suffix, so lms-theme.css colours both with ONE rule. aria-hidden: the
-// SVG's aria-label already says the full name.
+// The wordmark is the traced SVG alone (lms-wordmark.tsx), as it was
+// through 1.30.0. 1.31.0 drew the name's suffix after it in the primary
+// colour, reading Ray's 07:34:03Z ruling ("also site name the .school get
+// primary color in nextjs") as reaching the footer; it covered the site
+// name in the header only (Ray, 2026-09-11, 20:33:16Z: "i dont think i
+// told you to add .school to footer"), so 1.31.1 takes the suffix span
+// out again. Nothing here carries `data-brand-wordmark`: the header's
+// suffix is base's own span, and lms-theme.css still colours THAT one.
 //
 // The last row is base_sdk's shared chrome (FooterChromeRow, base_sdk
 // >= 1.12.0) rather than a bare legal line: the same copyright row rokct.ai
@@ -61,9 +59,7 @@
 import React from "react";
 import Link from "next/link";
 
-import { PLATFORM_NAME } from "@/app/config/platform";
 import { FooterChromeRow } from "@/components/custom/footer-chrome";
-import { brandStemOf } from "@/components/custom/landing/header-menu";
 import { LmsWordmark } from "@/components/custom/landing/lms-wordmark";
 import { LMS_FOOTER_CHROME } from "@/components/custom/landing/lms-footer-chrome";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
@@ -74,20 +70,6 @@ import type {
 
 /** The wordmark's height in px; the traced glyphs set the width. */
 const WORDMARK_HEIGHT = 34;
-/**
- * The suffix's font size: what puts the brand face's lowercase on the
- * traced glyphs' x-height. The trace's baseline sits at 100 of its 124
- * units and its lowercase reaches 44, so the letters are 56/124 of the
- * height; Montserrat's x-height is 0.53em, which gives 0.85 of the height.
- */
-const TLD_FONT_SIZE = Math.round(WORDMARK_HEIGHT * 0.85);
-/**
- * What lifts the suffix's baseline on to the trace's: the trace's
- * baseline is 24/124 of the height above its bottom edge, the face's
- * descent at that size is a little less, so the span - bottom-aligned
- * with the SVG - sits its text 0.08 of the height too low without this.
- */
-const TLD_BASELINE_LIFT = Math.round(WORDMARK_HEIGHT * 0.08);
 
 export function LmsFooterSection({
   id,
@@ -101,14 +83,6 @@ export function LmsFooterSection({
   const config = LMS_LANDING_CONFIG.footer;
   if (!config) return null;
 
-  // The suffix after the stem of the name the shell declares: ".school"
-  // for "supacharge.school", nothing for an undotted name (brandStemOf
-  // answers null and no span renders). Cut at the stem's length, as the
-  // header cuts its own suffix, so the two never disagree.
-  const name = PLATFORM_NAME.trim();
-  const stem = brandStemOf(name);
-  const suffix = stem === null ? "" : name.slice(stem.length);
-
   return (
     <footer
       id={id}
@@ -117,19 +91,7 @@ export function LmsFooterSection({
       <div className="container mx-auto px-4 xl:px-0 max-w-6xl flex flex-col gap-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div className="flex flex-col gap-2">
-            <div className="flex items-end">
-              <LmsWordmark height={WORDMARK_HEIGHT} className="text-[var(--sc-ink)]" />
-              {suffix ? (
-                <span
-                  aria-hidden="true"
-                  data-brand-wordmark="tld"
-                  className="font-[family-name:var(--sc-font-brand)] italic font-black leading-none tracking-[-0.03em] text-[var(--sc-primary)]"
-                  style={{ fontSize: TLD_FONT_SIZE, marginBottom: TLD_BASELINE_LIFT }}
-                >
-                  {suffix}
-                </span>
-              ) : null}
-            </div>
+            <LmsWordmark height={WORDMARK_HEIGHT} className="text-[var(--sc-ink)]" />
             <p className="text-xl font-semibold text-[var(--sc-primary)]">
               {config.motto}
             </p>
