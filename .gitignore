@@ -190,6 +190,7 @@ components/custom/theme-provider.tsx
 /components/custom/company/markdown-parser.ts
 /components/custom/company/markdown.tsx
 /components/custom/company/team-grid.tsx
+/components/custom/download-buttons.tsx
 /components/custom/footer-chrome.tsx
 /components/custom/header-menu.tsx
 /components/custom/header.tsx
@@ -237,6 +238,7 @@ components/custom/theme-provider.tsx
 /components/custom/landing/page-sections.ts
 /components/custom/landing/plans-query.ts
 /components/custom/landing/platform-glyphs.tsx
+/components/custom/landing/site-frame.ts
 /components/custom/landing/site-metadata.ts
 /components/custom/landing/team-assets.ts
 /components/custom/landing/testimonials-marquee.tsx
@@ -271,6 +273,7 @@ components/custom/theme-provider.tsx
 /components/custom/network-strip.tsx
 /components/custom/paas-login.tsx
 /components/custom/session-provider.tsx
+/components/custom/site-frame.tsx
 /components/custom/site-theme.tsx
 /components/custom/submit-button.tsx
 /components/custom/theme-provider.client.tsx

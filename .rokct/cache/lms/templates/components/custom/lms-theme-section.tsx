@@ -51,6 +51,15 @@ export const meta: PageSectionMeta = {
   order: -2,
   nav: [],
   rootClass: LMS_ROOT_CLASS,
+  // Since 1.31.3 part of the SITE FRAME (base_sdk 1.47.0's
+  // PageSectionMeta.frame): base's site-frame.tsx also draws this section -
+  // the tokens and the root class - around a composed page that sits in
+  // the frame (corporate_sdk 1.2.0's /about, /team and /legal), so those
+  // pages read as the rest of the site (Ray, 2026-09-11, 20:44:16Z:
+  // "https://supacharge.school/about we have no way to get here and its so
+  // disconnected to the rest of the site"). On the landing it renders
+  // exactly as before, by its order.
+  frame: true,
 };
 
 export default function LmsThemeSection(_props: PageSectionProps) {

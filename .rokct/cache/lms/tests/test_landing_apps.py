@@ -1508,7 +1508,8 @@ class TestServerHooks(unittest.TestCase):
         self.assertIn("rootClass: LMS_ROOT_CLASS,", code)
         self.assertRegex(
             code,
-            r"export const meta: PageSectionMeta = \{\s*order: -2,\s*nav: \[\],\s*rootClass: LMS_ROOT_CLASS,\s*\};",
+            # 1.31.3 adds `frame: true` after rootClass (TestSiteFrameAndHeroLogo).
+            r"export const meta: PageSectionMeta = \{\s*order: -2,\s*nav: \[\],\s*rootClass: LMS_ROOT_CLASS,(\s*//[^\n]*)*\s*frame: true,\s*\};",
         )
         self.assertIn(
             'import { LMS_ROOT_CLASS } from "@/components/custom/landing/lms-theme-classes";',
@@ -1842,10 +1843,16 @@ class TestFounderCard(unittest.TestCase):
         notes = manifest["_comment"]
         self.assertIn("1.27.0", notes["about"])
         self.assertIn("1.38.0", notes["about"])
+        # 1.31.3 moved the registry's floor on to 1.47.0, the site frame
+        # (TestSiteFrameAndHeroLogo); the page slot's 1.38.0 stays in the note.
         self.assertTrue(
             notes["components/custom/landing/page-sections.ts"].startswith(
-                "installed by base_sdk >= 1.38.0"
+                "installed by base_sdk >= 1.47.0"
             )
+        )
+        self.assertIn(
+            "Before that: installed by base_sdk >= 1.38.0",
+            notes["components/custom/landing/page-sections.ts"],
         )
         self.assertIn(
             "PageSectionMeta.page", notes["components/custom/landing/page-sections.ts"]
@@ -2517,7 +2524,8 @@ class TestFooterDownloads(unittest.TestCase):
         self.assertIn("Sign in", code)
         self.assertIn("Create an account", code)
         self.assertIn("<FooterChromeRow", code)
-        self.assertIn("config={LMS_FOOTER_CHROME}", code)
+        # Since 1.31.2 the config is spread, with base's Legal group beside it.
+        self.assertIn("config={{ ...LMS_FOOTER_CHROME,", code)
         # Nothing here draws a button or an offer of its own: base does.
         self.assertNotIn("InstallOffer", code)
         self.assertNotIn("downloads", code)
@@ -2583,7 +2591,9 @@ class TestFooterDownloads(unittest.TestCase):
         self.assertIn("header", head)
         self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.31.1", head)
         self.assertIn("No base_sdk floor moves", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.31.1"', read(FOOTER_CHROME))
+        self.assertIn(
+            f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
+        )
         for word in ("APK", "demo", "sample", "example", "lorem", "CAIE"):
             with self.subTest(word=word):
                 self.assertNotRegex(head, r"(?i)\b" + word + r"\b")
@@ -2751,3 +2761,256 @@ class TestCompanyLinks(unittest.TestCase):
         self.assertIn("`Team` -> `/team`", head)
         self.assertIn("corporate_sdk 1.1.0", head)
         self.assertIn("`TestCompanyLinks`", head)
+
+
+class TestFooterLegalLinks(unittest.TestCase):
+    """1.31.2 (Ray, 2026-09-11, 20:36:37Z: "still no legal pages in supa,
+    even rokct they still #"): the footer's copyright row carries base_sdk's
+    Legal link group. base's FooterChromeRow draws link groups only from
+    `config.links`, and LMS_FOOTER_CHROME declared none, so no legal link
+    ever rendered. The section - a server component - now awaits base's
+    guest read and spreads the group over the chrome config. Nothing here
+    authors a document, a title or a route: the words are the documents'
+    and the pages are corporate_sdk's."""
+
+    RULING = "still no legal pages in supa, even rokct they still #"
+    ACTION_IMPORT = 'import { listPublicTerms } from "@/app/actions/base/legal";'
+    LINKS_IMPORT = (
+        'import { legalFooterLinks } from "@/components/custom/landing/legal-links";'
+    )
+    ROW = "config={{ ...LMS_FOOTER_CHROME, links: legalFooterLinks(terms) }}"
+
+    def test_section_imports_the_read_and_the_rule_from_base(self):
+        section = code_of(FOOTER_SECTION)
+        self.assertIn(self.ACTION_IMPORT, section)
+        self.assertIn(self.LINKS_IMPORT, section)
+        # Base's paths, each once; nothing of this SDK restates them.
+        self.assertEqual(section.count("listPublicTerms"), 2)
+        self.assertEqual(section.count("legalFooterLinks"), 2)
+        self.assertNotIn("legal-links", section.replace(self.LINKS_IMPORT, ""))
+
+    def test_section_awaits_the_list_on_the_server(self):
+        section = code_of(FOOTER_SECTION)
+        self.assertIn("export async function LmsFooterSection(", section)
+        self.assertIn("const terms = await listPublicTerms();", section)
+        # The await sits inside the component, after the config guard and
+        # before the markup.
+        body = section.split("export async function LmsFooterSection(", 1)[1]
+        self.assertLess(body.index("if (!config) return null;"), body.index("await listPublicTerms()"))
+        self.assertLess(body.index("await listPublicTerms()"), body.index("<footer"))
+        # Still a server module: base reads meta in the server render (1.24.0).
+        self.assertNotIn('"use client"', section)
+        self.assertFalse(read(FOOTER_SECTION).lstrip().startswith('"use client"'))
+
+    def test_row_spreads_the_chrome_config_and_passes_links(self):
+        section = code_of(FOOTER_SECTION)
+        self.assertIn(self.ROW, section)
+        self.assertEqual(section.count("<FooterChromeRow"), 1)
+        # The bare config is no longer passed; the spread is the one use.
+        self.assertNotIn("config={LMS_FOOTER_CHROME}", section)
+        # The chrome config itself declares no links: the group is the
+        # read's, never a hard-coded list.
+        chrome = code_of(FOOTER_CHROME)
+        self.assertNotIn("links", chrome)
+        self.assertNotIn("legal", chrome.lower())
+
+    def test_section_names_no_legal_route_or_title(self):
+        section = code_of(FOOTER_SECTION)
+        body = section.replace(self.ACTION_IMPORT, "").replace(self.LINKS_IMPORT, "")
+        for word in ('"/legal', "Terms and", "Privacy", "Policy", "Legal", "legal"):
+            with self.subTest(word=word):
+                self.assertNotIn(word, body.replace("legalFooterLinks", ""))
+        # The nav is untouched: the config list, then the two auth links.
+        self.assertIn("config.links.map((link) => (", section)
+        self.assertIn("Sign in", section)
+        self.assertIn("Create an account", section)
+
+    def test_manifest_and_changelog_quote_the_ruling(self):
+        manifest = load_manifest()
+        self.assertGreaterEqual(
+            tuple(int(n) for n in manifest["version"].split(".")), (1, 31, 2)
+        )
+        notes = manifest["_comment"]
+        self.assertIn("Since 1.31.2", notes["about"])
+        self.assertIn("20:36:37Z", notes["about"])
+        self.assertIn(self.RULING, notes["about"])
+        for key in ("app/actions/base/legal.ts", "components/custom/landing/legal-links.ts"):
+            with self.subTest(key=key):
+                self.assertIn(key, manifest["requires"])
+                self.assertTrue(
+                    notes[key].startswith("installed by base_sdk >= 1.37.0 ("), notes[key]
+                )
+                self.assertIn("1.31.2", notes[key])
+        self.assertIn("base_sdk 1.45.0", notes["app/actions/base/legal.ts"])
+        entry = [
+            e for e in manifest["installs"] if e["from"].endswith("/lms-footer-section.tsx")
+        ][0]
+        self.assertIn("Since 1.31.2", entry["_comment"])
+        self.assertIn(self.RULING, entry["_comment"])
+        self.assertIn("listPublicTerms()", entry["_comment"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.31.1")[0].split())
+        self.assertIn("## 1.31.2", head)
+        self.assertIn("20:36:37Z", head)
+        self.assertIn(self.RULING, head)
+        self.assertIn("`listPublicTerms()`", head)
+        self.assertIn("`legalFooterLinks`", head)
+        self.assertIn("base_sdk 1.45.0", head)
+        self.assertIn("no base_sdk floor moves", head)
+        self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.31.2", head)
+        self.assertIn("`TestFooterLegalLinks`", head)
+        self.assertIn(
+            f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
+        )
+        for word in ("APK", "demo", "sample", "example", "lorem", "CAIE"):
+            with self.subTest(word=word):
+                self.assertNotRegex(head, r"(?i)\b" + word + r"\b")
+
+
+class TestSiteFrameAndHeroLogo(unittest.TestCase):
+    """1.31.3: two declarations base_sdk switches on. The hero copy says
+    `logo: "none"` (base_sdk 1.46.0's HeroConfig.logo) so base draws no host
+    logo tile beside the wordmark slot the traced wordmark already fills
+    (Ray, 2026-09-11, 20:39:12Z: "login register page, no s, full supacharge
+    without .school"), and the theme and footer sections say `frame: true`
+    (base_sdk 1.47.0's PageSectionMeta.frame) so base's site frame draws them
+    around corporate_sdk's composed pages (Ray, 2026-09-11, 20:44:16Z:
+    "https://supacharge.school/about we have no way to get here and its so
+    disconnected to the rest of the site"). Nothing here adds a link, a
+    colour or a brand string."""
+
+    RULING_LOGO = "login register page, no s, full supacharge without .school"
+    RULING_FRAME = (
+        "https://supacharge.school/about we have no way to get here and its so "
+        "disconnected to the rest of the site"
+    )
+    FLOOR = "1.47.0"
+    FLOORED = (
+        "components/custom/landing/page-sections.ts",
+        "components/custom/landing/hero-config.ts",
+    )
+
+    def meta_of(self, path):
+        code = code_of(path)
+        match = re.search(r"export const meta: PageSectionMeta = \{(.*?)\};", code, re.S)
+        self.assertIsNotNone(match, path)
+        return match.group(1)
+
+    def test_theme_meta_marks_the_frame(self):
+        meta = self.meta_of(THEME_SECTION)
+        self.assertIn("frame: true", meta)
+        self.assertEqual(meta.count("frame:"), 1)
+        # Everything 1.24.0 declared is still there, in its order.
+        self.assertLess(meta.index("order: -2"), meta.index("nav: []"))
+        self.assertLess(meta.index("nav: []"), meta.index("rootClass: LMS_ROOT_CLASS"))
+        self.assertLess(meta.index("rootClass: LMS_ROOT_CLASS"), meta.index("frame: true"))
+        # Still a server module: base reads meta in the server render.
+        self.assertNotIn('"use client"', code_of(THEME_SECTION))
+
+    def test_footer_meta_marks_the_frame(self):
+        meta = self.meta_of(FOOTER_SECTION)
+        self.assertIn("frame: true", meta)
+        self.assertEqual(meta.count("frame:"), 1)
+        for field in ("order: 95", "nav: []", 'anchor: "site-footer"'):
+            with self.subTest(field=field):
+                self.assertIn(field, meta)
+        self.assertNotIn('"use client"', code_of(FOOTER_SECTION))
+        # Only the meta changes: the markup, the links and the copy are as
+        # 1.31.2 left them.
+        section = code_of(FOOTER_SECTION)
+        self.assertIn("config.links.map((link) => (", section)
+        self.assertIn("Sign in", section)
+        self.assertIn("Create an account", section)
+        self.assertEqual(section.count("<FooterChromeRow"), 1)
+
+    def test_no_other_section_marks_the_frame(self):
+        """The frame is the theme and the footer: no other registered section
+        of this SDK declares the field."""
+        manifest = load_manifest()
+        registered = [
+            re.search(r'import\("@/(components/custom/[^"]+)"\)', i["replacement"]).group(1)
+            for i in manifest["integrations"]
+            if i["target"] == "components/custom/landing/page-sections.ts"
+        ]
+        framed = []
+        for module in registered:
+            code = code_of(os.path.join(TEMPLATES, module + ".tsx"))
+            if re.search(r"\bframe:\s*true\b", code):
+                framed.append(module)
+        self.assertEqual(
+            sorted(framed),
+            ["components/custom/lms-footer-section", "components/custom/lms-theme-section"],
+        )
+
+    def test_hero_copy_declares_no_logo_tile(self):
+        code = code_of(HERO_COPY)
+        self.assertIn('logo: "none",', code)
+        self.assertEqual(len(re.findall(r"^\s*logo:", code, re.M)), 1)
+        # Declared on the copy object itself, after the wordmark slot's brand.
+        body = code.split("const LMS_HERO_COPY: HeroCopy = {", 1)[1].split("};", 1)[0]
+        self.assertIn('logo: "none",', body)
+        self.assertLess(body.index('brand: "stem",'), body.index('logo: "none",'))
+        # The wordmark slot and the headline are as 1.31.1 left them.
+        self.assertIn('brand: "stem",', code)
+        self.assertIn('headlineSuffix: "",', code)
+        self.assertNotIn('logo: "tile"', code)
+
+    def test_manifest_floors_both_files_at_the_frame(self):
+        manifest = load_manifest()
+        self.assertGreaterEqual(
+            tuple(int(n) for n in manifest["version"].split(".")), (1, 31, 3)
+        )
+        notes = manifest["_comment"]
+        for key in self.FLOORED:
+            with self.subTest(key=key):
+                self.assertIn(key, manifest["requires"])
+                self.assertTrue(
+                    notes[key].startswith(f"installed by base_sdk >= {self.FLOOR} ("),
+                    notes[key],
+                )
+                self.assertIn("1.31.3", notes[key])
+                self.assertIn("Before that: installed by base_sdk >= ", notes[key])
+        self.assertIn("PageSectionMeta.frame", notes[self.FLOORED[0]])
+        self.assertIn(self.RULING_FRAME, notes[self.FLOORED[0]])
+        self.assertIn("HeroConfig.logo", notes[self.FLOORED[1]])
+        self.assertIn(self.RULING_LOGO, notes[self.FLOORED[1]])
+        # The requires list itself is a flat list of paths, unchanged in shape.
+        self.assertTrue(all(isinstance(r, str) for r in manifest["requires"]))
+
+    def test_manifest_and_changelog_quote_both_rulings(self):
+        manifest = load_manifest()
+        notes = manifest["_comment"]
+        self.assertIn("Since 1.31.3", notes["about"])
+        for stamp, ruling in (
+            ("20:39:12Z", self.RULING_LOGO),
+            ("20:44:16Z", self.RULING_FRAME),
+        ):
+            with self.subTest(stamp=stamp):
+                self.assertIn(stamp, notes["about"])
+                self.assertIn(ruling, notes["about"])
+        for name, ruling in (
+            ("landing/lms-hero-copy.ts", self.RULING_LOGO),
+            ("lms-theme-section.tsx", self.RULING_FRAME),
+            ("lms-footer-section.tsx", self.RULING_FRAME),
+        ):
+            with self.subTest(install=name):
+                entry = [
+                    e for e in manifest["installs"] if e["from"].endswith("/" + name)
+                ][0]
+                self.assertIn("Since 1.31.3", entry["_comment"])
+                self.assertIn(ruling, entry["_comment"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.31.2")[0].split())
+        self.assertIn("## 1.31.3", head)
+        self.assertIn("20:39:12Z", head)
+        self.assertIn(self.RULING_LOGO, head)
+        self.assertIn("20:44:16Z", head)
+        self.assertIn(self.RULING_FRAME, head)
+        self.assertIn('`logo: "none"`', head)
+        self.assertIn("`frame: true`", head)
+        self.assertIn(f"base_sdk >= {self.FLOOR}", head)
+        self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.31.3", head)
+        self.assertIn("`TestSiteFrameAndHeroLogo`", head)
+        self.assertIn(
+            f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
+        )

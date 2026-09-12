@@ -118,6 +118,14 @@ const LMS_HERO_COPY: HeroCopy = {
   badges: LMS_HERO_BADGES,
   // The wordmark shows the site name's stem, rendered by base on the server.
   brand: "stem",
+  // No host logo tile beside that slot (base_sdk 1.46.0's HeroConfig.logo,
+  // default "tile": base's hero-view.tsx draws the host's BrandLogo - the
+  // "s" tile - beside the wordmark unless the copy says "none"). The slot
+  // already carries the traced wordmark, so the tile showed the mark twice
+  // (Ray, 2026-09-11, 20:39:12Z: "login register page, no s, full
+  // supacharge without .school"). The same choice the header's brand makes
+  // (lms-header-menu.ts: logo: "none").
+  logo: "none",
 };
 
 export default LMS_HERO_COPY;
