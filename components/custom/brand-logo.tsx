@@ -1,16 +1,34 @@
 "use client";
 
 /**
- * Host-owned logo seam. Named in base_sdk's manifest `requires` and
- * rendered by its landing hero.
+ * Host-owned logo seam. Named in base_sdk's manifest `requires`; rendered by
+ * auth_sdk's login and register views (`<BrandLogo width={56} height={56} />`).
  *
- * NEUTRAL BY DESIGN — and asset-free. This shell ships no logo file (its
- * public face is the type-only holding page in `app/page.tsx`), so the mark
- * is the platform initial on the shell's own background colour rather than
- * an invented graphic. Every prop of rokctai_frontend's richer component is
- * accepted so SDK callers type-check unchanged.
+ * The landing hero no longer draws it: base_sdk 1.46.0 added
+ * `HeroConfig.logo` and lms_sdk 1.31.3's hero copy declares `logo: "none"`,
+ * so the hero shows its stem wordmark alone. That is what makes the mark
+ * below safe - while the hero still drew a 56px BrandLogo beside its own
+ * wordmark, this component being the wordmark showed it twice, which is why
+ * it was reverted to a letter tile on the previous re-pin. The header's
+ * brand makes the same declaration (lms-header-menu.ts: `logo: "none"`).
+ *
+ * The mark is the Supacharge wordmark - lms_sdk's traced glyphs
+ * (`components/custom/landing/lms-wordmark.tsx`, viewBox 0 0 660 124,
+ * currentColor), the same vector the Dart app draws. Ray, 2026-09-11 20:39Z:
+ * "login register page, no s, full supacharge without .school" - so this is
+ * never a letter tile and never the dotted address: the accessible name is
+ * "Supacharge", not the PLATFORM_NAME string.
+ *
+ * Sizing: every caller hands over the square its old letter tile took
+ * (56px on the auth pages). A wordmark 56px WIDE would be about 10px tall,
+ * so `height` is the wordmark's height and the width follows the glyphs'
+ * 660:124 ratio (56px tall is about 298px wide); `max-w-full h-auto` keeps
+ * it inside a narrow card. Every prop of rokctai_frontend's richer
+ * component is still accepted so SDK callers type-check unchanged.
  */
-import { PLATFORM_NAME } from "@/app/config/platform";
+import { LmsWordmark } from "@/components/custom/landing/lms-wordmark";
+
+const BRAND_LABEL = "Supacharge";
 
 export function BrandLogo({
   width = 24,
@@ -29,33 +47,23 @@ export function BrandLogo({
   isCircle?: boolean;
   priority?: boolean;
 }) {
-  // Accepted for API parity with the SDK's callers; this shell has no image
-  // asset, theme variants or beta badge to switch on.
+  // Accepted for API parity with the SDK's callers; a wordmark has no theme
+  // variants, beta badge or circular crop, and nothing is fetched.
   void variant;
   void showBadge;
+  void isCircle;
   void priority;
 
+  // The glyphs' height: the caller's height, or the height its width
+  // implies when only a width is meaningful (a wider-than-tall box).
+  const glyphHeight = Math.max(height, Math.round((width * 124) / 660));
+
   return (
-    <div
-      className={`relative flex items-center justify-center overflow-hidden ${
-        isCircle ? "rounded-full" : "rounded-[5px]"
-      } ${className || ""}`}
-      style={{
-        width,
-        height,
-        minWidth: width,
-        minHeight: height,
-        // The holding page's own two colours (see app/layout.tsx).
-        background: "#0B0B0F",
-        color: "#F5F5F7",
-        fontWeight: 700,
-        fontSize: Math.round(height * 0.55),
-        lineHeight: 1,
-      }}
-      aria-label={PLATFORM_NAME}
-    >
-      {PLATFORM_NAME.charAt(0)}
-    </div>
+    <LmsWordmark
+      height={glyphHeight}
+      title={BRAND_LABEL}
+      className={`max-w-full h-auto text-foreground ${className || ""}`}
+    />
   );
 }
 
