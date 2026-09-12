@@ -39,8 +39,20 @@
 // platform returns no plan rows, and on such a render base_sdk drops this
 // entry instead of linking to an anchor that is not there.
 //
-// No fixed `links`, deliberately. Sign-in and sign-up are already in the
-// host header beside this row, so repeating them would be noise.
+// ONE fixed link, since 1.31.1: About, to the company page corporate_sdk
+// serves at /about (Ray, 2026-09-11, 20:44:16Z:
+// "https://supacharge.school/about we have no way to get here and its so
+// disconnected to the rest of the site"). Through 1.31.0 the menu carried
+// no fixed `links` at all - every entry was a section on the page - so the
+// about page, which corporate_sdk 1.1.0 installs (app/about/page.tsx,
+// beside app/team/page.tsx) and which lms's own founder card fills (1.27.0,
+// meta.page "about"), was reachable only by typing its address. The footer
+// nav (LMS_LANDING_CONFIG.footer.links) links About and Team; the header
+// carries About alone, so the bar stays `[Explore v]  Pricing  FAQ  About`.
+// A fixed link because /about is a route, not a section id, so base has no
+// live nav entry to resolve it against; the label is this module's own for
+// the same reason. Sign-in and sign-up are still not repeated here: they
+// are already in the host header beside this row.
 //
 // Since 1.12.0 the apps are up here too, as ONE group (Ray, 2026-09-09:
 // "supacharge need to show these apps, ios is demoted for now. apk and
@@ -176,6 +188,11 @@ const LMS_HEADER_MENU: HeaderMenu = {
   // The two links that stay on the bar (since 1.23.0); the other five
   // sections are the panel's first two columns below.
   anchors: ["pricing", "faq"],
+  // The one route link on the bar (since 1.31.1): the company's about page,
+  // corporate_sdk's /about (Ray, 2026-09-11, 20:44:16Z: "we have no way to
+  // get here"). A route, not a section, so it is a fixed link with its own
+  // label rather than an anchor base resolves.
+  links: [{ id: "about", label: "About", href: "/about" }],
   // The bar's one trigger still reads "Explore" (since 1.26.0 the word is
   // declared here, base_sdk 1.36.0's megaLabel, because the first group is
   // no longer the Explore column).

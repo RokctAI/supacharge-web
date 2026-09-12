@@ -337,19 +337,21 @@ html.light .sc-landing {
 }
 
 /*
- * The name's suffix in the primary colour (1.31.0; Ray, 2026-09-11: "also
- * site name the .school get primary color in nextjs"). base_sdk 1.41.0
- * puts `data-brand-wordmark="tld"` on the suffix span of the header's
- * stem wordmark (the part that slides away on the fold) and
- * lms-footer-section.tsx puts the same hook on the suffix it draws after
- * the traced SVG, so ONE rule colours both from the primary token - the
- * orange the hero's rotating word and the motto already read - in either
- * theme. Colour only: the header's suffix keeps the size and face of the
- * stem beside it (the rule above reaches the stem span, which the suffix
- * sits inside), the footer's carries its own face on the span. Not
- * scoped through <header>: the hook is the same on both surfaces by
- * design, and there is no third. No !important: base's utility is a
- * class and this selector out-cascades it. No brand string.
+ * The site name's suffix in the primary colour (1.31.0; Ray, 2026-09-11:
+ * "also site name the .school get primary color in nextjs"). base_sdk
+ * 1.41.0 puts `data-brand-wordmark="tld"` on the suffix span of the
+ * header's stem wordmark (the part that slides away on the fold), and
+ * this ONE rule colours it from the primary token - the orange the hero's
+ * rotating word and the motto already read - in either theme. Colour
+ * only: the suffix keeps the size and face of the stem beside it (the
+ * rule above reaches the stem span, which the suffix sits inside). The
+ * footer drew a suffix of its own on the same hook in 1.31.0 only; since
+ * 1.31.1 it shows the traced wordmark alone (Ray, 2026-09-11: "i dont
+ * think i told you to add .school to footer"), so the header's is the
+ * one element this rule reaches. The selector is unchanged - keyed on
+ * base's hook, not scoped through <header>, so base's mechanism is left
+ * whole. No !important: base's utility is a class and this selector
+ * out-cascades it. No brand string.
  */
 .sc-landing [data-brand-wordmark="tld"] {
   color: var(--sc-primary);

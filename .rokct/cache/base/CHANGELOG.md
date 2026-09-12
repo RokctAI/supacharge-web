@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.45.0
+
+* The public terms list falls back to the shell's bundled `data/legal`
+  pages when the backend publishes nothing. `app/actions/base/legal.ts`
+  `listPublicTerms()` still asks the backend first, as a guest, for
+  every enabled "Terms and Conditions" document and returns its rows
+  unchanged whenever it answers any; when the answer is nothing - no
+  base URL (a shell with no backend), a refused guest read, a failed
+  call, or a backend that has published no document yet - and the shell
+  bundles the 1.35.0 `legal` kind (`hasSiteData("legal")`: a `local` or
+  `hybrid` data mode with `data/legal/<slug>.md` files present, never
+  backend mode), the answer is those pages, each as the same
+  `{name: slug, title, disabled: false}` a gateway row becomes, in slug
+  order, read through the generated `lib/site-data/generated.ts` and
+  never the disk at request time. The two lists are never merged, the
+  guest soft-fail is kept (a failing bundle read logs and answers `[]`),
+  and a shell with no legal folder, or in backend mode, answers exactly
+  what it did. A footer's Legal row (`legalFooterLinks`) and
+  corporate_sdk's `/legal` index, which already read `listPublicTerms()`,
+  list the shell's own documents with no code change - a shell whose
+  backend has no documents carries its own markdown instead. Shells need
+  the `prebuild` generate step (`docs/site-data.md`) and a data mode that
+  bundles legal for the fallback to have anything to answer.
+  `tests/legal-fallback.test.mts` executes the action against a
+  `generated.ts` the real generator writes from the acme fixture and
+  against the neutral module.
+
 ## 1.42.0
 
 * The landing has a floating "Back to top" button. Ray, 2026-09-11

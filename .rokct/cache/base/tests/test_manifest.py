@@ -110,6 +110,8 @@ LEGAL_LINKS_INSTALL = (
     "components/custom/landing/legal-links.ts",
 )
 LEGAL_ACTION_INSTALL = ("templates/app/actions/base/legal.ts", "app/actions/base/legal.ts")
+# base_sdk 1.45.0: the public terms list falls back to the bundled data/legal pages.
+LEGAL_FALLBACK_TESTS = os.path.join(HERE, "legal-fallback.test.mts")
 # base_sdk 1.37.0: the footer status probes the tenant only by default
 # (Ray, 2026-09-09: every shell reads its footer status from its own tenant
 # backend, never from control); control is opt-in via ROKCT_STATUS_SOURCE.
@@ -2439,7 +2441,7 @@ class TestRegistryMarkers(unittest.TestCase):
         self.assertIn('fields: ["name", "title", "disabled"],', src)
         self.assertIn("filters: { disabled: 0 },", src)
         self.assertIn("{ requireAuth: false },", src)
-        self.assertIn("return normalisePublicTerms(rows);", src)
+        self.assertIn("const published = normalisePublicTerms(rows);", src)
         self.assertIn("return [];", src)
         # A "use server" module exports async functions only; the words and
         # the rule live in the pure module.
@@ -3219,6 +3221,154 @@ declare module "lucide-react" {
             )
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
+
+    # -- 1.45.0: the public terms list falls back to bundled data/legal ------
+
+    def test_legal_list_falls_back_to_bundled_site_data(self):
+        """1.45.0: a backend's guest read answers nothing on a shell that
+        has published no document, while the shell may carry its own
+        `data/legal/<slug>.md` (the 1.35.0 kind). listPublicTerms() asks the
+        backend first and returns its rows whenever it publishes any; on
+        nothing (null, an empty list, a failed call) it answers the bundled
+        pages through the generated module - `hasSiteData("legal")` first,
+        so backend mode and a missing folder are unchanged - each as the
+        same {name: slug, title, disabled: false} a gateway row becomes, in
+        slug order, and never throws for a guest. The manifest is bumped
+        and notes it; the CHANGELOG and docs/site-data.md describe it."""
+        manifest = load_manifest()
+        self.assertGreaterEqual(tuple(int(p) for p in manifest["version"].split(".")), (1, 45, 0))
+        src = read(LEGAL_ACTION)
+        for needle in (
+            'import { hasSiteData, readSiteData } from "@/lib/site-data/read-site-data";',
+            "function bundledPublicTerms(): PublicTerm[] {",
+            'if (!hasSiteData("legal")) return [];',
+            'const docs = readSiteData("legal") ?? {};',
+            "return normalisePublicTerms(",
+            "Object.keys(docs)",
+            ".sort()",
+            ".map((slug) => ({ name: slug, title: docs[slug].title, disabled: 0 })),",
+            "const published = normalisePublicTerms(rows);",
+            "if (published.length > 0) return published;",
+            "return bundledPublicTerms();",
+        ):
+            self.assertIn(needle, src, needle)
+        code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", src))
+        # The backend is asked before the bundle, its rows win, and both
+        # branches of the soft-fail (nothing, a throw) reach the bundle.
+        self.assertLess(code.index('"frappe.client.get_list",'), code.index("if (published.length > 0) return published;"))
+        self.assertEqual(code.count("return bundledPublicTerms();"), 2)
+        self.assertLess(code.index("if (published.length > 0) return published;"), code.index("return bundledPublicTerms();"))
+        self.assertLess(code.index("} catch (e) {\n    console.error(\"[legal] terms list failed:\", e);"),
+                        code.rindex("return bundledPublicTerms();"))
+        # Never the disk at request time: the reader is the generated module's.
+        for word in ("node:fs", "readFileSync", "process.cwd", "https://"):
+            self.assertNotIn(word, code, word)
+        # Only the one async export; the helper stays private to the module.
+        self.assertNotIn("export function bundledPublicTerms", src)
+        installs = {e["from"]: e["to"] for e in manifest["installs"]}
+        self.assertEqual(installs.get(LEGAL_ACTION_INSTALL[0]), LEGAL_ACTION_INSTALL[1])
+        self.assertEqual(installs.get("templates/lib/site-data/read-site-data.ts"), "lib/site-data/read-site-data.ts")
+        about = manifest["_comment"]["about"]
+        for text in ("Since 1.45.0 listPublicTerms() falls back to the shell's own data/legal/<slug>.md pages",
+                     'hasSiteData("legal")', "{name: slug, title, disabled: false}",
+                     "the backend wins whenever it publishes a row", "tests/legal-fallback.test.mts"):
+            self.assertIn(text, about, text)
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        self.assertIn("## 1.45.0", changelog)
+        head = re.sub(r"\s+", " ", changelog.split("## 1.45.0", 1)[1].split("\n## ", 1)[0])
+        for text in ("`listPublicTerms()`", "`hasSiteData(\"legal\")`", "`{name: slug, title, disabled: false}`",
+                     "`lib/site-data/generated.ts`", "never the disk at request time",
+                     "The two lists are never merged", "`prebuild`", "`tests/legal-fallback.test.mts`"):
+            self.assertIn(text, head, text)
+        for line in changelog.split("## 1.42.0", 1)[0].splitlines():
+            if line.startswith("#") and line != "# Changelog":
+                self.assertRegex(line, r"^## \d+\.\d+\.\d+$", line)
+        doc = read(SITE_DATA_DOC)
+        for text in ("`legal` is also what the public terms list falls back to (since 1.45.0)",
+                     "`listPublicTerms()` (`app/actions/base/legal.ts`)", "`hasSiteData(\"legal\")`",
+                     "`{ name: slug, title, disabled: false }`", "The two lists are never merged",
+                     "`prebuild` generate step", "`local` or `hybrid`"):
+            self.assertIn(text, doc, text)
+        for path in (LEGAL_ACTION, LEGAL_FALLBACK_TESTS):
+            text = read(path).lower()
+            for word in ("rokct.ai", "supacharge", "south river", "demo", "sample", "lorem"):
+                self.assertNotIn(word, text, f"{os.path.basename(path)} carries {word}")
+
+    def test_legal_fallback_behaviour_under_node(self):
+        """tests/legal-fallback.test.mts, run in place: the real action
+        staged beside the real legal-links.ts, kinds.ts and read-site-data.ts,
+        a stub gateway and a generated.ts the real generator writes from
+        tests/fixtures/site-data/acme - null, [] and a throw answer the two
+        fixture pages in the public shape, rows are returned unchanged, and
+        the neutral module or a data/ with no legal folder answers []."""
+        node = shutil.which("node")
+        self.assertIsNotNone(node, "node (22.6+) is needed to execute the legal fallback")
+        self.assertTrue(os.path.isdir(SITE_DATA_FIXTURE))
+        run = subprocess.run(
+            [node, "--experimental-strip-types", "--no-warnings", "--test", LEGAL_FALLBACK_TESTS],
+            capture_output=True, text=True, timeout=180, cwd=HERE,
+        )
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertRegex(run.stdout, re.compile(r"^# fail 0$", re.M), run.stdout)
+        passed = re.search(r"^# pass (\d+)$", run.stdout, re.M)
+        self.assertIsNotNone(passed, run.stdout)
+        self.assertGreaterEqual(int(passed.group(1)), 10)
+
+    def test_legal_action_type_checks_under_tsc(self):
+        """The action under tsc, strict and isolatedModules, beside the real
+        legal-links.ts, footer-chrome-config.ts, kinds.ts, read-site-data.ts
+        and the neutral generated.ts, with a typed stub of the gateway and
+        the `@/` imports pointed at the stage. Skips when no tsc is reachable."""
+        tsc = os.environ.get("ROKCT_TSC") or shutil.which("tsc")
+        if not tsc or not os.path.exists(tsc):
+            raise unittest.SkipTest("no tsc reachable (set ROKCT_TSC to a tsc binary)")
+        stubs = """
+declare const process: { env: Record<string, string | undefined> };
+declare module "server-only" {}
+declare module "@/components/custom/landing/brand-marks" {
+  export type BrandMarkId = string;
+}
+"""
+        gateway = (
+            "export interface PlatformCallOptions { requireAuth?: boolean; throwOnError?: boolean }\n"
+            "export async function platformCall<T = unknown>(\n"
+            "  cmd: string, payload?: Record<string, unknown> | string, options: PlatformCallOptions = {},\n"
+            "): Promise<T | null> { void cmd; void payload; void options; return null; }\n"
+        )
+        rewrites = {
+            'from "@/app/services/base/platform-gateway"': 'from "./platform-gateway"',
+            'from "@/components/custom/landing/legal-links"': 'from "./legal-links"',
+            'from "@/lib/site-data/read-site-data"': 'from "./read-site-data"',
+            'from "@/components/custom/landing/footer-chrome-config"': 'from "./footer-chrome-config"',
+        }
+        real = {
+            "legal.ts": LEGAL_ACTION,
+            "legal-links.ts": LEGAL_LINKS,
+            "footer-chrome-config.ts": FOOTER_CHROME_CONFIG,
+            "kinds.ts": os.path.join(SITE_DATA_DIR, "kinds.ts"),
+            "read-site-data.ts": os.path.join(SITE_DATA_DIR, "read-site-data.ts"),
+            "generated.ts": os.path.join(SITE_DATA_DIR, "generated.ts"),
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            for fname, path in real.items():
+                staged = read(path)
+                for src, dst in rewrites.items():
+                    staged = staged.replace(src, dst)
+                code = LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", staged))
+                self.assertNotIn('from "@/components/custom/landing/legal', code, f"{fname} imports something the stage does not cover")
+                with open(os.path.join(tmp, fname), "w", encoding="utf-8") as f:
+                    f.write(staged)
+            with open(os.path.join(tmp, "platform-gateway.ts"), "w", encoding="utf-8") as f:
+                f.write(gateway)
+            with open(os.path.join(tmp, "stubs.d.ts"), "w", encoding="utf-8") as f:
+                f.write(stubs)
+            config = dict(TSC_STAGE_CONFIG, include=["*.ts", "*.d.ts"])
+            with open(os.path.join(tmp, "tsconfig.json"), "w", encoding="utf-8") as f:
+                json.dump(config, f)
+            run = subprocess.run(
+                [tsc, "-p", tmp], capture_output=True, text=True, timeout=300, cwd=tmp,
+            )
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
 if __name__ == "__main__":
     unittest.main()

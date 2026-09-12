@@ -1126,9 +1126,14 @@ class TestHeaderGroups(unittest.TestCase):
                     item.get("description") or item.get("icon"), "an app is a card"
                 )
 
-    def test_flat_links_are_pricing_then_faq_and_nothing_else(self):
+    def test_flat_links_are_pricing_faq_then_about_and_nothing_else(self):
+        """Two anchors and, since 1.31.1, ONE fixed route link (About, to
+        corporate_sdk's /about; TestCompanyLinks has the ruling). No
+        actions: sign-in and sign-up are the host header's own."""
         self.assertEqual(self.menu["anchors"], ["pricing", "faq"])
-        self.assertNotIn("links", self.menu)
+        self.assertEqual(
+            self.menu["links"], [{"id": "about", "label": "About", "href": "/about"}]
+        )
         self.assertNotIn("actions", self.menu)
 
     def test_pricing_is_still_dropped_when_no_plan_renders(self):
@@ -2344,6 +2349,68 @@ class TestCambridgeOutline(unittest.TestCase):
         )
 
 
+class TestHeroHeadline(unittest.TestCase):
+    """1.31.1 (Ray, 2026-09-11, 20:39:47Z: `hero drop "with suparcharge"`):
+    the hero headline is the rotating word alone. The copy's headlineSuffix
+    is empty, no headline string ends with "with", and nothing in the
+    headline names the brand or asks base for a wordmark; the wordmark
+    SLOT above the headline (`brand: "stem"`, 1.24.0) is a different
+    element and stays."""
+
+    WORD_RE = re.compile(r'\{\s*text:\s*"([^"]*)",\s*verb:\s*"([^"]*)"\s*\}')
+
+    def headline(self):
+        code = code_of(HERO_COPY)
+        block = code.split("headlineWords: [", 1)[1].split("],", 1)[0]
+        words = self.WORD_RE.findall(block)
+        suffix = re.search(r'headlineSuffix:\s*"([^"]*)",', code)
+        self.assertIsNotNone(suffix, "no headlineSuffix declared")
+        return words, suffix.group(1)
+
+    def test_the_suffix_is_empty_and_no_headline_string_ends_with_with(self):
+        words, suffix = self.headline()
+        self.assertEqual(suffix, "")
+        self.assertEqual(len(words), 3, words)
+        strings = [suffix] + [part for word in words for part in word]
+        for text in strings:
+            with self.subTest(text=text):
+                self.assertNotRegex(text, r"(?i)\bwith\s*$")
+        # The three words themselves are unchanged.
+        self.assertEqual(
+            [text for text, _ in words],
+            ["Learn faster", "Pass with confidence", "Find your tutor"],
+        )
+        self.assertEqual([verb for _, verb in words], ["", "", ""])
+
+    def test_the_headline_names_no_brand_and_requests_no_wordmark(self):
+        words, suffix = self.headline()
+        code = code_of(HERO_COPY)
+        for text in [suffix] + [part for word in words for part in word]:
+            with self.subTest(text=text):
+                self.assertNotRegex(text, r"(?i)supacharge")
+                self.assertNotIn(".school", text)
+        self.assertNotRegex(code, r"(?i)with supacharge")
+        # No wordmark is asked for in the headline: the one `brand` key in
+        # the copy is the slot's, and it is still "stem" (TestBrandString).
+        self.assertEqual(len(re.findall(r"^\s*brand:", code, re.M)), 1)
+        self.assertIn('brand: "stem",', code)
+        self.assertNotIn("data-brand-wordmark", code)
+
+    def test_manifest_and_changelog_quote_the_ruling(self):
+        ruling = 'hero drop "with suparcharge"'
+        manifest = load_manifest()
+        self.assertIn(ruling, manifest["_comment"]["about"])
+        entry = [e for e in manifest["installs"] if e["from"].endswith("/lms-hero-copy.ts")][0]
+        self.assertIn("Since 1.31.1", entry["_comment"])
+        self.assertIn(ruling, entry["_comment"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.31.0")[0].split())
+        self.assertIn("## 1.31.1", head)
+        self.assertIn(ruling, head)
+        self.assertIn("20:39:47Z", head)
+        self.assertIn('`headlineSuffix: ""`', head)
+
+
 class TestFooterDownloads(unittest.TestCase):
     """1.31.0 (Ray, 2026-09-11: "also site name the .school get primary
     color in nextjs"; "footer has  download links let them be platform
@@ -2352,9 +2419,13 @@ class TestFooterDownloads(unittest.TestCase):
     think it should check the platform and offer app of that platform"):
     the footer's downloads are FooterChromeConfig.downloads entries base
     draws as icon buttons and its InstallOffer reads, one per shown app,
-    each keyed by base's DownloadPlatform with a real BRAND_MARKS key; the
-    text links are gone from the section; and the name's suffix follows
-    the traced wordmark in the primary colour on base's `tld` hook."""
+    each keyed by base's DownloadPlatform with a real BRAND_MARKS key; and
+    the text links are gone from the section. 1.31.0 also drew the name's
+    suffix after the footer's traced wordmark on base's `tld` hook; 1.31.1
+    took it out again (Ray, 2026-09-11, 20:33:16Z: "i dont think i told
+    you to add .school to footer" - the 07:34:03Z ruling covered the site
+    name in the header only), so the footer wordmark stands alone and the
+    `tld` rule in lms-theme.css reaches the header's suffix only."""
 
     # base_sdk 1.41.0's DownloadPlatform and 1.26.0's BrandMarkId,
     # restated: the unions lms-landing-config.ts declares locally must be
@@ -2451,41 +2522,71 @@ class TestFooterDownloads(unittest.TestCase):
         self.assertNotIn("InstallOffer", code)
         self.assertNotIn("downloads", code)
 
-    def test_footer_draws_the_derived_suffix_after_the_wordmark_on_the_hook(self):
+    def test_footer_wordmark_stands_alone_with_no_tld_or_suffix_node(self):
+        """1.31.1: the footer renders the traced SVG wordmark and nothing
+        after it - no suffix span, no `tld` hook, no derivation of a suffix
+        from the site name - the markup 1.30.0 had."""
         code = code_of(FOOTER_SECTION)
-        self.assertIn('import { PLATFORM_NAME } from "@/app/config/platform";', code)
-        self.assertIn(
-            'import { brandStemOf } from "@/components/custom/landing/header-menu";',
-            code,
-        )
-        self.assertIn("const stem = brandStemOf(name);", code)
-        self.assertIn('const suffix = stem === null ? "" : name.slice(stem.length);', code)
-        # Never the suffix written by hand.
+        self.assertNotIn("data-brand-wordmark", code)
+        self.assertNotIn("suffix", code)
+        self.assertNotIn("tld", code.lower())
+        self.assertNotIn("brandStemOf", code)
+        self.assertNotIn("PLATFORM_NAME", code)
+        self.assertNotIn("TLD_FONT_SIZE", code)
+        self.assertNotIn("TLD_BASELINE_LIFT", code)
+        # Never the suffix written by hand either.
         self.assertNotIn(".school", code)
         self.assertNotIn('"school"', code)
-        span = re.search(
-            r"<LmsWordmark[^>]*/>\s*\{suffix \? \(\s*<span\s+(.*?)>\s*\{suffix\}\s*</span>",
-            code,
-            re.S,
+        # The wordmark is drawn once, self-closed, and the next element
+        # after it is the motto - nothing sits between the two.
+        marks = re.findall(r"<LmsWordmark\b[^>]*/>", code)
+        self.assertEqual(len(marks), 1, marks)
+        self.assertIn("height={WORDMARK_HEIGHT}", marks[0])
+        self.assertIn("const WORDMARK_HEIGHT = 34;", code)
+        after = code.split(marks[0], 1)[1]
+        self.assertRegex(
+            after,
+            r"^\s*<p className=\"text-xl font-semibold text-\[var\(--sc-primary\)\]\">",
+            "something renders between the wordmark and the motto",
         )
-        self.assertIsNotNone(span, "the suffix span does not follow the wordmark")
-        attrs = " ".join(span.group(1).split())
-        self.assertIn('aria-hidden="true"', attrs)
-        self.assertIn('data-brand-wordmark="tld"', attrs)
-        classes = re.search(r'className="([^"]+)"', attrs).group(1).split()
-        for cls in (
-            "font-[family-name:var(--sc-font-brand)]",
-            "italic",
-            "font-black",
-            "text-[var(--sc-primary)]",
-        ):
-            with self.subTest(cls=cls):
-                self.assertIn(cls, classes)
-        # The one place the hook is written in this SDK's markup.
-        self.assertEqual(code.count('data-brand-wordmark="tld"'), 1)
-        for path in (HERO_COPY, HERO_FORM, HEADER_MENU, CONFIG):
-            with self.subTest(path=os.path.basename(path)):
-                self.assertNotIn("data-brand-wordmark", code_of(path))
+        # The hook appears in none of this SDK's markup: the header's
+        # suffix span is base's own.
+        for folder in (CUSTOM, LANDING):
+            for name in sorted(os.listdir(folder)):
+                path = os.path.join(folder, name)
+                if not os.path.isfile(path) or not name.endswith((".ts", ".tsx")):
+                    continue
+                with self.subTest(file=name):
+                    self.assertNotIn("data-brand-wordmark", code_of(path))
+
+    def test_1_31_1_manifest_and_changelog_quote_the_footer_ruling(self):
+        manifest = load_manifest()
+        self.assertGreaterEqual(
+            tuple(int(n) for n in manifest["version"].split(".")), (1, 31, 1)
+        )
+        notes = manifest["_comment"]
+        ruling = "i dont think i told you to add .school to footer"
+        self.assertIn("1.31.1", notes["about"])
+        self.assertIn(ruling, notes["about"])
+        entry = [
+            e for e in manifest["installs"] if e["from"].endswith("/lms-footer-section.tsx")
+        ][0]
+        self.assertIn("Since 1.31.1", entry["_comment"])
+        self.assertIn(ruling, entry["_comment"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.31.0")[0].split())
+        self.assertIn("## 1.31.1", head)
+        self.assertIn(ruling, head)
+        self.assertIn("20:33:16Z", head)
+        # The ruling that DID land, named as the header's only.
+        self.assertIn("07:34:03Z", head)
+        self.assertIn("header", head)
+        self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.31.1", head)
+        self.assertIn("No base_sdk floor moves", head)
+        self.assertIn('LMS_LANDING_VERSION = "1.31.1"', read(FOOTER_CHROME))
+        for word in ("APK", "demo", "sample", "example", "lorem", "CAIE"):
+            with self.subTest(word=word):
+                self.assertNotRegex(head, r"(?i)\b" + word + r"\b")
 
     def test_the_tld_rule_is_the_primary_colour_and_nothing_else(self):
         css = read(THEME_CSS)
@@ -2564,3 +2665,89 @@ class TestFooterDownloads(unittest.TestCase):
         for word in ("APK", "demo", "sample", "example", "lorem", "CAIE"):
             with self.subTest(word=word):
                 self.assertNotRegex(head, r"(?i)\b" + word + r"\b")
+
+
+FOOTER_LINK_RE = re.compile(r'\{\s*label:\s*"([^"]*)",\s*href:\s*"([^"]*)"\s*\}')
+
+
+def lift_footer_links():
+    """LMS_LANDING_CONFIG.footer.links as (label, href) pairs, in order,
+    lifted from the literal in lms-landing-config.ts with comments
+    stripped, so a route named in a note is never read as a link."""
+    code = code_of(CONFIG)
+    block = code.split("\n  footer: {", 1)[1].split("links: [", 1)[1].split("],", 1)[0]
+    return FOOTER_LINK_RE.findall(block)
+
+
+class TestCompanyLinks(unittest.TestCase):
+    """1.31.1 (Ray, 2026-09-11, 20:44:16Z: "https://supacharge.school/about
+    we have no way to get here and its so disconnected to the rest of the
+    site"): the company pages corporate_sdk 1.1.0 installs, app/about and
+    app/team, are linked from the school. The header carries About as its
+    one fixed link; the footer nav carries About and Team after the section
+    anchors. Those two routes and no other: nothing here invents a page."""
+
+    RULING = (
+        "https://supacharge.school/about we have no way to get here and its "
+        "so disconnected to the rest of the site"
+    )
+    COMPANY_ROUTES = ("/about", "/team")
+
+    def test_header_links_about_and_only_about(self):
+        menu = lift_header_menu()
+        links = menu["links"]
+        self.assertEqual(links, [{"id": "about", "label": "About", "href": "/about"}])
+        # A route, not a section: not in anchors, not in any group.
+        self.assertNotIn("about", menu["anchors"])
+        self.assertNotIn("/about", json.dumps(menu["groups"]))
+        self.assertNotIn("/team", json.dumps(menu))
+
+    def test_footer_links_end_with_about_then_team(self):
+        links = lift_footer_links()
+        self.assertEqual(links[-2:], [("About", "/about"), ("Team", "/team")])
+        # Everything before them is still a section anchor on the page.
+        for label, href in links[:-2]:
+            with self.subTest(label=label):
+                self.assertTrue(href.startswith("#"), href)
+        # Each route linked once.
+        hrefs = [href for _, href in links]
+        self.assertEqual(len(hrefs), len(set(hrefs)))
+
+    def test_no_route_beyond_the_two_corporate_pages_is_linked(self):
+        """corporate_sdk 1.1.0 installs templates/app/about and
+        templates/app/team; every non-anchor href in the header menu and the
+        footer nav is one of those two."""
+        routes = {href for _, href in lift_footer_links() if not href.startswith("#")}
+        menu = lift_header_menu()
+        routes |= {link["href"] for link in menu["links"]}
+        self.assertEqual(routes, set(self.COMPANY_ROUTES))
+        # The footer section renders the config list as it did; no route is
+        # written into the component itself.
+        section = code_of(FOOTER_SECTION)
+        self.assertIn("config.links.map((link) => (", section)
+        for route in self.COMPANY_ROUTES:
+            with self.subTest(route=route):
+                self.assertNotIn(f'"{route}"', section)
+
+    def test_manifest_and_changelog_quote_the_ruling(self):
+        manifest = load_manifest()
+        notes = manifest["_comment"]
+        self.assertIn("20:44:16Z", notes["about"])
+        self.assertIn(self.RULING, notes["about"])
+        self.assertIn("corporate_sdk 1.1.0", notes["about"])
+        for name in ("lms-header-menu.ts", "lms-landing-config.ts"):
+            with self.subTest(install=name):
+                entry = [
+                    e for e in manifest["installs"] if e["from"].endswith("/" + name)
+                ][0]
+                self.assertIn("Since 1.31.1", entry["_comment"])
+                self.assertIn(self.RULING, entry["_comment"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.31.0")[0].split())
+        self.assertIn("## 1.31.1", head)
+        self.assertIn("20:44:16Z", head)
+        self.assertIn(self.RULING, head)
+        self.assertIn("`About` -> `/about`", head)
+        self.assertIn("`Team` -> `/team`", head)
+        self.assertIn("corporate_sdk 1.1.0", head)
+        self.assertIn("`TestCompanyLinks`", head)

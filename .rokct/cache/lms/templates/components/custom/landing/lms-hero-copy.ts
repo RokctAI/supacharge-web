@@ -96,14 +96,20 @@ export const LMS_HERO_BADGES: HeroBadge[] = LMS_SHOWN_APPS.map((app) => ({
 }));
 
 const LMS_HERO_COPY: HeroCopy = {
-  // The frame renders "<text> <verb> <suffix>"; the suffix carries the
-  // connective, so each word's verb is empty.
+  // The frame renders "<text> <verb> <suffix>". The headline is the
+  // rotating word alone since 1.31.1 (Ray, 2026-09-11, 20:39:47Z: `hero
+  // drop "with suparcharge"`): through 1.31.0 the suffix read "with
+  // Supacharge" after every word, so each verb was empty for the suffix
+  // to carry the connective. Both stay empty now - nothing follows the
+  // word, and no headline string ends with "with". The wordmark slot
+  // above the headline (`brand`, below) is a different element and is
+  // untouched.
   headlineWords: [
     { text: "Learn faster", verb: "" },
     { text: "Pass with confidence", verb: "" },
     { text: "Find your tutor", verb: "" },
   ],
-  headlineSuffix: "with Supacharge",
+  headlineSuffix: "",
   // No input on this hero (lms-hero-form.tsx), so nothing to type into it.
   placeholders: [],
   backgroundImage: "",
