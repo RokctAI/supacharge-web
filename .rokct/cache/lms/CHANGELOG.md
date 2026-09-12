@@ -1,5 +1,88 @@
 # Changelog
 
+## 1.31.3
+
+* The hero draws no host logo tile beside its wordmark (Ray, 2026-09-11,
+  20:39:12Z, verbatim: "login register page, no s, full supacharge without
+  .school"). base_sdk 1.46.0 added `HeroConfig.logo?: "tile" | "none"`
+  (default `"tile"`): base's `hero-view.tsx` renders the host's
+  `<BrandLogo>` - the "s" tile, the host brand-logo - beside the hero
+  wordmark unless the copy says `"none"`. The lms hero already fills that
+  slot with the traced wordmark (`brand: "stem"`, 1.24.0), so once the host
+  file becomes the wordmark the tile showed the mark twice.
+  * `lms-hero-copy.ts`: `LMS_HERO_COPY` declares `logo: "none"` after
+    `brand: "stem"` - the same choice `lms-header-menu.ts` makes for the
+    header's brand. The headline, placeholders, trust line and badges are
+    untouched; no brand string is added. Base is not edited.
+* The theme and footer sections mark the site frame (Ray, 2026-09-11,
+  20:44:16Z, verbatim: "https://supacharge.school/about we have no way to
+  get here and its so disconnected to the rest of the site"). base_sdk
+  1.47.0 adds `PageSectionMeta.frame?: boolean`: a section marked
+  `frame: true` still renders on the landing by its `order`, and base's
+  `site-frame.tsx` also draws it around a composed page that sits in the
+  frame - corporate_sdk 1.2.0 renders /about, /team and /legal there - a
+  negative `order` before the page's content, the rest after it. 1.31.1
+  linked those pages; 1.31.3 marks the chrome they sit in.
+  * `lms-theme-section.tsx`: `meta` gains `frame: true,` after
+    `rootClass: LMS_ROOT_CLASS` (order -2: the tokens and the root class
+    wrap the page).
+  * `lms-footer-section.tsx`: `meta` gains `frame: true` beside
+    `order: 95`, `nav: []` and `anchor: "site-footer"` (the footer closes
+    the page). Its markup, links and copy are untouched; no link, colour
+    or brand string changes anywhere.
+* Manifest: the base_sdk floor for
+  `components/custom/landing/page-sections.ts` (for `PageSectionMeta.frame`)
+  and for `components/custom/landing/hero-config.ts` (for `HeroConfig.logo`)
+  is base_sdk >= 1.47.0, from 1.38.0 and 1.32.0; each note keeps the
+  earlier floors under "Before that". The `requires` list is unchanged.
+  `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.31.3.
+* Tests: `TestSiteFrameAndHeroLogo` (new) asserts the theme and footer
+  metas both carry `frame: true`, the hero copy carries `logo: "none"`,
+  the manifest floors both files at base_sdk >= 1.47.0 and this entry
+  quotes both rulings. The 1.24.0 theme-meta shape test admits the new
+  field and the 1.27.0 floor test reads 1.47.0 with 1.38.0 under
+  "Before that".
+
+## 1.31.2
+
+* The footer's copyright row carries base_sdk's Legal link group (Ray,
+  2026-09-11, 20:36:37Z, verbatim: "still no legal pages in supa, even
+  rokct they still #"). Root cause: `lms-footer-section.tsx` passed
+  `LMS_FOOTER_CHROME` (`lms-footer-chrome.ts`) to base's `FooterChromeRow`,
+  and that config declares no `links` - the one field base_sdk 1.37.0's
+  row draws link groups from (`footer-chrome.tsx`,
+  `const groups = (config.links ?? []).filter(...)`) - so no legal link
+  ever rendered, whatever the backend published.
+  * `lms-footer-section.tsx`: `LmsFooterSection`, a server component (no
+    `"use client"`, as since 1.24.0), is now `async`; it awaits base's guest
+    read `listPublicTerms()` (`app/actions/base/legal.ts`) and renders
+    `<FooterChromeRow config={{ ...LMS_FOOTER_CHROME, links:
+    legalFooterLinks(terms) }} />` (`components/custom/landing/legal-links.ts`).
+    Titles come from the documents and hrefs are `/legal/<name>`, the pages
+    corporate_sdk serves; the group's one word, "Legal", is base's default
+    label. With nothing published `legalFooterLinks` answers `[]` and the
+    row draws no group (it filters empty groups), so the footer reads
+    exactly as 1.31.1 until a document exists: a "Terms and Conditions"
+    document on the backend, or - since base_sdk 1.45.0 - a bundled
+    `data/legal/<slug>.md` page the same read falls back to. This SDK
+    authors no document and bundles none. The read soft-fails to that same
+    empty list, never to a failed page.
+  * The nav (the section anchors, `About`, `Team`, Sign in, Create an
+    account), the wordmark and `LMS_FOOTER_CHROME` itself are untouched;
+    the config is spread, never edited.
+  * Manifest: `requires` gains `app/actions/base/legal.ts` and
+    `components/custom/landing/legal-links.ts`, both installed by base_sdk
+    >= 1.37.0; the compose already floors base_sdk at 1.41.0
+    (`components/custom/footer-chrome.tsx`), so no base_sdk floor moves.
+    `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.31.2.
+  * Tests: `TestFooterLegalLinks` asserts the section imports
+    `listPublicTerms` and `legalFooterLinks` from base's paths, awaits the
+    list, spreads `LMS_FOOTER_CHROME` and passes `links`, still carries no
+    `"use client"`, names no route or title of its own, and that the
+    manifest and changelog quote the ruling and declare the two requires.
+    The 1.31.1 footer test's literal version pin now reads the manifest's
+    version, as the 1.31.0 test does.
+
 ## 1.31.1
 
 * The footer shows Ray's traced SVG wordmark alone again, as it did through

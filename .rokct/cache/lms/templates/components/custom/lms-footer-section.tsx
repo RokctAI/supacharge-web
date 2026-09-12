@@ -15,8 +15,25 @@
  */
 
 // The landing page's footer: the wordmark, the motto, the section links,
-// the auth links the page hands in, and the copyright row with the app
-// download buttons and the install offer. Copy: LMS_LANDING_CONFIG.footer.
+// the auth links the page hands in, and the copyright row with the Legal
+// link group, the app download buttons and the install offer. Copy:
+// LMS_LANDING_CONFIG.footer.
+//
+// Since 1.31.2 the copyright row carries base_sdk's Legal link group (Ray,
+// 2026-09-11, 20:36:37Z: "still no legal pages in supa, even rokct they
+// still #"). base_sdk 1.37.0's FooterChromeRow draws link groups only from
+// `config.links`, and ./landing/lms-footer-chrome's LMS_FOOTER_CHROME
+// declares none - so no legal link ever rendered, whatever the backend
+// published. This section, a server component, now awaits base's guest
+// read `listPublicTerms()` (app/actions/base/legal.ts: the enabled "Terms
+// and Conditions" documents, and since base_sdk 1.45.0 the shell's bundled
+// data/legal/ pages when the backend answers nothing) and spreads
+// `legalFooterLinks(terms)` over the chrome config as `links`. Titles come
+// from the documents, hrefs are /legal/<name> (corporate_sdk's pages), and
+// the group's one word, "Legal", is base's default label. With nothing
+// published `legalFooterLinks` answers `[]` and base draws no group, so the
+// footer reads exactly as 1.31.1 until a document exists; the read
+// soft-fails to that same empty list, never to a failed page.
 //
 // The app links (1.12.0-1.30.0: one text link per shown app in the nav)
 // are gone from this file since 1.31.0 (Ray, 2026-09-11: "footer has
@@ -59,7 +76,9 @@
 import React from "react";
 import Link from "next/link";
 
+import { listPublicTerms } from "@/app/actions/base/legal";
 import { FooterChromeRow } from "@/components/custom/footer-chrome";
+import { legalFooterLinks } from "@/components/custom/landing/legal-links";
 import { LmsWordmark } from "@/components/custom/landing/lms-wordmark";
 import { LMS_FOOTER_CHROME } from "@/components/custom/landing/lms-footer-chrome";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
@@ -71,7 +90,7 @@ import type {
 /** The wordmark's height in px; the traced glyphs set the width. */
 const WORDMARK_HEIGHT = 34;
 
-export function LmsFooterSection({
+export async function LmsFooterSection({
   id,
   loginUrl,
   signupUrl,
@@ -82,6 +101,10 @@ export function LmsFooterSection({
 }) {
   const config = LMS_LANDING_CONFIG.footer;
   if (!config) return null;
+
+  // The published legal documents, read as a guest on the server; `[]`
+  // with none (or no backend), which base's row draws as no group.
+  const terms = await listPublicTerms();
 
   return (
     <footer
@@ -118,7 +141,7 @@ export function LmsFooterSection({
           </nav>
         </div>
         <FooterChromeRow
-          config={LMS_FOOTER_CHROME}
+          config={{ ...LMS_FOOTER_CHROME, links: legalFooterLinks(terms) }}
           className="border-t border-[var(--sc-stroke-subtle)] pt-6"
         />
       </div>
@@ -131,8 +154,21 @@ export function LmsFooterSection({
  * components/custom/landing/page-sections.ts: the last place in the page
  * order, right before the host's own footer anchor. Not a nav stop - the
  * host's `footer` entry already ends the nav.
+ *
+ * Since 1.31.3 also part of the SITE FRAME (base_sdk 1.47.0's
+ * `PageSectionMeta.frame`): base's site-frame.tsx draws it after the content
+ * of a composed page that sits in the frame (corporate_sdk 1.2.0's /about,
+ * /team and /legal), so those pages end the way the landing does (Ray,
+ * 2026-09-11, 20:44:16Z: "https://supacharge.school/about we have no way
+ * to get here and its so disconnected to the rest of the site"). On the
+ * landing it renders exactly as before, by its order.
  */
-export const meta: PageSectionMeta = { order: 95, nav: [], anchor: "site-footer" };
+export const meta: PageSectionMeta = {
+  order: 95,
+  nav: [],
+  anchor: "site-footer",
+  frame: true,
+};
 
 export default function LmsFooterPageSection({
   id,
