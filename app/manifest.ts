@@ -22,8 +22,16 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     // buildSiteMetadata()'s generatedIcons(). A host icon file, once one
     // exists, replaces these entries.
     icons: [
-      { src: `${GENERATED_BRAND_ICON}?s=192`, sizes: "192x192", type: "image/png" },
-      { src: `${GENERATED_BRAND_ICON}?s=512`, sizes: "512x512", type: "image/png" },
+      {
+        src: `${GENERATED_BRAND_ICON}?s=192`,
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        src: `${GENERATED_BRAND_ICON}?s=512`,
+        sizes: "512x512",
+        type: "image/png",
+      },
     ],
   };
 }
