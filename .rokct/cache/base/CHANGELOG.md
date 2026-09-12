@@ -1,5 +1,63 @@
 # Changelog
 
+## 1.42.0
+
+* The landing has a floating "Back to top" button. Ray, 2026-09-11
+  12:32Z: "whats missing is floating push to home, that button you press
+  and it get you to top i just forgot what it says". NEW client component
+  `components/custom/back-to-top.tsx` `BackToTop({ threshold?, label?,
+  className? })`: hidden at the top of the page, shown once the visitor
+  has scrolled past `threshold` pixels (one viewport height by default,
+  read on every check), fixed at the bottom right (`bottom-4 right-4`,
+  `md:bottom-6 md:right-6`, the safe-area inset as margin) at `z-30` -
+  under the sticky header (`z-50`) and its mobile panel (`z-40`), so an
+  open menu covers it, and clear of the left edge and the vertical
+  middle a home SDK's floating nav uses; the install offer is inline in
+  the footer, never fixed, so the two never meet. A click calls
+  `window.scrollTo({ top: 0, behavior })` - `"smooth"`, or `"auto"` (the
+  instant jump) when `(prefers-reduced-motion: reduce)` matches - and
+  blurs the button. The scroll and resize listeners are `passive: true`
+  and folded into one `requestAnimationFrame` per frame; every window
+  read is in the effect or the click, never at render, so the server and
+  the first client render agree on hidden. The button stays in the tree
+  and fades (`motion-safe:transition-opacity`); while hidden it carries
+  `tabIndex={-1}`, `aria-hidden` and `pointer-events-none`, so it is
+  never in the tab order unseen. `aria-label` and `title` are
+  `BACK_TO_TOP_LABEL` ("Back to top"; `label` overrides). Lucide's
+  `ArrowUp`, the icon set the shells already import; theme tokens only
+  (`bg-background`, `border-border`, `text-primary`, `hover:bg-muted`,
+  `ring-ring`). NEW `landing/back-to-top.ts` is the pure half:
+  `BACK_TO_TOP_LABEL`, `REDUCED_MOTION_MEDIA_QUERY`,
+  `resolveThreshold(threshold, viewportHeight)`,
+  `isPastThreshold(scrollY, threshold)` (strictly past, so the top is
+  always hidden), `scrollBehaviour(reducedMotion)`.
+  `components/custom/landing-content.tsx` mounts `<BackToTop />` once,
+  after `<main>`, so a base-only host and a home SDK's composed landing
+  (its `/` sends an anonymous visitor to `/landing`) both have it with
+  no host edit; a host that wants it on every page mounts it in its own
+  root layout. `docs/downloads-and-install.md` describes it.
+* The header's suffix no longer clips its last glyph. Ray, 2026-09-11
+  13:57Z: the final "l" of the site name's suffix was "a bit cut". The
+  suffix span (`components/custom/header.tsx` `BrandStemWordmark`) clips
+  its own overflow so the slot can slide closed over it, and its box is
+  the text's advance width - so once a home SDK italicises the wordmark
+  through the `data-brand-wordmark="stem"` hook, the last glyph's
+  italic overhang (a 900 italic lowercase "l" leans about 0.09em past
+  its advance) was sheared off at the box's right edge. The span now
+  carries `pr-[0.12em] -mr-[0.12em]`: the padding keeps the overhang
+  inside the clipped box, the negative margin hands that width back to
+  the grid, so the track, the stem's width and the country code beside
+  it measure exactly what they did, open and folded. No font, size or
+  colour changes; an upright face draws as before. The hero's suffix
+  never clipped and is untouched.
+* Tests: NEW `tests/back-to-top.test.mts` (node) executes the rules;
+  `test_manifest.py` gains
+  `test_back_to_top_is_a_client_component_mounted_in_the_landing_shell`,
+  `test_back_to_top_rules_under_node`,
+  `test_back_to_top_type_checks_under_tsc` and
+  `test_brand_suffix_has_room_for_its_italic_overhang`. Manifest
+  installs the two new files.
+
 ## 1.41.0
 
 * The site name's suffix is in the primary colour. Ray, 2026-09-11

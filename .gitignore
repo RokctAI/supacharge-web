@@ -181,6 +181,7 @@ components/custom/theme-provider.tsx
 /components/custom/app-sidebar.tsx
 /components/custom/auth-form.tsx
 /components/custom/auth/register-registry.ts
+/components/custom/back-to-top.tsx
 /components/custom/beta-toggle.tsx
 /components/custom/company/company-frame.tsx
 /components/custom/company/company-pages.ts
@@ -195,6 +196,7 @@ components/custom/theme-provider.tsx
 /components/custom/hero.tsx
 /components/custom/install-offer.tsx
 /components/custom/landing-content.tsx
+/components/custom/landing/back-to-top.ts
 /components/custom/landing/brand-marks.ts
 /components/custom/landing/download-platform.ts
 /components/custom/landing/footer-chrome-config.ts
