@@ -1,5 +1,91 @@
 # Changelog
 
+## 1.32.0
+
+* The admin marketing calendar carries an ad-performance report: which
+  TikTok ads bought against these campaign windows are decaying, and what a
+  manager might do about each flag. Reporting only - nothing in this release
+  pauses an ad, moves a budget, changes a bid or writes anything back to the
+  ad account; every `action` a flag carries is a suggestion a manager takes
+  by hand.
+  * Backend, pure: `rlms/ad_performance.py` (frappe-free) holds the
+    thresholds, the daily-row aggregation, the decay rules, the flag text,
+    the `build_report` assembly and the parser for the TikTok Business API
+    reporting payload. A trailing window (`RECENT_WINDOW_DAYS`, 7 days) is
+    compared against the equal-length window immediately before it, and
+    every rule checks a volume floor before it divides:
+    `cpa_rising` (+25% watch / +50% act, needs a baseline conversion and
+    `MIN_RECENT_SPEND`), `ctr_falling` (-30% watch / -50% act, needs
+    `MIN_RECENT_IMPRESSIONS` = 1000), `frequency_high` (2.5 watch / 3.5
+    act), `spend_no_conversions` (a measured zero with real money behind
+    it) and `stale_data` (the newest stored row older than
+    `STALE_DATA_DAYS` = 2), raised once for the report rather than per ad.
+    Every division is guarded: a ratio with no denominator is `null` on the
+    wire, never 0 and never infinity, and an absent metric stays absent
+    instead of reading as zero.
+  * Backend, thin: `rlms/api/ad_performance.py` whitelists
+    `get_ad_performance` behind `frappe.only_for("System Manager")` (the
+    `api/marketing_calendar.py` gate), reads the stored ledger, and owns the
+    one outbound call - the `/open_api/v1.3/report/integrated/get/` endpoint
+    with an `Access-Token` header and a 30-second timeout, a
+    `RequestException` logged and turned into a user-safe failure. The
+    credentials are per-site `site_config.json` values read through
+    `frappe.conf`: `tiktok_ads_access_token` and `tiktok_ads_advertiser_id`,
+    the `marketing_calendar_feed_token` convention. Neither value is ever
+    written into code, a fixture or a log line. With either missing,
+    `get_ad_performance` answers `connected: false` with no ads and no flags
+    and raises nothing, and the ingest is a no-op.
+  * Backend, stored: `LMS Ad Performance Daily` (`autoname: "hash"`, the
+    `LMS Video Watch Daily` precedent) keeps one row per platform + ad +
+    day, upserted so a re-pull corrects the day rather than duplicating it
+    and a late-attributed conversion lands where it belongs; the composite
+    index is added in the doctype's `on_doctype_update`. Registered in the
+    frappe manifest's `fixtures` DocType list.
+  * Backend, scheduled: `rlms/tasks.py` gains the thin
+    `pull_tiktok_ad_metrics`, registered in the frappe manifest's
+    `scheduler_events.cron` (04:30 daily), re-reading the trailing fortnight
+    so both windows stay current. Per-item isolation as the digest task has
+    it: one unreadable row is logged and skipped, never a reason to lose the
+    run. The alias `{app_name}.api.lms.ad_performance` is registered beside
+    the calendar's two.
+  * Frontend: `lms-ad-performance-rules.ts` (pure, import-free, run under
+    node by the tests) carries the wire types mirroring the backend's
+    contract, `LABEL_PREFIX = "app.lms.adperf"`, the severity and status
+    badge variants, the flag and suggested-action labels, the
+    act-before-watch ordering, `FLAG_RENDER_LIMIT` and the locale-free
+    percentage, count and money formatters - a `null` figure formats as ""
+    and the component draws "no data", never a confident zero.
+    `lms-ad-performance.tsx` (a server component, no `"use client"`) draws
+    the summary line, the flags with headline, detail and suggested action,
+    and a compact per-ad table, every word read through the shell's `t`
+    under `app.lms.adperf.*` with the English beside each key;
+    `LmsAdPerformanceNotConnected` says plainly that no TikTok ad account is
+    connected and names the two configuration keys.
+  * Frontend wiring: `app/services/all/lms/ad-performance.ts` calls
+    `api.lms.ad_performance` and degrades to `null` (the
+    `marketing-calendar.ts` shape), `fetchAdPerformance()` joins
+    `fetchMarketingCalendar()` in the calendar actions behind the same
+    `verifyLmsRole()` gate, the wire types are re-exported from the
+    feature's `types.ts`, and `/admin/calendar` awaits both with
+    `Promise.all` and renders the report below the windows - a refused or
+    unconfigured ad report can never take the calendar down.
+  * Manifest: the two new template files are installed with comments; the
+    actions, types and service ride the existing directory mappings. The
+    i18n note names the new prefix and `about` names the alias, the
+    reporting-only rule and the two configuration keys. `version` and
+    `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` go to 1.32.0. The
+    `requires` list is unchanged.
+* Tests: `lms/frappe/src/tenant/rlms/tests/test_ad_performance.py` (new)
+  pins every rule at and either side of its threshold, the volume floors,
+  the zero-division guards, the stale-data day count, the not-connected
+  path, the upsert-by-day behaviour against a stubbed frappe, and the parser
+  against a hand-written payload shaped like the reporting endpoint's
+  answer. `lms/nextjs/tests/test_ad_performance_page.py` (new) asserts the
+  installs, that the rules module stays import-free, that every label sits
+  under the prefix, that the component and page keep their server shape and
+  name no credential, and runs the rules under node. The calendar page's
+  1.28.0 render test now reads the concurrent `Promise.all` load.
+
 ## 1.31.3
 
 * The hero draws no host logo tile beside its wordmark (Ray, 2026-09-11,

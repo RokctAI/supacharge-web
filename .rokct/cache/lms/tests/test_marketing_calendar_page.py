@@ -306,7 +306,12 @@ class TestPageShape(unittest.TestCase):
         self.assertIsNone(USE_CLIENT_LINE_RE.search(code))
         self.assertIn("export default async function AdminMarketingCalendarPage", code)
         self.assertIn('from "@/app/actions/handson/all/lms/calendar/actions"', code)
-        self.assertIn("await fetchMarketingCalendar()", code)
+        # 1.32.0: the calendar and the ad report load concurrently in the
+        # same server render; the calendar is still loaded HERE, never in an
+        # effect, and the ad report cannot delay or take it down.
+        self.assertIn("await Promise.all([", code)
+        self.assertIn("fetchMarketingCalendar(),", code)
+        self.assertIn("fetchAdPerformance(),", code)
         self.assertIn('export const dynamic = "force-dynamic";', code)
         for hook in ("useEffect(", "useState(", "window.", "document."):
             self.assertNotIn(hook, code)

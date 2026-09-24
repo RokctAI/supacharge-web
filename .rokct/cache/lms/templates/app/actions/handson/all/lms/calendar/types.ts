@@ -18,6 +18,11 @@
 // (components/custom/landing/lms-calendar-rules.ts, import-free so the
 // tests can run it); re-exported here so the actions and services follow
 // the actions/<feature>/types.ts layout the other lms features use.
+//
+// 1.32.0: the ad-performance report is read on the same page and follows
+// the same arrangement - its wire types live beside ITS rules
+// (lms-ad-performance-rules.ts, equally import-free) and are re-exported
+// from here for the action and the service.
 export type {
   CalendarEvent,
   CalendarHoliday,
@@ -28,3 +33,13 @@ export type {
   CalendarTerm,
   MarketingCalendar,
 } from "@/components/custom/landing/lms-calendar-rules";
+
+export type {
+  AdFlag,
+  AdFlagAction,
+  AdFlagCode,
+  AdFlagSeverity,
+  AdPerformanceReport,
+  AdSignal,
+  AdStatus,
+} from "@/components/custom/landing/lms-ad-performance-rules";

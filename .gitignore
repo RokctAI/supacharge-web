@@ -156,6 +156,7 @@ components/custom/theme-provider.tsx
 /app/manager/reports/page.tsx
 /app/opengraph-image.tsx
 /app/page.tsx
+/app/services/all/lms/ad-performance.ts
 /app/services/all/lms/assignments.ts
 /app/services/all/lms/batches.ts
 /app/services/all/lms/courses.ts
@@ -211,6 +212,7 @@ components/custom/theme-provider.tsx
 /components/custom/landing/landing-config.ts
 /components/custom/landing/landing-page.ts
 /components/custom/landing/legal-links.ts
+/components/custom/landing/lms-ad-performance-rules.ts
 /components/custom/landing/lms-calendar-rules.ts
 /components/custom/landing/lms-card-deck.tsx
 /components/custom/landing/lms-curricula.tsx
@@ -245,6 +247,7 @@ components/custom/theme-provider.tsx
 /components/custom/legal/legal-doc.tsx
 /components/custom/legal/legal-frame.tsx
 /components/custom/legal/load-legal-doc.ts
+/components/custom/lms-ad-performance.tsx
 /components/custom/lms-download-app.tsx
 /components/custom/lms-faq-section.client.tsx
 /components/custom/lms-faq-section.tsx
