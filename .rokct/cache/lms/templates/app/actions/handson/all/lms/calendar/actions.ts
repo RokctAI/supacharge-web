@@ -16,9 +16,10 @@
 
 "use server";
 
+import { AdPerformanceService } from "@/app/services/all/lms/ad-performance";
 import { MarketingCalendarService } from "@/app/services/all/lms/marketing-calendar";
 import { verifyLmsRole } from "@/app/lib/roles";
-import type { MarketingCalendar } from "./types";
+import type { AdPerformanceReport, MarketingCalendar } from "./types";
 
 /**
  * The marketing calendar for the admin page, loaded in the page's server
@@ -31,4 +32,21 @@ export async function fetchMarketingCalendar(
 ): Promise<MarketingCalendar | null> {
   if (!(await verifyLmsRole())) return null;
   return await MarketingCalendarService.getCalendar(today);
+}
+
+/**
+ * The ad-performance report for the same admin page (1.32.0), loaded in the
+ * same server render. The host's LMS role gate answers first, as every lms
+ * server action does; the backend then enforces System Manager, and either
+ * refusal reads as null - which the page draws as nothing at all, so a
+ * missing ad report can never take the calendar down.
+ *
+ * A site with no ad credentials is NOT a refusal: the backend answers a
+ * report with `connected: false`, which the page draws as "not connected".
+ */
+export async function fetchAdPerformance(
+  today?: string,
+): Promise<AdPerformanceReport | null> {
+  if (!(await verifyLmsRole())) return null;
+  return await AdPerformanceService.getReport(today);
 }

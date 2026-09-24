@@ -14,13 +14,26 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// /admin/calendar - the living marketing calendar (lms_sdk 1.28.0). A
-// server page: the data is loaded here, in the render, never in an
-// effect, so the first HTML already carries today's countdowns. The
+// /admin/calendar - the living marketing calendar (lms_sdk 1.28.0) and,
+// since 1.32.0, the ad-performance report below it: which TikTok ads bought
+// against these windows are decaying, and what a manager might do about
+// each flag. A server page: the data is loaded here, in the render, never
+// in an effect, so the first HTML already carries today's countdowns. The
 // shell's theme provider is dark by default and the page paints only
 // theme tokens, so it is dark unless the viewer has chosen light.
+//
+// The two payloads are fetched concurrently and read independently: the ad
+// report answers null when it is refused and `connected: false` when no ad
+// account is configured, and neither can take the calendar down.
 
-import { fetchMarketingCalendar } from "@/app/actions/handson/all/lms/calendar/actions";
+import {
+  fetchAdPerformance,
+  fetchMarketingCalendar,
+} from "@/app/actions/handson/all/lms/calendar/actions";
+import {
+  LmsAdPerformance,
+  LmsAdPerformanceNotConnected,
+} from "@/components/custom/lms-ad-performance";
 import {
   LmsMarketingCalendar,
   LmsMarketingCalendarDenied,
@@ -30,7 +43,10 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminMarketingCalendarPage() {
-  const calendar = await fetchMarketingCalendar();
+  const [calendar, adPerformance] = await Promise.all([
+    fetchMarketingCalendar(),
+    fetchAdPerformance(),
+  ]);
   return (
     <div className="container mx-auto space-y-8 px-4 py-8">
       {calendar ? (
@@ -38,6 +54,13 @@ export default async function AdminMarketingCalendarPage() {
       ) : (
         <LmsMarketingCalendarDenied />
       )}
+      {adPerformance ? (
+        adPerformance.connected ? (
+          <LmsAdPerformance report={adPerformance} />
+        ) : (
+          <LmsAdPerformanceNotConnected />
+        )
+      ) : null}
     </div>
   );
 }
