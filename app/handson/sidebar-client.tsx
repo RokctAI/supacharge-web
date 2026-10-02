@@ -36,6 +36,7 @@ const sdkNavItems: { href: string; label: string }[] = [
   { href: "/handson/all/lms", label: "Learning" },
   { href: "/handson/all/lms/me/profile", label: "My Profile" },
   { href: "/handson/all/lms/me/batches", label: "My Batches" },
+  { href: "/handson/all/lms/children", label: "My Children" },
   // @rokct-sdk-nav-end
 ];
 
