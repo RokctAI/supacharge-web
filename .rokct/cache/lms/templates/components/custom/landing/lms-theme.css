@@ -224,6 +224,48 @@ html.light .sc-landing {
   padding: 2px 8px;
   background: transparent;
 }
+/*
+ * The subjects section's grade-phase tabs (1.36.0; Ray, 2026-10-02: "make
+ * those rectangle clickable with default to grade 8-9"). Each tab is a
+ * real <button role="tab"> (lms-subjects-section.client.tsx) whose only
+ * content is the grades rectangle lms-curricula.tsx already draws - the
+ * outlined span above, with the pill after a phase on its way - so the
+ * button itself paints nothing: no border, no fill, just the hit area
+ * around the rectangle. The selected tab's rectangle is filled with the
+ * primary token and reads in white, the way the "Grades 8 to 12" badge did
+ * before it became a tab; its pill, which is primary on primary otherwise,
+ * goes white with black text. The rectangle is addressed as the button's
+ * child, never by the class the one rule above owns, and the pill as the
+ * rectangle's last element child - a live tab's rectangle holds text only,
+ * so nothing matches there. Selection is a click or a key, never a hover:
+ * nothing here changes on :hover.
+ */
+.sc-phase-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0.25rem;
+  margin: 0;
+  font: inherit;
+  color: var(--sc-ink);
+  cursor: pointer;
+  border-radius: 14px;
+}
+.sc-phase-tab > span {
+  padding: 0.4rem 0.9rem;
+  font-weight: 700;
+}
+.sc-phase-tab[aria-selected="true"] > span {
+  background: var(--sc-primary);
+  color: #ffffff;
+}
+.sc-phase-tab[aria-selected="true"] > span > :last-child {
+  background: #ffffff;
+}
+.sc-phase-tab:focus-visible {
+  outline: 2px solid var(--sc-primary);
+  outline-offset: 2px;
+}
 .sc-brand {
   font-family: var(--sc-font-brand);
   font-style: italic;

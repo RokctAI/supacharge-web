@@ -1,5 +1,83 @@
 # Changelog
 
+## 1.36.1
+
+* Landing: the grade tabs follow the CAPS phases by subject set (Ray,
+  2026-10-02, approving the regrouping of 1.36.0's tabs): "Grades R to 3"
+  and "Grades 4 to 6" with the soon pill, "Grades 7 to 9" (selected on
+  first paint) and "Grades 10 to 12" live. Grades 4 to 6 is the
+  Intermediate Phase - Mathematics, English Home Language, Natural
+  Sciences and Technology, Social Sciences, Life Skills, named without
+  tutors. Grades 7 to 9 is the Senior Phase with 1.36.0's Grades 8 to 9
+  subjects and duos unchanged (the EMS row per grade stays); its text
+  says Grades 8 and 9 are live and Grade 7 is on the way, and a small
+  "Grade 7" chip with the pill follows the text (`Phase.pending`, a
+  `GradesChip`, drawn through `LmsPhaseGrades`; the tab itself carries no
+  pill). Technology, Life Orientation and the Grade 7 rows of the old
+  "Grades 4 to 7" tab are gone: nothing taken by Grade 7 alone is listed.
+* The Subjects feature card's lines are "Grades 7 to 9" and "Grades 10
+  to 12"; the "Which subjects and grades?" answer says Grades 8 to 12 are
+  live today and names Grade 7, Grades 4 to 6 and Grades R to 3 as on the
+  way. The word "soon" is still only the badge value.
+* Landing: the tutors section's two rosters, the tutors and the session
+  assistants, each have the same grade tabs over them as filters (Ray,
+  2026-10-02, approving the tutor and host grade tabs): "All Grades"
+  (selected on first paint), "Grades 7 to 9" and "Grades 10 to 12"
+  (`tutors.gradeFilters`, `tutors.defaultGradeFilter`). No Grades R to 3
+  tab - kids mode has no tutor persona - and no Grades 4 to 6 tab. A tutor
+  shows under a phase when the grades they teach meet it (the
+  Mathematical Literacy duo under Grades 10 to 12 only, the other ten
+  under both); an assistant under the phase of their grade, the new
+  `Assistant.grade` (Lerato and Kavitha under Grades 7 to 9; Thandi,
+  Bianca and Mandy under Grades 10 to 12); a persona without grades under
+  All Grades only. Each row keeps its own selection; no URL state, nothing
+  on hover.
+* The row of tabs is one component, `landing/lms-grade-tabs.tsx`
+  (`LmsGradeTabs`, `nextTabIndex`, `gradeTabIds`): the subjects section's
+  client half renders it for its phases and the tutors section's client
+  half for each roster's filters - the same buttons, `role="tab"`,
+  `aria-selected`, roving tabindex, arrow and Home/End keys and
+  `.sc-phase-tab` look. The manifest installs it.
+* `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.36.1. No
+  base_sdk floor moves.
+
+## 1.36.0
+
+* Landing: the subjects section's grade rectangles are clickable tabs
+  (Ray, 2026-10-02: "i think there has to be another for grade R-3 with
+  its subjects and make those rectangle clickable with default to grade
+  8-9. i also think this section also need another soon with grade 4-7").
+  One tab per CAPS phase, in grade order: "Grades R to 3" and "Grades 4
+  to 7" with the soon pill, "Grades 8 to 9" and "Grades 10 to 12" live;
+  Grades 8 to 9 is selected on first paint. The grid below is the
+  selected phase's own subjects - Foundation Phase: Mathematics and
+  English Home Language; Grades 4 to 7: Mathematics, English Home
+  Language, Natural Sciences and Technology, Social Sciences, Life
+  Skills, and Grade 7's Technology, Economic and Management Sciences and
+  Life Orientation, named without tutors; Grades 8 to 9: Mathematics,
+  Natural Sciences, Social Sciences and Economic and Management Sciences
+  (a row per grade: the Economics duo in Grade 8, the Accounting duo in
+  Grade 9), with the same duos as Grades 10 to 12; Grades 10 to 12 the
+  six FET subjects as before. The fixed "Grades 8 to 12" badge and the
+  1.35.2 Foundation Phase card under the grid are gone; their words are
+  the tabs' and the selected panel's text.
+* The tabs are real buttons (`role="tab"`, `aria-selected`, roving
+  tabindex, Left/Right/Home/End) in a new client half,
+  `lms-subjects-section.client.tsx`; the entry keeps `meta` and the
+  heading. Each tab's only content is the outlined rectangle
+  lms-curricula.tsx draws (`LmsPhaseGrades`, now with `outlined` so a
+  live phase gets the rectangle without a pill); the selected one is
+  filled primary by `.sc-phase-tab[aria-selected="true"] > span` in
+  lms-theme.css. Nothing changes on hover.
+* Config: `Phase` gains `subjects`, `SubjectsConfig` gains
+  `defaultPhase` and loses `grades` and `subjects`, `Subject.tutors` is
+  optional and `Subject.grades` notes a subject taken in part of a phase.
+  The Subjects feature card's lines are the live grades ("Grades 8 to
+  9", "Grades 10 to 12") and its `phases` lines the badged phases; the
+  "Which subjects and grades?" answer names all four.
+* `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.36.0. No
+  base_sdk floor moves.
+
 ## 1.35.2
 
 * Landing: Foundation Phase (Grades R to 3) is shown as its own offering,

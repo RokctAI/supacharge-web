@@ -195,8 +195,20 @@ export interface SessionsConfig {
 
 export interface Subject {
   name: string;
-  /** Tutor duo per subject: the expert and the simplifier (lms/team/tutors/CAPS/roster.json). */
-  tutors: [string, string];
+  /**
+   * Tutor duo per subject: the expert and the simplifier
+   * (lms/team/tutors/CAPS/roster.json). Absent on a phase that is on its
+   * way (1.36.0): its subjects are named, nobody is cast yet, and the card
+   * draws no duo rather than an invented one.
+   */
+  tutors?: [string, string];
+  /**
+   * The grades of the phase this subject is taught in, when it is not all
+   * of them (1.36.0): "Grade 8" and "Grade 9" on the two EMS rows, which
+   * the roster casts a duo per grade (senior_phase.subjects.ems.grade_duos).
+   * Absent, the subject runs through the whole phase.
+   */
+  grades?: string;
 }
 
 /**
@@ -213,22 +225,90 @@ export interface Curriculum {
 }
 
 /**
- * A school phase the app is adding, offered on the landing as its own
- * thing beside the live grades (1.35.2; Ray, 2026-10-02: "we have
- * foundation grade R-3 its distinct ... R-3 need to be added to landing
- * page with soon label"). `badge` is the same new/soon vocabulary a
- * Curriculum carries, drawn as the same MenuLabel pill in the same
- * border-only rectangle (landing/lms-curricula.tsx, LmsPhaseName), so the
- * word "soon" is never written in copy.
+ * One school phase of the subjects section, live or on its way. Since
+ * 1.36.0 (Ray, 2026-10-02: "i think there has to be another for grade R-3
+ * with its subjects and make those rectangle clickable with default to
+ * grade 8-9. i also think this section also need another soon with grade
+ * 4-7") every phase is a tab of the section - its grades rectangle is the
+ * clickable tab, its subjects the grid below - and the phases split the
+ * grades the way CAPS does, Grades 4 to 7 as one tab because that is the
+ * one the owner asked for. 1.35.2 introduced the type for the phases on
+ * their way only, beside a fixed "Grades 8 to 12" badge.
+ *
+ * `badge` is the same new/soon vocabulary a Curriculum carries, drawn as
+ * the same MenuLabel pill in the same border-only rectangle
+ * (landing/lms-curricula.tsx, LmsPhaseGrades), so the word "soon" is never
+ * written in copy: a badged phase is on its way, an unbadged one is live.
+ *
+ * Since 1.36.1 (Ray, 2026-10-02, approving the regrouping) the tabs follow
+ * the CAPS phases by subject set - Grades R to 3, 4 to 6, 7 to 9, 10 to 12
+ * - so a live tab can hold a grade that is not live yet: Grade 7 of the
+ * Senior Phase. That grade is the tab's `pending` chip, drawn under the
+ * text through the same rectangle-and-pill, never on the tab itself.
  */
 export interface Phase {
-  /** The phase's own name: "Foundation Phase". */
+  /** The phase's own name: "Foundation Phase". Unique; the tab's key. */
   name: string;
-  /** Its grades, as the live line spells its own: "Grades R to 3". */
+  /** Its grades, the words on the tab: "Grades R to 3". */
   grades: string;
-  /** One sentence on what the phase is, for its card under the subject grid. */
+  /** One or two sentences on what the phase is, under the tabs when it is selected. */
   text: string;
   badge?: LandingNavBadge;
+  /**
+   * The part of a live phase still on its way (1.36.1): its grades and
+   * the badge, drawn as a small chip after the text ("Grade 7" with the
+   * soon pill). Absent on a phase that is live throughout or on its way
+   * throughout.
+   */
+  pending?: GradesChip;
+  /**
+   * The CAPS subjects of the phase, the grid under the tabs. A live phase
+   * names the tutor duo on each; a phase on its way names the subjects
+   * only.
+   */
+  subjects: Subject[];
+}
+
+/**
+ * Grades with a pill after them, in the border-only rectangle
+ * (landing/lms-curricula.tsx, LmsPhaseGrades): what a Phase shows on its
+ * tab, and what its `pending` chip shows (1.36.1).
+ */
+export interface GradesChip {
+  grades: string;
+  badge?: LandingNavBadge;
+}
+
+/**
+ * One tab of a row of grade tabs (landing/lms-grade-tabs.tsx, 1.36.1): its
+ * name, the key and the source of its DOM ids, and the GradesChip it
+ * draws. A Phase is one; so is a GradeFilter.
+ */
+export interface GradeTab extends GradesChip {
+  /** Unique within its row: "Senior Phase", "All Grades". */
+  name: string;
+}
+
+/**
+ * A grade filter of the tutors section's two rows (1.36.1; Ray,
+ * 2026-10-02, approving the tutor and host grade tabs): the same tab as a
+ * subjects phase, selecting who the row shows rather than a grid. A filter
+ * that is a phase is named for it (`name` is a `subjects.phases` name) and
+ * its tab reads that phase's own `grades`, so the two tab rows can never
+ * spell a phase two ways; a filter that is no phase carries its own words.
+ */
+export interface GradeFilter {
+  /** Unique within the row; a `subjects.phases` name, or "All Grades". */
+  name: string;
+  /** The words on the tab of a filter that is no phase: "All Grades". */
+  grades?: string;
+  /**
+   * The first and last grade of the phase, both included. A tutor shows
+   * under it when a grade they teach falls in it, an assistant when their
+   * own grade does. Absent on "All Grades", which shows everyone - and is
+   * the only tab a persona without grades shows under.
+   */
+  range?: [number, number];
 }
 
 export interface SubjectsConfig {
@@ -238,15 +318,18 @@ export interface SubjectsConfig {
   curricula: Curriculum[];
   heading: string;
   blurb: string;
-  /** The live grades: the badge under the blurb. */
-  grades: string;
   /**
-   * Phases on their way (1.35.2): each is a chip beside the live grades
-   * badge and a card of its own under the subject grid, never mixed into
-   * `grades` or `subjects`. Empty or absent draws nothing.
+   * The phases, in tab order (1.36.0): one clickable rectangle each under
+   * the blurb, the selected one's subjects in the grid. Empty draws
+   * nothing.
    */
-  phases?: Phase[];
-  subjects: Subject[];
+  phases: Phase[];
+  /**
+   * The `name` of the phase selected on first paint, before any click
+   * (Ray, 2026-10-02: "default to grade 8-9"; since 1.36.1 that is the
+   * Senior Phase tab, Grades 7 to 9). A live phase, never one on its way.
+   */
+  defaultPhase: string;
 }
 
 export interface Tutor {
@@ -287,6 +370,12 @@ export interface Assistant {
    * bio names that job rather than inventing a personality per assistant.
    */
   bio?: string;
+  /**
+   * The one grade whose sessions they host, the grade their `role` names
+   * (1.36.1): the grade filter they show under. Not `grades`, which the
+   * card would draw as a corner badge an assistant card has never worn.
+   */
+  grade?: number;
 }
 
 /** The words on the flip cards (lms-tutor-card.tsx, lms-plan-card.tsx). */
@@ -345,6 +434,17 @@ export interface TutorsConfig {
   deck: DeckLabels;
   /** The assistants' row, the same deck. */
   assistantsDeck: DeckLabels;
+  /**
+   * The grade tabs over each row, in order (1.36.1): All Grades, then the
+   * phases tutors teach in. Both rows wear the same set, each with its own
+   * selection.
+   */
+  gradeFilters: GradeFilter[];
+  /** The `name` of the filter selected on first paint, in both rows: "All Grades". */
+  defaultGradeFilter: string;
+  /** Accessible names of the two tab lists. */
+  gradeFiltersLabel: string;
+  assistantsGradeFiltersLabel: string;
 }
 
 /**
@@ -378,10 +478,11 @@ export interface Feature {
   /** `list` only: the lines under the text, every one copy the page already carries. */
   lines?: string[];
   /**
-   * `list` only (1.35.2): after `lines`, one line per phase the subjects
-   * section lists in `subjects.phases`, its grades with the pill after
-   * them (landing/lms-curricula.tsx, LmsPhases), so the card and the
-   * section cannot drift.
+   * `list` only (1.35.2): after `lines`, one line per phase on its way -
+   * every badged entry of `subjects.phases`, in tab order - its grades
+   * with the pill after them (landing/lms-curricula.tsx, LmsPhaseGrades),
+   * so the card and the section cannot drift. The live phases are the
+   * card's `lines`, by their own grades.
    */
   phases?: boolean;
 }
@@ -686,35 +787,94 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     heading: "Every subject, term by term.",
     blurb:
       "Lessons follow the CAPS annual teaching plan — the same national curriculum IEB schools teach — subject by subject and term by term, so what you learn tonight is what your teacher marks this term.",
-    grades: "Grades 8 to 12",
     // Ray, 2026-10-02: "we have foundation grade R-3 its distinct though
     // grade 4-7 will also be added i think R-3 need to be added to landing
-    // page with soon label". Its own phase, not a row of the grid: the
-    // grid's subjects and tutor duos are Grades 8 to 12's. Grades 4 to 7
-    // are not offered here until they exist.
+    // page with soon label", then, on seeing it: "i think there has to be
+    // another for grade R-3 with its subjects and make those rectangle
+    // clickable with default to grade 8-9. i also think this section also
+    // need another soon with grade 4-7". So every phase is a tab here, in
+    // grade order, each with its own subjects; the two on their way carry
+    // the badge, the two live ones do not. Since 1.36.1 (Ray, 2026-10-02,
+    // approving the regrouping) the tabs are the CAPS phases by subject
+    // set - Grades R to 3, 4 to 6, 7 to 9, 10 to 12 - so Grade 7 sits in
+    // the Senior Phase tab as its `pending` chip: Grades 8 and 9 are live,
+    // Grade 7 is on the way, and nothing Grade 7 alone takes is listed. The
+    // live subjects and duos are lms/team/tutors/CAPS/roster.json's
+    // (`subjects` for Grades 10 to 12, `senior_phase` for Grades 8 to 9),
+    // and the evenings each phase's text counts are
+    // lms/team/schedule/CAPS/weekly_grid.json's.
     phases: [
       {
         name: "Foundation Phase",
         grades: "Grades R to 3",
         text: "Kids mode, where the tutor is the lesson: one live tutor, game-style rounds in Mathematics and English Home Language, and one app a parent and child share, with a profile for each child.",
         badge: "soon",
+        // Named, not cast: no duo until the phase exists.
+        subjects: [{ name: "Mathematics" }, { name: "English Home Language" }],
+      },
+      {
+        // CAPS's Intermediate Phase, named, not cast: on its way after
+        // Foundation Phase.
+        name: "Intermediate Phase",
+        grades: "Grades 4 to 6",
+        text: "On the way after Foundation Phase: the Intermediate Phase as CAPS lays it out, the five subjects every Grade 4 to 6 learner takes.",
+        badge: "soon",
+        subjects: [
+          { name: "Mathematics" },
+          { name: "English Home Language" },
+          { name: "Natural Sciences and Technology" },
+          { name: "Social Sciences" },
+          { name: "Life Skills" },
+        ],
+      },
+      {
+        // The default tab (Ray, 2026-10-02: "default to grade 8-9"; the
+        // Senior Phase tab since 1.36.1). Grades 8 and 9 are live: the
+        // weekly grid gives each four subjects on four weekday evenings
+        // (Monday, Tuesday, Wednesday, Friday) and Thursday free. Grade 7
+        // is the phase's first year and on its way - the `pending` chip.
+        name: "Senior Phase",
+        grades: "Grades 7 to 9",
+        text: "Grades 8 and 9 are live: four subjects, each a live lesson on its own weekday evening - four evenings a week, Thursday free - with the same tutor duos who take you through to matric. Grade 7 is on the way.",
+        pending: { grades: "Grade 7", badge: "soon" },
+        subjects: [
+          { name: "Mathematics", tutors: ["Sifiso Zulu", "John Petersen"] },
+          // The Physical Sciences duo teaches Natural Sciences, the
+          // Geography duo Social Sciences (roster.json senior_phase).
+          { name: "Natural Sciences", tutors: ["Lindiwe Dlamini", "Rudzani Mudau"] },
+          { name: "Social Sciences", tutors: ["Kagiso Molefe", "Pieter van Zyl"] },
+          // EMS has a duo per grade in the roster (grade_duos): Grade 8 the
+          // Economics duo, Grade 9 the Accounting duo - one row per grade,
+          // so each row names a real expert and a real simplifier.
+          {
+            name: "Economic and Management Sciences",
+            grades: "Grade 8",
+            tutors: ["Nomsa Mahlangu", "Rhulani Chauke"],
+          },
+          {
+            name: "Economic and Management Sciences",
+            grades: "Grade 9",
+            tutors: ["Anand Naicker", "Grace Mofokeng"],
+          },
+        ],
+      },
+      {
+        // The weekly grid gives each grade six subjects on five weekday
+        // evenings, Mathematics and Mathematical Literacy sharing one.
+        name: "FET Phase",
+        grades: "Grades 10 to 12",
+        text: "Six subjects, each a live lesson on its own weekday evening, aired three times so you keep the time you normally attend. Mathematics and Mathematical Literacy share an evening, since no student takes both.",
+        subjects: [
+          { name: "Mathematics", tutors: ["Sifiso Zulu", "John Petersen"] },
+          { name: "Physical Sciences", tutors: ["Lindiwe Dlamini", "Rudzani Mudau"] },
+          { name: "Accounting", tutors: ["Anand Naicker", "Grace Mofokeng"] },
+          { name: "Economics", tutors: ["Nomsa Mahlangu", "Rhulani Chauke"] },
+          { name: "Geography", tutors: ["Kagiso Molefe", "Pieter van Zyl"] },
+          { name: "Mathematical Literacy", tutors: ["Priya Pillay", "Joe September"] },
+        ],
       },
     ],
-    subjects: [
-      { name: "Mathematics", tutors: ["Sifiso Zulu", "John Petersen"] },
-      { name: "Physical Sciences", tutors: ["Lindiwe Dlamini", "Rudzani Mudau"] },
-      { name: "Accounting", tutors: ["Anand Naicker", "Grace Mofokeng"] },
-      { name: "Economics", tutors: ["Nomsa Mahlangu", "Rhulani Chauke"] },
-      { name: "Geography", tutors: ["Kagiso Molefe", "Pieter van Zyl"] },
-      { name: "Mathematical Literacy", tutors: ["Priya Pillay", "Joe September"] },
-      // Grades 8-9 (owner, 2026-10-02): the same duos teach the senior phase.
-      { name: "Natural Sciences", tutors: ["Lindiwe Dlamini", "Rudzani Mudau"] },
-      { name: "Social Sciences", tutors: ["Kagiso Molefe", "Pieter van Zyl"] },
-      // EMS has a duo per grade in the roster (grade_duos): Grade 8 the
-      // economics duo, Grade 9 the accounting duo. The row holds two names,
-      // so it names each grade's expert.
-      { name: "Economic and Management Sciences", tutors: ["Nomsa Mahlangu", "Anand Naicker"] },
-    ],
+    defaultPhase: "Senior Phase",
   },
 
   tutors: {
@@ -841,30 +1001,35 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         slug: "assistant_004",
         name: "Lerato",
         role: "Grade 8 session assistant",
+        grade: 8,
         bio: "Lerato opens every Grade 8 session, keeps time, and holds the break so your questions get read out and answered without you having to ask them in front of the class.",
       },
       {
         slug: "assistant_005",
         name: "Kavitha",
         role: "Grade 9 session assistant",
+        grade: 9,
         bio: "Kavitha runs the Grade 9 room from the intro to the sign-off, calls the halfway mark, and in the break reads out what did not land so your tutor can clear it up.",
       },
       {
         slug: "assistant_001",
         name: "Thandi",
         role: "Grade 10 session assistant",
+        grade: 10,
         bio: "Thandi opens every Grade 10 session, calls the halfway mark and the last five minutes, and holds the break so nobody drifts off between the two teachers.",
       },
       {
         slug: "assistant_002",
         name: "Bianca",
         role: "Grade 11 session assistant",
+        grade: 11,
         bio: "Bianca runs the Grade 11 room. The break is hers - your questions read out and answered, so you can say what did not land without saying it to the class.",
       },
       {
         slug: "assistant_003",
         name: "Mandy",
         role: "Grade 12 session assistant",
+        grade: 12,
         bio: "Mandy takes Grade 12 from the intro to the sign-off, and in the break she reads out what part one left behind so your tutor can clear it up before the simplifier picks the topic up again.",
       },
     ],
@@ -894,6 +1059,23 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       next: "Next assistant",
       hint: "",
     },
+    // Ray, 2026-10-02, approving the tutor and host grade tabs: the same
+    // tabs as the subjects section, as filters - All Grades first and
+    // selected, then the phases a tutor teaches in. No Grades R to 3 (kids
+    // mode has no tutor persona) and no Grades 4 to 6 (nobody is cast for
+    // them). A tutor shows under a phase when the grades they teach meet
+    // it (the Mathematical Literacy duo teaches Grades 10 to 12 only, the
+    // rest Grades 8 to 12); an assistant under the phase of their grade.
+    // A phase filter is named for its `subjects.phases` entry, whose
+    // `grades` its tab reads: "Grades 7 to 9", "Grades 10 to 12".
+    gradeFilters: [
+      { name: "All Grades", grades: "All Grades" },
+      { name: "Senior Phase", range: [7, 9] },
+      { name: "FET Phase", range: [10, 12] },
+    ],
+    defaultGradeFilter: "All Grades",
+    gradeFiltersLabel: "Tutors by grade",
+    assistantsGradeFiltersLabel: "Session assistants by grade",
   },
 
   // The cards are a bento (lms-features-section.tsx): the two `wide` ones
@@ -901,10 +1083,12 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
   // the two-tutor format the sessions section sells - and each card's
   // `treatment` is assigned so that no two neighbours share one at any
   // width. `figure` and `lines` are copy this file already carries: the
-  // "2" is the Tutors card's own "Two tutors per subject", the two lines
+  // "2" is the Tutors card's own "Two tutors per subject", the lines
   // under Subjects are the subjects section's eyebrow (`curricula`: the
-  // curriculum line with its pill, from subjects.curricula) and its grades
-  // line.
+  // curriculum line with its pill, from subjects.curricula), the grades of
+  // its live phases (`lines`, each a tab's own words) and, with the pill,
+  // the grades of the phases on their way (`phases`, read from
+  // subjects.phases).
   features: {
     heading: "Your day, sorted.",
     blurb: "Everything in the app, in the order you use it.",
@@ -922,7 +1106,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         icon: BookOpenCheck,
         treatment: "list",
         curricula: true,
-        lines: ["Grades 8 to 12"],
+        lines: ["Grades 7 to 9", "Grades 10 to 12"],
         phases: true,
       },
       {
@@ -1031,7 +1215,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         question: "Which subjects and grades?",
         answer:
-          "Grades 8 to 12, with the same tutors all the way through. Grades 8 and 9: Mathematics, Natural Sciences, Social Sciences and Economic and Management Sciences. Grades 10 to 12: Mathematics, Physical Sciences, Accounting, Economics, Geography and Mathematical Literacy. Foundation Phase, Grades R to 3, is on its way as its own kids mode: one live tutor, game-style rounds in Mathematics and English Home Language, in one app a parent and child share.",
+          "Grades 8 to 12 are live today, with the same tutors all the way through. Grades 8 and 9: Mathematics, Natural Sciences, Social Sciences and Economic and Management Sciences. Grades 10 to 12: Mathematics, Physical Sciences, Accounting, Economics, Geography and Mathematical Literacy. On the way: Grade 7, the first year of the Senior Phase; Grades 4 to 6, the Intermediate Phase; and Foundation Phase, Grades R to 3, as its own kids mode - one live tutor, game-style rounds in Mathematics and English Home Language, in one app a parent and child share.",
       },
       {
         question: "Does this work for IEB?",

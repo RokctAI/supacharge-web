@@ -29,7 +29,8 @@
 //   numeral   a large figure taken from the card's own copy (`figure`)
 //   list      the mini list under the text (`curricula`, the
 //             curriculum line with its pill, then `lines`, then since
-//             1.35.2 `phases`: each phase on its way, its grades and pill)
+//             1.35.2 `phases`: each phase on its way - since 1.36.0 the
+//             badged entries of subjects.phases - its grades and pill)
 //   gradient  a diagonal wash from the primary tint into the card
 //   outlined  a transparent card with a primary-leaning stroke
 //
@@ -80,8 +81,12 @@ function FeatureCard({ feature }: { feature: Feature }) {
   const { treatment } = feature;
   const inlineIcon = treatment === "numeral" || treatment === "list";
   // 1.35.2: the phases on their way, read from the subjects section's own
-  // list so the card and the section name the same ones.
-  const phases = feature.phases ? (LMS_LANDING_CONFIG.subjects?.phases ?? []) : [];
+  // list so the card and the section name the same ones. Since 1.36.0 that
+  // list is every phase, live ones too (they are the section's tabs), so
+  // the card takes the badged ones: the live phases are its `lines`.
+  const phases = feature.phases
+    ? (LMS_LANDING_CONFIG.subjects?.phases ?? []).filter((phase) => phase.badge)
+    : [];
 
   return (
     <div

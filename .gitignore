@@ -228,6 +228,7 @@ components/custom/theme-provider.tsx
 /components/custom/landing/lms-fonts.ts
 /components/custom/landing/lms-footer-chrome.ts
 /components/custom/landing/lms-founders.ts
+/components/custom/landing/lms-grade-tabs.tsx
 /components/custom/landing/lms-header-menu.ts
 /components/custom/landing/lms-hero-copy.ts
 /components/custom/landing/lms-hero-form.tsx
@@ -270,6 +271,7 @@ components/custom/theme-provider.tsx
 /components/custom/lms-pricing.client.tsx
 /components/custom/lms-pricing.tsx
 /components/custom/lms-sessions-section.tsx
+/components/custom/lms-subjects-section.client.tsx
 /components/custom/lms-subjects-section.tsx
 /components/custom/lms-testimonials-section.tsx
 /components/custom/lms-theme-section.tsx
