@@ -24,6 +24,13 @@
 // thumb, so below 640px the grid is one swipeable row (`sc-row`,
 // landing/lms-theme.css); from 640px up it is unchanged.
 
+// Since 1.35.2 a phase on its way (subjects.phases; Ray, 2026-10-02: "we
+// have foundation grade R-3 its distinct ... R-3 need to be added to
+// landing page with soon label") is offered beside the live grades, never
+// inside them: its grades and pill sit next to the "Grades 8 to 12" badge,
+// and its own card follows the subject grid, outside the grid's swipe row,
+// because the grid's subjects and tutor duos are Grades 8 to 12's.
+//
 // No "use client" here (1.24.0): base reads `meta` in the SERVER render,
 // where every export of a client module is a client reference (Next
 // compiles it to registerClientReference) whose properties read as
@@ -35,12 +42,14 @@
 import React from "react";
 
 import { LmsCurricula } from "@/components/custom/landing/lms-curricula";
+import { LmsPhaseGrades } from "@/components/custom/landing/lms-curricula";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
 
 export function LmsSubjectsSection({ id }: { id?: string }) {
   const config = LMS_LANDING_CONFIG.subjects;
   if (!config || config.subjects.length === 0) return null;
+  const phases = config.phases ?? [];
 
   return (
     <section id={id} className="w-full bg-[var(--sc-surface)] py-16 md:py-24">
@@ -55,9 +64,16 @@ export function LmsSubjectsSection({ id }: { id?: string }) {
           <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
             {config.blurb}
           </p>
-          <span className="sc-badge-primary text-sm">
-            {config.grades}
-          </span>
+          <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
+            <span className="sc-badge-primary text-sm">
+              {config.grades}
+            </span>
+            {phases.map((phase) => (
+              <span key={phase.name} className="font-medium text-[var(--sc-ink)]">
+                <LmsPhaseGrades phase={phase} />
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sc-row">
@@ -86,6 +102,25 @@ export function LmsSubjectsSection({ id }: { id?: string }) {
             </div>
           ))}
         </div>
+
+        {phases.map((phase) => (
+          <div
+            key={phase.name}
+            className="flex flex-col gap-3 sc-card p-6 sm:flex-row sm:items-center sm:gap-6"
+          >
+            <div className="flex flex-col gap-2 sm:min-w-56">
+              <h3 className="text-2xl font-black tracking-tight text-[var(--sc-ink)]">
+                {phase.name}
+              </h3>
+              <span className="text-sm font-medium text-[var(--sc-ink)]">
+                <LmsPhaseGrades phase={phase} />
+              </span>
+            </div>
+            <p className="text-sm text-[var(--sc-ink-2)] leading-relaxed">
+              {phase.text}
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   );

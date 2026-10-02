@@ -27,8 +27,9 @@
 //
 //   glow      the icon over a soft radial accent, no tile
 //   numeral   a large figure taken from the card's own copy (`figure`)
-//   list      the two-line mini list under the text (`curricula`, the
-//             curriculum line with its pill, then `lines`)
+//   list      the mini list under the text (`curricula`, the
+//             curriculum line with its pill, then `lines`, then since
+//             1.35.2 `phases`: each phase on its way, its grades and pill)
 //   gradient  a diagonal wash from the primary tint into the card
 //   outlined  a transparent card with a primary-leaning stroke
 //
@@ -69,6 +70,7 @@ import {
   type Feature,
 } from "@/components/custom/landing/lms-landing-config";
 import { LmsCurricula } from "@/components/custom/landing/lms-curricula";
+import { LmsPhaseGrades } from "@/components/custom/landing/lms-curricula";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
 
 import "@/components/custom/landing/lms-features.css";
@@ -77,6 +79,9 @@ function FeatureCard({ feature }: { feature: Feature }) {
   const Icon = feature.icon;
   const { treatment } = feature;
   const inlineIcon = treatment === "numeral" || treatment === "list";
+  // 1.35.2: the phases on their way, read from the subjects section's own
+  // list so the card and the section name the same ones.
+  const phases = feature.phases ? (LMS_LANDING_CONFIG.subjects?.phases ?? []) : [];
 
   return (
     <div
@@ -117,7 +122,8 @@ function FeatureCard({ feature }: { feature: Feature }) {
         </p>
       </div>
 
-      {treatment === "list" && (feature.curricula || (feature.lines && feature.lines.length > 0)) ? (
+      {treatment === "list" &&
+      (feature.curricula || (feature.lines && feature.lines.length > 0) || phases.length > 0) ? (
         <ul className="sc-feature-lines mt-auto flex flex-col gap-1.5 text-sm font-medium text-[var(--sc-ink)]">
           {feature.curricula ? (
             <li className="sc-feature-line">
@@ -129,6 +135,13 @@ function FeatureCard({ feature }: { feature: Feature }) {
           {(feature.lines ?? []).map((line) => (
             <li key={line} className="sc-feature-line">
               {line}
+            </li>
+          ))}
+          {phases.map((phase) => (
+            <li key={phase.name} className="sc-feature-line">
+              <span>
+                <LmsPhaseGrades phase={phase} />
+              </span>
             </li>
           ))}
         </ul>

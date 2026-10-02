@@ -212,6 +212,25 @@ export interface Curriculum {
   badge?: LandingNavBadge;
 }
 
+/**
+ * A school phase the app is adding, offered on the landing as its own
+ * thing beside the live grades (1.35.2; Ray, 2026-10-02: "we have
+ * foundation grade R-3 its distinct ... R-3 need to be added to landing
+ * page with soon label"). `badge` is the same new/soon vocabulary a
+ * Curriculum carries, drawn as the same MenuLabel pill in the same
+ * border-only rectangle (landing/lms-curricula.tsx, LmsPhaseName), so the
+ * word "soon" is never written in copy.
+ */
+export interface Phase {
+  /** The phase's own name: "Foundation Phase". */
+  name: string;
+  /** Its grades, as the live line spells its own: "Grades R to 3". */
+  grades: string;
+  /** One sentence on what the phase is, for its card under the subject grid. */
+  text: string;
+  badge?: LandingNavBadge;
+}
+
 export interface SubjectsConfig {
   /** The lead of the eyebrow; the curricula follow it: "Built for CAPS, IEB and Cambridge". */
   eyebrow: string;
@@ -219,7 +238,14 @@ export interface SubjectsConfig {
   curricula: Curriculum[];
   heading: string;
   blurb: string;
+  /** The live grades: the badge under the blurb. */
   grades: string;
+  /**
+   * Phases on their way (1.35.2): each is a chip beside the live grades
+   * badge and a card of its own under the subject grid, never mixed into
+   * `grades` or `subjects`. Empty or absent draws nothing.
+   */
+  phases?: Phase[];
   subjects: Subject[];
 }
 
@@ -351,6 +377,13 @@ export interface Feature {
   curricula?: boolean;
   /** `list` only: the lines under the text, every one copy the page already carries. */
   lines?: string[];
+  /**
+   * `list` only (1.35.2): after `lines`, one line per phase the subjects
+   * section lists in `subjects.phases`, its grades with the pill after
+   * them (landing/lms-curricula.tsx, LmsPhases), so the card and the
+   * section cannot drift.
+   */
+  phases?: boolean;
 }
 
 export interface FeaturesConfig {
@@ -654,6 +687,19 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     blurb:
       "Lessons follow the CAPS annual teaching plan — the same national curriculum IEB schools teach — subject by subject and term by term, so what you learn tonight is what your teacher marks this term.",
     grades: "Grades 8 to 12",
+    // Ray, 2026-10-02: "we have foundation grade R-3 its distinct though
+    // grade 4-7 will also be added i think R-3 need to be added to landing
+    // page with soon label". Its own phase, not a row of the grid: the
+    // grid's subjects and tutor duos are Grades 8 to 12's. Grades 4 to 7
+    // are not offered here until they exist.
+    phases: [
+      {
+        name: "Foundation Phase",
+        grades: "Grades R to 3",
+        text: "Kids mode, where the tutor is the lesson: one live tutor, game-style rounds in Mathematics and English Home Language, and one app a parent and child share, with a profile for each child.",
+        badge: "soon",
+      },
+    ],
     subjects: [
       { name: "Mathematics", tutors: ["Sifiso Zulu", "John Petersen"] },
       { name: "Physical Sciences", tutors: ["Lindiwe Dlamini", "Rudzani Mudau"] },
@@ -877,6 +923,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         treatment: "list",
         curricula: true,
         lines: ["Grades 8 to 12"],
+        phases: true,
       },
       {
         name: "Tutors",
@@ -984,7 +1031,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         question: "Which subjects and grades?",
         answer:
-          "Grades 8 to 12, with the same tutors all the way through. Grades 8 and 9: Mathematics, Natural Sciences, Social Sciences and Economic and Management Sciences. Grades 10 to 12: Mathematics, Physical Sciences, Accounting, Economics, Geography and Mathematical Literacy.",
+          "Grades 8 to 12, with the same tutors all the way through. Grades 8 and 9: Mathematics, Natural Sciences, Social Sciences and Economic and Management Sciences. Grades 10 to 12: Mathematics, Physical Sciences, Accounting, Economics, Geography and Mathematical Literacy. Foundation Phase, Grades R to 3, is on its way as its own kids mode: one live tutor, game-style rounds in Mathematics and English Home Language, in one app a parent and child share.",
       },
       {
         question: "Does this work for IEB?",
