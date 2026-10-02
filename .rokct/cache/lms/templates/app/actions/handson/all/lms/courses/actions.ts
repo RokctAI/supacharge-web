@@ -20,13 +20,11 @@ import { CourseService } from "@/app/services/all/lms/courses";
 import { revalidatePath } from "next/cache";
 import { verifyLmsRole } from "@/app/lib/roles";
 import { z } from "zod";
-import type { CourseLesson } from "./types";
+import type { CourseLesson, LessonAccessDenied } from "./types";
 
-/** Returned by fetchLesson when the viewer may not read the lesson. */
-export interface LessonAccessDenied {
-  error: "access_denied";
-  message: string;
-}
+// Moved to ./types in 1.32.2 so the service can return it; re-exported here
+// so existing imports keep working.
+export type { LessonAccessDenied } from "./types";
 
 const SaveProgressSchema = z.object({
   courseName: z.string().min(1),
@@ -46,6 +44,12 @@ export async function fetchCourseByName(courseName: string) {
 export async function fetchMyCourses() {
   if (!(await verifyLmsRole())) return [];
   return await CourseService.getMyCourses();
+}
+
+/** Instructor view: every course with its enrollment count (System Manager). */
+export async function fetchCreatedCourses() {
+  if (!(await verifyLmsRole())) return [];
+  return await CourseService.getCreatedCourses();
 }
 
 /**

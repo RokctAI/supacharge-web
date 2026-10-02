@@ -256,10 +256,9 @@ function DiscussionThread({ topic }: { topic: any }) {
                             <span>{reply.user?.full_name || reply.owner}</span>
                             <span>{formatDate(reply.creation)}</span>
                           </div>
-                          <div
-                            className="text-sm"
-                            dangerouslySetInnerHTML={{ __html: reply.reply }}
-                          />
+                          <div className="text-sm whitespace-pre-wrap">
+                            {reply.reply}
+                          </div>
                         </div>
                       </div>
                     </div>

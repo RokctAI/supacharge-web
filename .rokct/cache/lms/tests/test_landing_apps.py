@@ -2134,7 +2134,7 @@ class TestCurricula(unittest.TestCase):
         )
         card = [it for it in lift_features()["items"] if it["name"] == "Subjects"][0]
         self.assertTrue(card.get("curricula"))
-        self.assertEqual(card["lines"], ["Grades 10, 11 and 12"])
+        self.assertEqual(card["lines"], ["Grades 8 to 12"])
         for it in lift_features()["items"]:
             if it["name"] != "Subjects":
                 with self.subTest(card=it["name"]):

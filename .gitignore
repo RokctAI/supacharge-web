@@ -65,6 +65,7 @@ components/custom/theme-provider.tsx
 /app/(auth)/register-provision.ts
 /app/(auth)/register/page.tsx
 /app/(auth)/register/register-view.tsx
+/app/(auth)/return-to.ts
 /app/(auth)/tenant-host.ts
 /app/(auth)/tenant-link-database.ts
 /app/(auth)/tenant-link-single.ts
@@ -84,6 +85,8 @@ components/custom/theme-provider.tsx
 /app/actions/handson/all/lms/batches/types.ts
 /app/actions/handson/all/lms/calendar/actions.ts
 /app/actions/handson/all/lms/calendar/types.ts
+/app/actions/handson/all/lms/children/actions.ts
+/app/actions/handson/all/lms/children/types.ts
 /app/actions/handson/all/lms/courses/actions.ts
 /app/actions/handson/all/lms/courses/types.ts
 /app/actions/handson/all/lms/discussions/actions.ts
@@ -127,6 +130,7 @@ components/custom/theme-provider.tsx
 /app/brand-icon/route.tsx
 /app/download/\[platform\]/resolve.ts
 /app/download/\[platform\]/route.ts
+/app/handson/all/lms/children/page.tsx
 /app/handson/all/lms/courses/\[courseName\]/_components/reviews.tsx
 /app/handson/all/lms/courses/\[courseName\]/assignment/\[assignmentId\]/page.tsx
 /app/handson/all/lms/courses/\[courseName\]/learn/\[lessonId\]/_components/discussions.tsx
@@ -140,7 +144,9 @@ components/custom/theme-provider.tsx
 /app/handson/all/lms/courses/page.tsx
 /app/handson/all/lms/dashboard/header.tsx
 /app/handson/all/lms/dashboard/my-courses.tsx
+/app/handson/all/lms/dashboard/quick-links.tsx
 /app/handson/all/lms/dashboard/upcoming-events.tsx
+/app/handson/all/lms/instructor/page.tsx
 /app/handson/all/lms/jobs/\[jobId\]/page.tsx
 /app/handson/all/lms/jobs/page.tsx
 /app/handson/all/lms/me/batches/page.tsx
@@ -159,6 +165,7 @@ components/custom/theme-provider.tsx
 /app/services/all/lms/ad-performance.ts
 /app/services/all/lms/assignments.ts
 /app/services/all/lms/batches.ts
+/app/services/all/lms/children.ts
 /app/services/all/lms/courses.ts
 /app/services/all/lms/discussions.ts
 /app/services/all/lms/events.ts
@@ -316,6 +323,12 @@ components/custom/theme-provider.tsx
 /public/team/assistants/CAPS/assistant_003/appearance/renders/avatar_168.webp
 /public/team/assistants/CAPS/assistant_003/appearance/renders/avatar_512.webp
 /public/team/assistants/CAPS/assistant_003/appearance/renders/card_1080x1440.webp
+/public/team/assistants/CAPS/assistant_004/appearance/renders/avatar_168.webp
+/public/team/assistants/CAPS/assistant_004/appearance/renders/avatar_512.webp
+/public/team/assistants/CAPS/assistant_004/appearance/renders/card_1080x1440.webp
+/public/team/assistants/CAPS/assistant_005/appearance/renders/avatar_168.webp
+/public/team/assistants/CAPS/assistant_005/appearance/renders/avatar_512.webp
+/public/team/assistants/CAPS/assistant_005/appearance/renders/card_1080x1440.webp
 /public/team/founders/Ray_Thompson/appearance/renders/avatar_168.webp
 /public/team/founders/Ray_Thompson/appearance/renders/avatar_512.webp
 /public/team/founders/Ray_Thompson/appearance/renders/card_1080x1440.webp
@@ -329,9 +342,15 @@ components/custom/theme-provider.tsx
 /public/team/onboarding/students/renders/04_role_choice_student/slide_1080x1920.webp
 /public/team/onboarding/students/renders/05_grade_capture/card_1080x1350.webp
 /public/team/onboarding/students/renders/05_grade_capture/slide_1080x1920.webp
+/public/team/tutors/CAPS/tutor_001/acknowledgements/01.wav
+/public/team/tutors/CAPS/tutor_001/acknowledgements/02.wav
 /public/team/tutors/CAPS/tutor_001/appearance/renders/avatar_168.webp
 /public/team/tutors/CAPS/tutor_001/appearance/renders/avatar_512.webp
 /public/team/tutors/CAPS/tutor_001/appearance/renders/card_1080x1440.webp
+/public/team/tutors/CAPS/tutor_001/samples/sample_line.wav
+/public/team/tutors/CAPS/tutor_001/signoffs/01.wav
+/public/team/tutors/CAPS/tutor_001/signoffs/02.wav
+/public/team/tutors/CAPS/tutor_001/signoffs/03.wav
 /public/team/tutors/CAPS/tutor_002/appearance/renders/avatar_168.webp
 /public/team/tutors/CAPS/tutor_002/appearance/renders/avatar_512.webp
 /public/team/tutors/CAPS/tutor_002/appearance/renders/card_1080x1440.webp

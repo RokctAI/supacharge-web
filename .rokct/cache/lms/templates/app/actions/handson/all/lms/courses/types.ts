@@ -48,4 +48,12 @@ export interface CourseLesson {
   next?: string;
   chapter_title?: string;
   course_title?: string;
+  /** rlms get_lesson_session: the replay session the lesson plays, null when withheld. */
+  session_id?: string | null;
+}
+
+/** Returned when the viewer may not open a lesson (enrolment or the rlms serving gate). */
+export interface LessonAccessDenied {
+  error: "access_denied";
+  message: string;
 }

@@ -1,5 +1,119 @@
 # Changelog
 
+## 1.34.1
+
+Fixes to the 1.33.0 web sections (rlms.api.web_sections, api.course):
+
+* Web quiz: a lesson's questions are now found. Bank items name the
+  factory lesson slug; they are joined to the Course Lesson through its
+  `session_id` (`<subject>_g<grade>_<topic>_<slug>`), not compared with
+  the Course Lesson's hash name. `check_quiz_answer` resolves the lesson
+  the same way, and a slug no longer throws "That lesson does not exist."
+* Quiz summary: the app's `question_id` and the web's bank `item_id` now
+  reduce to one (question, curriculum) key, so a question answered on
+  both counts once.
+* Discussions no longer return the poster's user id (an email address);
+  `owner_name` and `is_mine` remain.
+* `api.lms.allowed_subjects(user=...)` reads another user's subjects only
+  for a System Manager; everyone else gets their own.
+* Removed duplicate `BaseService` imports in the discussions, events and
+  reviews services.
+* Lesson matching strips a leading `ieb_` from the Course Lesson's
+  `session_id`, so IEB-release lessons (`ieb_<caps id>`) join their bank
+  items too.
+
+## 1.34.0
+
+* New `/handson/all/lms/children` page: a parent's Grades R-3 child
+  profiles on the web. It lists, adds (with the parent's consent), edits
+  and removes profiles, and issues the one-time claim code, over the rlms
+  commands the app uses (`partner_children`, `partner_add_child`,
+  `partner_update_child`, `partner_archive_child`,
+  `partner_issue_child_claim_code`). Each child shows this week's progress
+  and one line per session from `partner_weekly_report`, keyed by the
+  profile's new `student` field (rlms `children._serialize` now returns the
+  learner account to the owning parent).
+* Not on the web: child mode, the "Who's learning?" picker, and R-3 packs
+  and rounds. Per-child billing (R99 a month) is not shown: no endpoint
+  exists for it.
+* Links to the new pages: a "My Children" sidebar entry (manifest
+  integration), and quick links on the LMS dashboard - My Children for any
+  LMS user, Instructor only for System Managers, Administrators and LMS
+  Instructors (`fetchLmsNavLinks`, a Has Role read via
+  `UserService.hasAnyRole`). The host sidebar's entries carry no role, so
+  the Instructor link lives on the dashboard, not the sidebar.
+
+## 1.33.0
+
+Ray's ruling: every LMS feature is on the web except lessons themselves
+(lesson playback stays app-only). The sections 1.32.1 left on upstream
+Frappe-LMS methods now run on rlms.
+
+* Wired to endpoints that already existed:
+  * live classes: `EventService.getMyLiveClasses` reads
+    `api.replay.get_upcoming_sessions` (the app's schedule source) for the
+    learner's `api.lms.allowed_subjects`; `getAdminLiveClasses` reads it
+    for all subjects. Listed only: joining is the app's, so no join link.
+  * evaluations: the tutor-evaluated homework questions.
+    `getUpcomingEvaluations` is the learner's open ones
+    (`api.lms.list_homework_questions`), `getAdminEvals` the queue waiting
+    on a tutor (`api.lms.homework_pending_requests`, System Manager).
+* Wired to new rlms endpoints (`rlms.api.web_sections`):
+  * batches (a course's cohort of enrolled learners; rlms has no batch
+    doctype): `api.lms.my_batches`, `api.lms.created_batches`.
+  * created courses: `api.lms.created_courses` (System Manager).
+  * course reviews: `api.lms.course_reviews`, `api.lms.submit_course_review`
+    (enrolled learners, one per course).
+  * discussions: `api.lms.discussion_topics`,
+    `api.lms.create_discussion_topic`, `api.lms.discussion_replies`,
+    `api.lms.create_discussion_reply` (enrolled learners and System
+    Managers). Replies render as plain text, not HTML.
+  * quiz check/summary: the quiz route's id is the lesson;
+    `api.lms.quiz_questions` (bank items, answers stripped),
+    `api.lms.check_quiz_answer` (graded server-side, recorded as a practice
+    attempt), `api.lms.quiz_summary`. An answered question is checked on
+    Next, so the summary counts it.
+* New `/handson/all/lms/instructor` page: created courses, batches, live
+  classes and evaluations waiting. The course page shows the course-wide
+  discussion to enrolled learners; the learn sidebar links each lesson's
+  quiz; My Batches shows the cohort size and your progress.
+
+## 1.32.2
+
+* `CourseService.getLesson` surfaces the rlms serving gate: when
+  `api.lms.get_lesson_session` refuses a lesson it returns the existing
+  `LessonAccessDenied` with the server's reason (the lock explained) instead
+  of `null`, which the lesson player showed as "Lesson not found". Only the
+  missing-lesson throw still maps to `null`. `LessonAccessDenied` moves to
+  `courses/types.ts` and stays re-exported from `courses/actions.ts`.
+* The kept (unused on the web) `lesson-playback.tsx` renders the shared
+  `LmsDownloadAppPrompt` when a lesson carries none of the legacy web bodies
+  (`video_url`, `youtube`, `content`, `body`) - which is every rlms lesson,
+  since `get_lesson_session` answers a replay `session_id` the app plays
+  from downloaded assets. No web replay player exists in the fleet
+  (`replay_sdk`'s web page lists upcoming sessions only).
+* `getMyCourses` keeps one `get_my_enrollment` per catalog course: rlms has
+  no whitelisted key that lists the caller's enrollments.
+
+## 1.32.1
+
+* The LMS web services stop calling upstream Frappe-LMS `lms.lms.api.*`
+  methods the fleet does not install, and use the rlms aliases the Dart
+  twin already calls:
+  * courses: `getAllCourses` reads `api.lms.list_courses`;
+    `getCourseDetails` joins the catalog card with
+    `api.lms.get_course_content` (chapters) and `api.lms.get_my_enrollment`
+    (`is_enrolled`); `getMyCourses` is the catalog kept to courses with an
+    enrollment; `getLesson` reads `api.lms.get_lesson_session` (serving gate,
+    `session_id`, next lesson) with titles from the course content;
+    `saveProgress` calls `api.lms.save_progress`.
+  * user: `getStreakInfo` reads `api.lms.my_streak` (`best_streak` maps to
+    `longest_streak`); `getUserInfo` is the base session user.
+  * Left unchanged pending a product call (no rlms counterpart):
+    `get_created_courses`, `get_my_batches`, `get_created_batches`,
+    `get_my_live_classes`, `get_admin_live_classes`, `get_admin_evals`,
+    `get_upcoming_evals`, discussions, reviews and quiz checks.
+
 ## 1.32.0
 
 * The admin marketing calendar carries an ad-performance report: which

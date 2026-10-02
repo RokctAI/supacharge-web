@@ -13,21 +13,52 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
 import { BaseService } from "@/app/services/common/base";
 import { CourseReview } from "@/app/actions/handson/all/lms/reviews/types";
 
+/**
+ * Course reviews on rlms (LMS Course Review): api.lms.course_reviews reads
+ * (any signed-in user), api.lms.submit_course_review writes (enrolled
+ * learners only, one review per course; a second submit updates it).
+ */
+interface RlmsReviews {
+  count: number;
+  average: number | null;
+  has_reviewed: boolean;
+  can_review: boolean;
+  reviews: {
+    name: string;
+    rating: number;
+    review: string;
+    owner_name: string;
+    is_mine: boolean;
+    creation: string;
+  }[];
+}
+
 export class ReviewService extends BaseService {
+  private static async read(courseName: string): Promise<RlmsReviews | null> {
+    return (
+      (await this.call("api.lms.course_reviews", { course: courseName })) ??
+      null
+    );
+  }
+
   /**
    * Get reviews for a course
    */
   static async getReviews(courseName: string): Promise<CourseReview[]> {
     try {
-      return (
-        (await this.call("lms.lms.utils.get_reviews", {
-          course: courseName,
-        })) ?? []
-      );
+      const data = await this.read(courseName);
+      return (data?.reviews ?? []).map((r) => ({
+        name: r.name,
+        course: courseName,
+        rating: r.rating,
+        review: r.review,
+        owner: r.owner_name,
+        fullname: r.owner_name,
+        creation: r.creation,
+      }));
     } catch (error) {
       console.error("ReviewService.getReviews error:", error);
       return [];
@@ -35,22 +66,17 @@ export class ReviewService extends BaseService {
   }
 
   /**
-   * Check if user has already reviewed
-   * Note: Uses frappe.client.get_count on 'LMS Course Review'
+   * Whether the caller should NOT be offered the review form: they have
+   * reviewed already, or are not enrolled (the server refuses them).
+   * [user] is kept for the action's signature; the server knows the caller.
    */
   static async hasReviewed(courseName: string, user: string): Promise<boolean> {
     try {
-      const count = await this.call("frappe.client.get_count", {
-        doctype: "LMS Course Review",
-        filters: {
-          course: courseName,
-          owner: user,
-        },
-      });
-      return count > 0;
+      const data = await this.read(courseName);
+      return !data || data.has_reviewed || !data.can_review;
     } catch (error) {
       console.error("ReviewService.hasReviewed error:", error);
-      return false;
+      return true;
     }
   }
 
@@ -63,14 +89,10 @@ export class ReviewService extends BaseService {
     reviewText: string,
   ) {
     try {
-      return await this.call("frappe.desk.form.save.savedocs", {
-        doc: {
-          doctype: "LMS Course Review",
-          course: courseName,
-          rating: rating,
-          review: reviewText || "",
-        },
-        action: "Save",
+      return await this.call("api.lms.submit_course_review", {
+        course: courseName,
+        rating,
+        review: reviewText || "",
       });
     } catch (error) {
       console.error("ReviewService.createReview error:", error);

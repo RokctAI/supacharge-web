@@ -17,6 +17,7 @@
 import {
   fetchUserInfo,
   fetchStreakInfo,
+  fetchLmsNavLinks,
 } from "@/app/actions/handson/all/lms/user/actions";
 import { fetchMyCourses } from "@/app/actions/handson/all/lms/courses/actions";
 import { fetchMyBatches } from "@/app/actions/handson/all/lms/batches/actions";
@@ -27,9 +28,10 @@ import {
 import { DashboardHeader } from "./dashboard/header";
 import { MyCourses } from "./dashboard/my-courses";
 import { UpcomingEvents } from "./dashboard/upcoming-events";
+import { QuickLinks } from "./dashboard/quick-links";
 
 export default async function LmsDashboardPage() {
-  const [user, courses, batches, liveClasses, evals, streak] =
+  const [user, courses, batches, liveClasses, evals, streak, navLinks] =
     await Promise.all([
       fetchUserInfo(),
       fetchMyCourses(),
@@ -37,11 +39,14 @@ export default async function LmsDashboardPage() {
       fetchMyLiveClasses(),
       fetchUpcomingEvaluations(),
       fetchStreakInfo(),
+      fetchLmsNavLinks(),
     ]);
 
   return (
     <div className="container mx-auto py-8 px-4 space-y-8">
       <DashboardHeader fullName={user?.full_name} streak={streak} />
+
+      <QuickLinks links={navLinks} />
 
       <MyCourses courses={courses} />
 

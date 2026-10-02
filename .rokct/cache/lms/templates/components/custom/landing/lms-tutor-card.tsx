@@ -27,7 +27,7 @@
 // portrait is not generated or synced yet) hands the card to large, quiet
 // initials, exactly as the Flutter card does.
 //
-// BACK: name and "subject - Grade 10-12", the full bio, the Style / Rating
+// BACK: name and "subject - Grade 8-12", the full bio, the Style / Rating
 // facts (a rating only when a real number exists - never a fabricated
 // one), and the commitment, "Start with <name>", which goes to sign-up.
 // Assistants host rather than teach, so their back carries no Start
@@ -73,7 +73,7 @@ export function initials(name: string): string {
     .join("");
 }
 
-/** "Grade 10-12" for a span, "Grade 12" for one, as the Flutter badge reads. */
+/** "Grade 8-12" for a span, "Grade 12" for one, as the Flutter badge reads. */
 function gradeLabel(labels: CardLabels, grades?: number[]): string | null {
   if (!grades || grades.length === 0) return null;
   const sorted = [...grades].sort((a, b) => a - b);

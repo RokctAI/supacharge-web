@@ -20,6 +20,16 @@ export interface Batch {
   course: string;
   start_date: string;
   end_date: string;
-  students: any[]; // Or list of student names/emails
-  instructors: any[];
+  /** Upstream Frappe-LMS fields; rlms cohorts do not carry them. */
+  students?: any[];
+  instructors?: any[];
+  /** rlms cohort fields (api.lms.my_batches / created_batches). */
+  course_title?: string;
+  subject?: string;
+  grade?: string;
+  status?: string;
+  learners?: number;
+  average_progress?: number;
+  my_progress?: number;
+  joined_on?: string;
 }

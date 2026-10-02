@@ -54,3 +54,39 @@ export async function fetchCertificates() {
   if (!(await verifyLmsRole())) return [];
   return await UserService.getCertificates();
 }
+
+/**
+ * Roles that see the Instructor link: the instructor page's reads are
+ * System Manager on the server, and LMS Instructors author courses.
+ */
+const INSTRUCTOR_NAV_ROLES = ["System Manager", "Administrator", "LMS Instructor"];
+
+export interface LmsNavLink {
+  href: string;
+  label: string;
+  description: string;
+}
+
+/**
+ * The LMS dashboard's quick links. My Children is for any signed-in LMS
+ * user (a parent adds their first child there); Instructor only for
+ * System Managers and instructors.
+ */
+export async function fetchLmsNavLinks(): Promise<LmsNavLink[]> {
+  if (!(await verifyLmsRole())) return [];
+  const links: LmsNavLink[] = [
+    {
+      href: "/handson/all/lms/children",
+      label: "My Children",
+      description: "Grades R-3 child profiles on your account",
+    },
+  ];
+  if (await UserService.hasAnyRole(INSTRUCTOR_NAV_ROLES)) {
+    links.push({
+      href: "/handson/all/lms/instructor",
+      label: "Instructor",
+      description: "Your courses, cohorts, live classes and homework",
+    });
+  }
+  return links;
+}

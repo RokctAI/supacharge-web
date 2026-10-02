@@ -202,6 +202,11 @@ export default function QuizPage() {
   }
 
   async function handleNext() {
+    // rlms grades and records on check: an answered but unchecked
+    // question is checked on the way past, so the summary counts it.
+    if (showAnswers.length === 0 && getAnswers().length > 0) {
+      await handleCheckAnswer();
+    }
     if (activeQuestionIndex < questions.length - 1) {
       const nextIdx = activeQuestionIndex + 1;
       setActiveQuestionIndex(nextIdx);

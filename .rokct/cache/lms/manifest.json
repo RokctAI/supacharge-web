@@ -1,6 +1,6 @@
 {
   "name": "lms_sdk",
-  "version": "1.32.0",
+  "version": "1.34.1",
   "installs": [
     {
       "from": "templates/app/handson/all/lms",
@@ -270,6 +270,12 @@
       "target": "app/handson/sidebar-client.tsx",
       "placeholder": "// @rokct-sdk-nav-start",
       "replacement": "  { href: \"/handson/all/lms/me/batches\", label: \"My Batches\" },"
+    },
+    {
+      "target": "app/handson/sidebar-client.tsx",
+      "placeholder": "// @rokct-sdk-nav-start",
+      "replacement": "  { href: \"/handson/all/lms/children\", label: \"My Children\" },",
+      "_comment": "Since 1.34.0 the parent's child profiles page. The sidebar entry shape is { href, label } with no role field, so the Instructor link (System Managers and instructors only) is drawn role-gated on the LMS dashboard instead (dashboard/quick-links.tsx via fetchLmsNavLinks)."
     },
     {
       "target": "components/custom/landing/hero-form.ts",
