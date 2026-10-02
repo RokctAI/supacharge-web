@@ -28,3 +28,15 @@ export async function fetchUpcomingEvaluations() {
   if (!(await verifyLmsRole())) return [];
   return await EventService.getUpcomingEvaluations();
 }
+
+/** Instructor view: all scheduled sessions (next two weeks). */
+export async function fetchAdminLiveClasses() {
+  if (!(await verifyLmsRole())) return [];
+  return await EventService.getAdminLiveClasses();
+}
+
+/** Instructor view: homework waiting on a tutor (System Manager). */
+export async function fetchAdminEvals() {
+  if (!(await verifyLmsRole())) return [];
+  return await EventService.getAdminEvals();
+}

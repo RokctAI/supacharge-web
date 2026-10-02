@@ -76,25 +76,33 @@ export function LearningSidebar({ course, className }: SidebarProps) {
               </h3>
               <div className="space-y-1">
                 {chapter.lessons.map((lesson) => (
-                  <Link
-                    key={lesson.name}
-                    href={`/handson/all/lms/courses/${params.courseName}/learn/${lesson.name}`}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors",
-                      isActive(lesson.name)
-                        ? "bg-primary text-primary-foreground font-medium"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    {lesson.is_complete ? (
-                      <CheckCircle className="h-4 w-4 shrink-0 text-green-500" />
-                    ) : isActive(lesson.name) ? (
-                      <PlayCircle className="h-4 w-4 shrink-0 text-primary-foreground" />
-                    ) : (
-                      <Circle className="h-4 w-4 shrink-0 opacity-40" />
-                    )}
-                    <span className="line-clamp-1">{lesson.title}</span>
-                  </Link>
+                  <div key={lesson.name} className="flex items-center gap-1">
+                    <Link
+                      href={`/handson/all/lms/courses/${params.courseName}/learn/${lesson.name}`}
+                      className={cn(
+                        "flex flex-1 min-w-0 items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors",
+                        isActive(lesson.name)
+                          ? "bg-primary text-primary-foreground font-medium"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      {lesson.is_complete ? (
+                        <CheckCircle className="h-4 w-4 shrink-0 text-green-500" />
+                      ) : isActive(lesson.name) ? (
+                        <PlayCircle className="h-4 w-4 shrink-0 text-primary-foreground" />
+                      ) : (
+                        <Circle className="h-4 w-4 shrink-0 opacity-40" />
+                      )}
+                      <span className="line-clamp-1">{lesson.title}</span>
+                    </Link>
+                    {/* The lesson's quiz runs on the web; the lesson itself plays in the app. */}
+                    <Link
+                      href={`/handson/all/lms/courses/${params.courseName}/quiz/${lesson.name}`}
+                      className="shrink-0 px-2 py-1 text-xs rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                    >
+                      Quiz
+                    </Link>
+                  </div>
                 ))}
               </div>
             </div>

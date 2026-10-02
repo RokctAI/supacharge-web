@@ -90,12 +90,21 @@ export default function BatchesPage() {
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    <span>Start: {formatDate(batch.start_date)}</span>
+                    <span>
+                      Since: {formatDate(batch.joined_on || batch.start_date)}
+                    </span>
                     {batch.end_date && (
                       <span> - End: {formatDate(batch.end_date)}</span>
                     )}
                   </div>
-                  {/* Additional metadata like time or instructor could go here if available */}
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>
+                      {batch.learners ?? 0} learners
+                      {batch.my_progress != null &&
+                        ` · your progress ${Math.round(batch.my_progress)}%`}
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

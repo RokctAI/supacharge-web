@@ -53,6 +53,7 @@ const EditorContent = dynamic(() => import("./editor-content"), {
 });
 
 import { Discussions } from "./discussions";
+import { LmsDownloadAppPrompt } from "@/components/custom/lms-download-app";
 
 export default function LessonPlayback() {
   const params = useParams();
@@ -202,6 +203,26 @@ export default function LessonPlayback() {
 
   if (!lesson) {
     return <div className="p-8 text-center">Lesson not found.</div>;
+  }
+
+  // Since lms_sdk 1.32.1 getLesson reads rlms get_lesson_session, which
+  // answers a replay session_id (played by the app's LessonPlaybackEngine
+  // from downloaded assets), not video_url/youtube/content/body. No web
+  // replay player exists in the fleet, so a lesson with none of the legacy
+  // web bodies renders the shared "open in the app" prompt instead of an
+  // empty page.
+  const hasWebBody = Boolean(
+    lesson.video_url || lesson.youtube || lesson.content || lesson.body,
+  );
+  if (!hasWebBody) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <h1 className="text-2xl font-bold text-foreground">{lesson.title}</h1>
+        <LmsDownloadAppPrompt
+          backHref={`/handson/all/lms/courses/${encodeURIComponent(courseName)}`}
+        />
+      </div>
+    );
   }
 
   return (

@@ -21,6 +21,7 @@ import { fetchUserInfo } from "@/app/actions/handson/all/lms/user/actions";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Reviews } from "./_components/reviews";
+import { Discussions } from "./learn/[lessonId]/_components/discussions";
 
 interface PageProps {
   // Next 15+: route params are a Promise; await them before reading.
@@ -124,6 +125,14 @@ export default async function CourseDetailPage({ params }: PageProps) {
             courseName={courseName}
             currentUser={userInfo?.email || ""}
           />
+
+          {/* Course-wide discussion: enrolled learners only (the server checks). */}
+          {course.is_enrolled && (
+            <>
+              <Separator />
+              <Discussions doctype="LMS Course" docname={courseName} />
+            </>
+          )}
         </div>
 
         <div className="space-y-6">

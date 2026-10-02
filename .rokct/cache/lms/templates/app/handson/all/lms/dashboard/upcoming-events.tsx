@@ -82,7 +82,7 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
       {/* Upcoming Evaluations */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Upcoming Evaluations
+          Evaluations
         </h2>
         {evals && evals.length > 0 ? (
           <div className="space-y-4">
@@ -99,13 +99,17 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
                     <Calendar className="w-4 h-4" />
                     {ev.date}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {ev.start_time}
-                  </div>
+                  {ev.start_time && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      {ev.start_time}
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <GraduationCap className="w-4 h-4" />
-                    Evaluator: {ev.evaluator_name}
+                    {ev.evaluator_name
+                      ? `Evaluator: ${ev.evaluator_name}`
+                      : ev.status}
                   </div>
                 </div>
                 {ev.google_meet_link && (
@@ -131,7 +135,8 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
           </div>
         ) : (
           <div className="text-sm text-gray-500 italic">
-            Schedule an evaluation to get certified.
+            Nothing waiting on a tutor. Ask a homework question in the app and
+            it shows here while a tutor evaluates it.
           </div>
         )}
       </div>

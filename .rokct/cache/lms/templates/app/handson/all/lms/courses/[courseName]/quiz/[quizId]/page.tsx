@@ -178,7 +178,12 @@ export default function QuizPage() {
       if (currentQuestionDetails.type === "Choices") {
         // Map result back to UI state
         // Note: Implementation may need refinement based on exact API response format
-        // Assuming result is array matching options count
+        // Assuming result is array matching options count; anything else is
+        // the action's { is_correct, error } refusal (no role, bad input).
+        if (!Array.isArray(result)) {
+          toast.error("Error checking answer");
+          return;
+        }
         setShowAnswers(result);
       } else {
         // Handle text input result
@@ -202,6 +207,11 @@ export default function QuizPage() {
   }
 
   async function handleNext() {
+    // rlms grades and records on check: an answered but unchecked
+    // question is checked on the way past, so the summary counts it.
+    if (showAnswers.length === 0 && getAnswers().length > 0) {
+      await handleCheckAnswer();
+    }
     if (activeQuestionIndex < questions.length - 1) {
       const nextIdx = activeQuestionIndex + 1;
       setActiveQuestionIndex(nextIdx);

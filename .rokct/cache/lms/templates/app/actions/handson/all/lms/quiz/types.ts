@@ -56,11 +56,14 @@ export interface QuizSubmission {
   score_out_of: number;
   percentage: number;
   passing_percentage: number;
+  idx?: number;
 }
 
 export interface QuizResult {
   score: number;
   max_score: number;
+  /** Same as max_score; the quiz page reads this name. */
+  score_out_of?: number;
   percentage: number;
   passed: boolean;
 }

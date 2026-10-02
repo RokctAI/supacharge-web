@@ -23,3 +23,9 @@ export async function fetchMyBatches() {
   if (!(await verifyLmsRole())) return [];
   return await BatchService.getMyBatches();
 }
+
+/** Instructor view: every course's cohort (System Manager on the server). */
+export async function fetchCreatedBatches() {
+  if (!(await verifyLmsRole())) return [];
+  return await BatchService.getCreatedBatches();
+}

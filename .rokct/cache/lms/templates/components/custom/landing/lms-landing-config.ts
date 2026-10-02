@@ -282,7 +282,7 @@ export interface CardLabels {
   coFounder: string;
   /** The founder card's back entry that plays the self-intro video. */
   hearMore: string;
-  /** Grade badge, before the range: "Grade 10-12". */
+  /** Grade badge, before the range: "Grade 8-12". */
   grade: string;
   style: string;
   rating: string;
@@ -623,7 +623,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         who: "Break - the assistant",
         length: "about 5 minutes",
-        text: "Thandi, Bianca or Mandy keeps time, reads out the questions you would rather not ask out loud for your tutor to answer, and hands over to the next tutor.",
+        text: "Your grade's own session assistant keeps time, reads out the questions you would rather not ask out loud for your tutor to answer, and hands over to the next tutor.",
       },
       {
         who: "Part 2 - the simplifier",
@@ -653,7 +653,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     heading: "Every subject, term by term.",
     blurb:
       "Lessons follow the CAPS annual teaching plan — the same national curriculum IEB schools teach — subject by subject and term by term, so what you learn tonight is what your teacher marks this term.",
-    grades: "Grades 10, 11 and 12",
+    grades: "Grades 8 to 12",
     subjects: [
       { name: "Mathematics", tutors: ["Sifiso Zulu", "John Petersen"] },
       { name: "Physical Sciences", tutors: ["Lindiwe Dlamini", "Rudzani Mudau"] },
@@ -661,6 +661,13 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       { name: "Economics", tutors: ["Nomsa Mahlangu", "Rhulani Chauke"] },
       { name: "Geography", tutors: ["Kagiso Molefe", "Pieter van Zyl"] },
       { name: "Mathematical Literacy", tutors: ["Priya Pillay", "Joe September"] },
+      // Grades 8-9 (owner, 2026-10-02): the same duos teach the senior phase.
+      { name: "Natural Sciences", tutors: ["Lindiwe Dlamini", "Rudzani Mudau"] },
+      { name: "Social Sciences", tutors: ["Kagiso Molefe", "Pieter van Zyl"] },
+      // EMS has a duo per grade in the roster (grade_duos): Grade 8 the
+      // economics duo, Grade 9 the accounting duo. The row holds two names,
+      // so it names each grade's expert.
+      { name: "Economic and Management Sciences", tutors: ["Nomsa Mahlangu", "Anand Naicker"] },
     ],
   },
 
@@ -674,91 +681,91 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         slug: "tutor_001",
         name: "Sifiso Zulu",
         style: "formal",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "The Algebra Grandmaster",
         subject: "Mathematics",
-        bio: "Mr Zulu teaches Maths the way examiners mark it - precise, fast, and distinction-focused. If you want to top the class, this is your coach.",
+        bio: "Mr Zulu teaches Maths the way examiners mark it - precise, fast, and distinction-focused. If you want to top the class, this is your coach. In Grades 8 and 9 he also teaches Maths, where the habits that top matric are first built.",
       },
       {
         slug: "tutor_002",
         name: "John Petersen",
         style: "plain-language, intuition-first",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "The Simplifier",
         subject: "Mathematics",
-        bio: "Mr Petersen teaches Maths from first principles, in words you already use - then in the notation the exam marks.",
+        bio: "Mr Petersen teaches Maths from first principles, in words you already use - then in the notation the exam marks. In Grades 8 and 9 he also teaches Maths, so the foundations are solid before algebra gets hard.",
       },
       {
         slug: "tutor_003",
         name: "Lindiwe Dlamini",
         style: "formal",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "Science Queen",
         subject: "Physical Sciences",
-        bio: "Ms Dlamini teaches Physical Sciences with data-sheet precision - every formula, every unit, every mark accounted for.",
+        bio: "Ms Dlamini teaches Physical Sciences with data-sheet precision - every formula, every unit, every mark accounted for. In Grades 8 and 9 she also teaches Natural Sciences, where those marks start to count.",
       },
       {
         slug: "tutor_004",
         name: "Rudzani Mudau",
         style: "plain-language, intuition-first",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "The Backyard Scientist",
         subject: "Physical Sciences",
-        bio: "Mr Mudau starts from things you can hold - a wheelbarrow, a kettle, a garden hose - so the formula makes sense before you memorise it.",
+        bio: "Mr Mudau starts from things you can hold - a wheelbarrow, a kettle, a garden hose - so the formula makes sense before you memorise it. In Grades 8 and 9 he also teaches Natural Sciences, from the same kettles and hoses.",
       },
       {
         slug: "tutor_005",
         name: "Anand Naicker",
         style: "formal",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "Numbers Never Lie",
         subject: "Accounting",
-        bio: "Accounting taught in the exact formats the exam marks - ledgers that balance and statements that make sense.",
+        bio: "Accounting taught in the exact formats the exam marks - ledgers that balance and statements that make sense. In Grade 9 he also teaches EMS, where the books first balance.",
       },
       {
         slug: "tutor_006",
         name: "Grace Mofokeng",
         style: "plain-language, intuition-first",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "The Spaza Bookkeeper",
         subject: "Accounting",
-        bio: "Mrs Mofokeng starts from money you can watch move - a till, a cash book, a month's takings - and lands on the formats the exam marks.",
+        bio: "Mrs Mofokeng starts from money you can watch move - a till, a cash book, a month's takings - and lands on the formats the exam marks. In Grade 9 she also teaches EMS, where the first cash book gets written.",
       },
       {
         slug: "tutor_007",
         name: "Nomsa Mahlangu",
         style: "formal",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "The Market Queen",
         subject: "Economics",
-        bio: "Ms Mahlangu teaches Economics the way markets actually move - precise graphs, sharp mechanisms, exam-ready answers.",
+        bio: "Ms Mahlangu teaches Economics the way markets actually move - precise graphs, sharp mechanisms, exam-ready answers. In Grade 8 she also teaches EMS, where the economy first makes sense.",
       },
       {
         slug: "tutor_008",
         name: "Rhulani Chauke",
         style: "plain-language, intuition-first",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "The Taxi Rank Economist",
         subject: "Economics",
-        bio: "Mr Chauke teaches Economics from the fare board up - petrol, queues, month-end prices - and lands on the answers the memorandum expects.",
+        bio: "Mr Chauke teaches Economics from the fare board up - petrol, queues, month-end prices - and lands on the answers the memorandum expects. In Grade 8 he also teaches EMS, starting from the tuck shop and the taxi rank.",
       },
       {
         slug: "tutor_009",
         name: "Kagiso Molefe",
         style: "formal",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "The Map Master",
         subject: "Geography",
-        bio: "Mr Molefe reads landscapes like examiners read answer sheets - every contour, every calculation, in the format that scores.",
+        bio: "Mr Molefe reads landscapes like examiners read answer sheets - every contour, every calculation, in the format that scores. In Grades 8 and 9 he also teaches Social Sciences, where map skills begin.",
       },
       {
         slug: "tutor_010",
         name: "Pieter van Zyl",
         style: "plain-language, intuition-first",
-        grades: [10, 11, 12],
+        grades: [8, 9, 10, 11, 12],
         title: "The Weather Walker",
         subject: "Geography",
-        bio: "Mr van Zyl teaches Geography from ground he has walked - weather, slopes, rivers - then straight into the map calculations the exam requires.",
+        bio: "Mr van Zyl teaches Geography from ground he has walked - weather, slopes, rivers - then straight into the map calculations the exam requires. In Grades 8 and 9 he also teaches Social Sciences, from the same walked ground.",
       },
       {
         slug: "tutor_011",
@@ -781,6 +788,21 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     ],
     assistantsHeading: "And in your corner, every session",
     assistants: [
+      // PROVISIONAL (2026-10-02): the Grade 8 and 9 hosts' names and personas
+      // await owner review, and they have no portrait yet (initials until
+      // team-assets.ts lists their renders).
+      {
+        slug: "assistant_004",
+        name: "Lerato",
+        role: "Grade 8 session assistant",
+        bio: "Lerato opens every Grade 8 session, keeps time, and holds the break so your questions get read out and answered without you having to ask them in front of the class.",
+      },
+      {
+        slug: "assistant_005",
+        name: "Kavitha",
+        role: "Grade 9 session assistant",
+        bio: "Kavitha runs the Grade 9 room from the intro to the sign-off, calls the halfway mark, and in the break reads out what did not land so your tutor can clear it up.",
+      },
       {
         slug: "assistant_001",
         name: "Thandi",
@@ -854,7 +876,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         icon: BookOpenCheck,
         treatment: "list",
         curricula: true,
-        lines: ["Grades 10, 11 and 12"],
+        lines: ["Grades 8 to 12"],
       },
       {
         name: "Tutors",
@@ -962,7 +984,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         question: "Which subjects and grades?",
         answer:
-          "Mathematics, Physical Sciences, Accounting, Economics, Geography and Mathematical Literacy, for Grades 10, 11 and 12.",
+          "Grades 8 to 12, with the same tutors all the way through. Grades 8 and 9: Mathematics, Natural Sciences, Social Sciences and Economic and Management Sciences. Grades 10 to 12: Mathematics, Physical Sciences, Accounting, Economics, Geography and Mathematical Literacy.",
       },
       {
         question: "Does this work for IEB?",

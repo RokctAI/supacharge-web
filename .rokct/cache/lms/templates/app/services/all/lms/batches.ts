@@ -17,13 +17,19 @@
 import { BaseService } from "@/app/services/common/base";
 import { Batch } from "@/app/actions/handson/all/lms/batches/types";
 
+/**
+ * rlms has no batch doctype: a batch is a course's cohort of enrolled
+ * learners. api.lms.my_batches is the caller's own cohorts (size and own
+ * progress, never other learners' names); api.lms.created_batches is the
+ * authoring side (System Manager).
+ */
 export class BatchService extends BaseService {
   /**
    * Get user's batches.
    */
   static async getMyBatches(): Promise<Batch[]> {
     try {
-      return (await this.call("lms.lms.api.get_my_batches")) ?? [];
+      return (await this.call("api.lms.my_batches")) ?? [];
     } catch (error) {
       console.error("BatchService.getMyBatches error:", error);
       return [];
@@ -35,7 +41,7 @@ export class BatchService extends BaseService {
    */
   static async getCreatedBatches() {
     try {
-      return await this.call("lms.lms.api.get_created_batches");
+      return (await this.call("api.lms.created_batches")) ?? [];
     } catch (error) {
       console.error("BatchService.getCreatedBatches error:", error);
       return [];
