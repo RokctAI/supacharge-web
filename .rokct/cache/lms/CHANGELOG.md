@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.35.1
+
+* Web quiz: checking an answer no longer breaks the type check. When the
+  check is refused (no LMS role or invalid input) the page shows an error
+  toast instead of passing the refusal object to the answer state.
+* Carries the 1.35.0 content (tutors and session hosts for Grades 8-12),
+  whose version bump only reached the Dart manifest.
+
 ## 1.34.1
 
 Fixes to the 1.33.0 web sections (rlms.api.web_sections, api.course):
