@@ -270,6 +270,7 @@ components/custom/theme-provider.tsx
 /components/custom/lms-pricing.client.tsx
 /components/custom/lms-pricing.tsx
 /components/custom/lms-sessions-section.tsx
+/components/custom/lms-subjects-section.client.tsx
 /components/custom/lms-subjects-section.tsx
 /components/custom/lms-testimonials-section.tsx
 /components/custom/lms-theme-section.tsx

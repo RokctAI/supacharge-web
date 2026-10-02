@@ -14,42 +14,48 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// The landing page's subject grid: the CAPS subjects Supacharge teaches and
-// the tutor duo on each. Copy: LMS_LANDING_CONFIG.subjects. The eyebrow
-// is the curriculum line (landing/lms-curricula.tsx, 1.25.0): "Built for
-// CAPS, IEB and Cambridge", the soon pill after Cambridge.
+// The landing page's subjects section: the CAPS phases Supacharge teaches
+// or is adding, one clickable grade-phase tab each, and the selected
+// phase's subjects - with the tutor duo on each live one - in the grid
+// below. Copy: LMS_LANDING_CONFIG.subjects. The eyebrow is the curriculum
+// line (landing/lms-curricula.tsx, 1.25.0): "Built for CAPS, IEB and
+// Cambridge", the soon pill after Cambridge.
+//
+// 1.35.2 drew a fixed "Grades 8 to 12" badge, a "Grades R to 3" chip with
+// the soon pill beside it and one grid of every Grades 8 to 12 subject.
+// Ray, 2026-10-02, on seeing it: "i think there has to be another for
+// grade R-3 with its subjects and make those rectangle clickable with
+// default to grade 8-9. i also think this section also need another soon
+// with grade 4-7". Since 1.36.0 the rectangles are tabs
+// (lms-subjects-section.client.tsx): Grades R to 3 and Grades 4 to 7 with
+// the pill, Grades 8 to 9 and Grades 10 to 12 live, Grades 8 to 9 selected
+// on first paint, and the grid is the selected phase's own subjects.
 //
 // Ray, 2026-09-09, naming this section: "most cards should be one row in
 // mobile. even subjects cards". Six subjects stacked is six screens of
 // thumb, so below 640px the grid is one swipeable row (`sc-row`,
 // landing/lms-theme.css); from 640px up it is unchanged.
-
-// Since 1.35.2 a phase on its way (subjects.phases; Ray, 2026-10-02: "we
-// have foundation grade R-3 its distinct ... R-3 need to be added to
-// landing page with soon label") is offered beside the live grades, never
-// inside them: its grades and pill sit next to the "Grades 8 to 12" badge,
-// and its own card follows the subject grid, outside the grid's swipe row,
-// because the grid's subjects and tutor duos are Grades 8 to 12's.
 //
 // No "use client" here (1.24.0): base reads `meta` in the SERVER render,
 // where every export of a client module is a client reference (Next
 // compiles it to registerClientReference) whose properties read as
 // undefined - `meta.order`, `meta.nav` and `meta.renders` all lost, so the
-// section fell to order 100 and the nav listed it by file name. Nothing in
-// this module needs the client - no state, no effect, no browser API - so
-// it is a server module and its meta a plain object.
+// section fell to order 100 and the nav listed it by file name. This
+// entry module is the server-readable half: `meta`, the registered default
+// export and the section's heading, which need no client. The tabs, which
+// hold the selected phase in state, are ./lms-subjects-section.client.tsx,
+// which this entry renders under the heading.
 
 import React from "react";
 
 import { LmsCurricula } from "@/components/custom/landing/lms-curricula";
-import { LmsPhaseGrades } from "@/components/custom/landing/lms-curricula";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
+import { LmsSubjectsPhases } from "@/components/custom/lms-subjects-section.client";
 
 export function LmsSubjectsSection({ id }: { id?: string }) {
   const config = LMS_LANDING_CONFIG.subjects;
-  if (!config || config.subjects.length === 0) return null;
-  const phases = config.phases ?? [];
+  if (!config || config.phases.length === 0) return null;
 
   return (
     <section id={id} className="w-full bg-[var(--sc-surface)] py-16 md:py-24">
@@ -64,63 +70,9 @@ export function LmsSubjectsSection({ id }: { id?: string }) {
           <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
             {config.blurb}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
-            <span className="sc-badge-primary text-sm">
-              {config.grades}
-            </span>
-            {phases.map((phase) => (
-              <span key={phase.name} className="font-medium text-[var(--sc-ink)]">
-                <LmsPhaseGrades phase={phase} />
-              </span>
-            ))}
-          </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sc-row">
-          {config.subjects.map((subject) => (
-            <div
-              key={subject.name}
-              className="flex flex-col gap-4 sc-card p-6 transition-colors hover:border-[var(--sc-primary)]"
-            >
-              <h3 className="text-2xl font-black tracking-tight text-[var(--sc-ink)]">
-                {subject.name}
-              </h3>
-              <dl className="flex flex-col gap-1 text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt className="text-[var(--sc-ink-2)]">Expert</dt>
-                  <dd className="font-semibold text-[var(--sc-ink)]">
-                    {subject.tutors[0]}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-[var(--sc-ink-2)]">Simplifier</dt>
-                  <dd className="font-semibold text-[var(--sc-ink)]">
-                    {subject.tutors[1]}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          ))}
-        </div>
-
-        {phases.map((phase) => (
-          <div
-            key={phase.name}
-            className="flex flex-col gap-3 sc-card p-6 sm:flex-row sm:items-center sm:gap-6"
-          >
-            <div className="flex flex-col gap-2 sm:min-w-56">
-              <h3 className="text-2xl font-black tracking-tight text-[var(--sc-ink)]">
-                {phase.name}
-              </h3>
-              <span className="text-sm font-medium text-[var(--sc-ink)]">
-                <LmsPhaseGrades phase={phase} />
-              </span>
-            </div>
-            <p className="text-sm text-[var(--sc-ink-2)] leading-relaxed">
-              {phase.text}
-            </p>
-          </div>
-        ))}
+        <LmsSubjectsPhases id={id} />
       </div>
     </section>
   );

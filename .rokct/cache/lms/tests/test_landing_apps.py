@@ -113,6 +113,8 @@ TESTIMONIALS_SECTION = os.path.join(CUSTOM, "lms-testimonials-section.tsx")
 LMS_MARQUEE = os.path.join(LANDING, "lms-marquee.tsx")
 FEATURES_SECTION = os.path.join(CUSTOM, "lms-features-section.tsx")
 SUBJECTS_SECTION = os.path.join(CUSTOM, "lms-subjects-section.tsx")
+# 1.36.0: the grade-phase tabs and the selected phase's grid, the client half.
+SUBJECTS_CLIENT = os.path.join(CUSTOM, "lms-subjects-section.client.tsx")
 # 1.25.0: the one curriculum line, Cambridge marked soon.
 CURRICULA = os.path.join(LANDING, "lms-curricula.tsx")
 PARTNERS_SECTION = os.path.join(CUSTOM, "lms-partners-section.tsx")
@@ -1988,8 +1990,8 @@ class TestServerSafeSections(unittest.TestCase):
                 self.assertIn(f'from "@/components/custom/{section_id}.client"', entry)
         self.assertEqual(
             halves,
-            5,
-            "floating nav, tutors, pricing, faq and the founder section carry a client half",
+            6,
+            "floating nav, subjects (1.36.0), tutors, pricing, faq and the founder section carry a client half",
         )
 
     def test_pricing_keeps_its_pure_rule_in_the_entry(self):
@@ -2056,7 +2058,7 @@ class TestCurricula(unittest.TestCase):
                 self.assertNotIn("badge", c)
 
     def test_the_word_soon_is_never_written_in_copy(self):
-        for path in (CONFIG, CURRICULA, SUBJECTS_SECTION, FEATURES_SECTION):
+        for path in (CONFIG, CURRICULA, SUBJECTS_SECTION, SUBJECTS_CLIENT, FEATURES_SECTION):
             with self.subTest(path=os.path.basename(path)):
                 strings = re.findall(r'"([^"\n]*)"', code_of(path))
                 for text in strings:
@@ -2081,10 +2083,12 @@ class TestCurricula(unittest.TestCase):
         # The name and its pill share one non-breaking span: the pill comes
         # right after the name, on the same line, and nothing else follows.
         # Since 1.30.0 the span is also the border-only rectangle
-        # (TestCambridgeOutline): the class and the attribute ride it.
+        # (TestCambridgeOutline): the class and the attribute ride it. Since
+        # 1.36.0 the span can be asked for without a badge (a live phase's
+        # tab, TestPhaseTabs), so the pill follows the badge alone.
         self.assertRegex(
             source,
-            r'<span\s+className="[^"]*whitespace-nowrap[^"]*"\s+data-curriculum-outlined=""\s*>\s*\{item\.name\}\s*<MenuLabel badge=\{item\.badge\} />\s*</span>',
+            r'<span\s+className="[^"]*whitespace-nowrap[^"]*"\s+data-curriculum-outlined=""\s*>\s*\{item\.name\}\s*\{item\.badge \? <MenuLabel badge=\{item\.badge\} /> : null\}\s*</span>',
         )
         self.assertNotIn("aria-disabled", source)
         self.assertNotIn("<a", source)
@@ -2134,7 +2138,8 @@ class TestCurricula(unittest.TestCase):
         )
         card = [it for it in lift_features()["items"] if it["name"] == "Subjects"][0]
         self.assertTrue(card.get("curricula"))
-        self.assertEqual(card["lines"], ["Grades 8 to 12"])
+        # 1.36.0: the live phases' grades, one line each (TestPhaseTabs).
+        self.assertEqual(card["lines"], ["Grades 8 to 9", "Grades 10 to 12"])
         for it in lift_features()["items"]:
             if it["name"] != "Subjects":
                 with self.subTest(card=it["name"]):
@@ -2281,19 +2286,23 @@ class TestCambridgeOutline(unittest.TestCase):
         body = re.search(
             r"function CurriculumName\(.*?\n\}", source, re.S
         ).group(0)
-        # The unbadged branch returns the bare name: no span, no class.
-        self.assertIn("if (!item.badge) return <>{item.name}</>;", body)
+        # The unbadged branch returns the bare name: no span, no class -
+        # unless the caller asked for the rectangle (1.36.0, `outlined`: a
+        # live phase's tab, TestPhaseTabs), which LmsCurricula never does.
+        self.assertIn("if (!item.badge && !outlined) return <>{item.name}</>;", body)
         self.assertEqual(body.count("<span"), 1)
         self.assertEqual(body.count("sc-curriculum-outlined"), 1)
         self.assertEqual(body.count("data-curriculum-outlined"), 1)
-        # Class and attribute are on the one span that holds name and pill.
+        # Class and attribute are on the one span that holds name and pill;
+        # the pill follows a badge and nothing else.
         self.assertRegex(
             body,
-            r'<span\s+className="sc-curriculum-outlined [^"]*whitespace-nowrap[^"]*"\s+data-curriculum-outlined=""\s*>\s*\{item\.name\}\s*<MenuLabel badge=\{item\.badge\} />\s*</span>',
+            r'<span\s+className="sc-curriculum-outlined [^"]*whitespace-nowrap[^"]*"\s+data-curriculum-outlined=""\s*>\s*\{item\.name\}\s*\{item\.badge \? <MenuLabel badge=\{item\.badge\} /> : null\}\s*</span>',
         )
+        self.assertNotIn("outlined", re.search(r"export function LmsCurricula\(.*?\n\}", source, re.S).group(0))
         # Nothing else in the sheet or the landing markup takes the hook.
         self.assertEqual(code_of(CURRICULA).count("data-curriculum-outlined"), 1)
-        for path in (SUBJECTS_SECTION, FEATURES_SECTION, CONFIG):
+        for path in (SUBJECTS_SECTION, SUBJECTS_CLIENT, FEATURES_SECTION, CONFIG):
             with self.subTest(path=os.path.basename(path)):
                 self.assertNotIn("sc-curriculum-outlined", code_of(path))
                 self.assertNotIn("data-curriculum-outlined", code_of(path))
@@ -2355,6 +2364,354 @@ class TestCambridgeOutline(unittest.TestCase):
             f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
         )
 
+
+TEAM = os.path.join(SDK_ROOT, os.pardir, "team")
+ROSTER = os.path.join(TEAM, "tutors", "CAPS", "roster.json")
+WEEKLY_GRID = os.path.join(TEAM, "schedule", "CAPS", "weekly_grid.json")
+
+
+def lift_config_block(key):
+    """LMS_LANDING_CONFIG.<key> as node reads it: the top-level block lifted
+    out of the config literal (strings, numbers and arrays only, so it
+    evaluates bare) - lift_subjects for any such block."""
+    source = read(CONFIG)
+    match = re.search(r"^  " + key + r": \{\n.*?^  \},$", source, re.S | re.M)
+    if not match:
+        raise AssertionError(f"{key} block not found in lms-landing-config.ts")
+    literal = "const B = {\n" + match.group(0)[len(f"  {key}: {{\n") : -1] + ";"
+    script = literal + "\nconsole.log(JSON.stringify(B));\n"
+    node = shutil.which("node")
+    if not node:
+        raise unittest.SkipTest("node is not installed")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, f"{key}.mts")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(script)
+        run = subprocess.run(
+            [node, "--experimental-strip-types", "--no-warnings", path],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    if run.returncode != 0:
+        raise AssertionError(run.stderr)
+    return json.loads(run.stdout.strip().splitlines()[-1])
+
+
+def run_client_functions(names, script):
+    """Run `script` under node after the named exported functions of the
+    subjects client half, lifted out of it as the curricula test lifts
+    curriculumSeparator; the last stdout line, parsed as JSON."""
+    source = read(SUBJECTS_CLIENT)
+    fns = []
+    for name in names:
+        match = re.search(r"export function " + name + r"\(.*?\n\}", source, re.S)
+        if not match:
+            raise AssertionError(f"{name} not found in the subjects client half")
+        fns.append(match.group(0))
+    node = shutil.which("node")
+    if not node:
+        raise unittest.SkipTest("node is not installed")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "tabs.mts")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("type Phase = { name: string; badge?: string };\n")
+            f.write("\n".join(fns) + "\n" + script + "\n")
+        run = subprocess.run(
+            [node, "--experimental-strip-types", "--no-warnings", path],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    if run.returncode != 0:
+        raise AssertionError(run.stderr)
+    return json.loads(run.stdout.strip().splitlines()[-1])
+
+
+class TestPhaseTabs(unittest.TestCase):
+    """1.36.0 (Ray, 2026-10-02, on the 1.35.2 section: "i think there has to
+    be another for grade R-3 with its subjects and make those rectangle
+    clickable with default to grade 8-9. i also think this section also
+    need another soon with grade 4-7"): the subjects section is grade-phase
+    tabs - one clickable rectangle per CAPS phase, in grade order, the two
+    on their way with the soon pill, Grades 8 to 9 selected on first paint
+    - and the grid below is the selected phase's own subjects, the live
+    ones with the roster's tutor duos."""
+
+    FET_NAMES = {
+        "maths": "Mathematics",
+        "physical_sciences": "Physical Sciences",
+        "accounting": "Accounting",
+        "economics": "Economics",
+        "geography": "Geography",
+        "maths_literacy": "Mathematical Literacy",
+    }
+
+    def setUp(self):
+        self.subjects = lift_subjects()
+        self.phases = self.subjects["phases"]
+        self.by_grades = {p["grades"]: p for p in self.phases}
+
+    def tutor_names(self):
+        """Roster id -> display name, through the tutors section's own entries."""
+        return {t["slug"]: t["name"] for t in lift_config_block("tutors")["tutors"]}
+
+    def test_the_four_phases_in_grade_order_two_on_their_way(self):
+        self.assertEqual(
+            [p["grades"] for p in self.phases],
+            ["Grades R to 3", "Grades 4 to 7", "Grades 8 to 9", "Grades 10 to 12"],
+        )
+        self.assertEqual(
+            [p["name"] for p in self.phases],
+            ["Foundation Phase", "Intermediate Phase and Grade 7", "Senior Phase", "FET Phase"],
+        )
+        self.assertEqual(
+            [p.get("badge") for p in self.phases], ["soon", "soon", None, None]
+        )
+        for p in self.phases:
+            with self.subTest(phase=p["name"]):
+                self.assertTrue(p["text"].strip())
+                self.assertTrue(p["subjects"])
+                self.assertNotIn("soon", p["text"].lower())
+        # The fixed badge and its one grades line are gone from the config.
+        self.assertNotIn("grades", set(self.subjects) - {"phases"})
+        self.assertNotIn("subjects", self.subjects)
+
+    def test_the_default_tab_is_grades_8_to_9_and_live(self):
+        default = [p for p in self.phases if p["name"] == self.subjects["defaultPhase"]]
+        self.assertEqual(len(default), 1)
+        self.assertEqual(default[0]["grades"], "Grades 8 to 9")
+        self.assertNotIn("badge", default[0])
+        # The client picks it by name, falls back to the first live phase,
+        # and never to a phase on its way while a live one exists.
+        picked = run_client_functions(
+            ["defaultPhaseOf"],
+            "const phases = %s;\n"
+            "console.log(JSON.stringify(["
+            "defaultPhaseOf(phases, %s)?.name,"
+            "defaultPhaseOf(phases, 'nowhere')?.name,"
+            "defaultPhaseOf(phases.filter((p) => p.badge), 'nowhere')?.name,"
+            "]));" % (json.dumps(self.phases), json.dumps(self.subjects["defaultPhase"])),
+        )
+        self.assertEqual(picked, ["Senior Phase", "Senior Phase", "Foundation Phase"])
+        client = code_of(SUBJECTS_CLIENT)
+        self.assertRegex(
+            client,
+            r"useState<string \| undefined>\(\s*\(\) => \(config \? defaultPhaseOf\(phases, config\.defaultPhase\)\?\.name : undefined\),?\s*\)",
+        )
+
+    def test_phases_on_their_way_name_subjects_and_cast_nobody(self):
+        r3 = self.by_grades["Grades R to 3"]
+        self.assertEqual(
+            [s["name"] for s in r3["subjects"]], ["Mathematics", "English Home Language"]
+        )
+        self.assertIn("Kids mode", r3["text"])
+        self.assertIn("one app a parent and child share", r3["text"])
+        g47 = self.by_grades["Grades 4 to 7"]
+        self.assertEqual(
+            [(s["name"], s.get("grades")) for s in g47["subjects"]],
+            [
+                ("Mathematics", None),
+                ("English Home Language", None),
+                ("Natural Sciences and Technology", "Grades 4 to 6"),
+                ("Social Sciences", None),
+                ("Life Skills", "Grades 4 to 6"),
+                ("Technology", "Grade 7"),
+                ("Economic and Management Sciences", "Grade 7"),
+                ("Life Orientation", "Grade 7"),
+            ],
+        )
+        for phase in (r3, g47):
+            for subject in phase["subjects"]:
+                with self.subTest(phase=phase["grades"], subject=subject["name"]):
+                    self.assertNotIn("tutors", subject)
+
+    def test_grades_8_to_9_are_the_rosters_senior_phase_duos(self):
+        with open(ROSTER, encoding="utf-8") as f:
+            senior = json.load(f)["senior_phase"]
+        names = self.tutor_names()
+        phase = self.by_grades["Grades 8 to 9"]
+        rows = {(s["name"], s.get("grades")): s["tutors"] for s in phase["subjects"]}
+        self.assertEqual(senior["grades"], [8, 9])
+        expected = {}
+        for key, duo in senior["subjects"].items():
+            subject = senior["subject_names"][key]
+            if "grade_duos" in duo:
+                for grade, g_duo in duo["grade_duos"].items():
+                    expected[(subject, f"Grade {grade}")] = [
+                        names[g_duo["expert"]],
+                        names[g_duo["simplifier"]],
+                    ]
+            else:
+                expected[(subject, None)] = [names[duo["expert"]], names[duo["simplifier"]]]
+        self.assertEqual(rows, expected)
+        self.assertEqual(
+            [s["name"] for s in phase["subjects"]],
+            [
+                "Mathematics",
+                "Natural Sciences",
+                "Social Sciences",
+                "Economic and Management Sciences",
+                "Economic and Management Sciences",
+            ],
+        )
+        # The text counts the weekly grid's evenings: four, Thursday free.
+        with open(WEEKLY_GRID, encoding="utf-8") as f:
+            grid = json.load(f)
+        self.assertEqual(grid["student_live_sessions_per_week"]["8"], 4)
+        self.assertEqual(grid["free_weekday"]["8"], ["Thu"])
+        self.assertIn("Four subjects", phase["text"])
+        self.assertIn("Thursday free", phase["text"])
+
+    def test_grades_10_to_12_are_the_rosters_fet_duos_as_before(self):
+        with open(ROSTER, encoding="utf-8") as f:
+            fet = json.load(f)["subjects"]
+        names = self.tutor_names()
+        phase = self.by_grades["Grades 10 to 12"]
+        rows = {s["name"]: s["tutors"] for s in phase["subjects"]}
+        self.assertEqual(
+            rows,
+            {
+                self.FET_NAMES[key]: [names[duo["expert"]], names[duo["simplifier"]]]
+                for key, duo in fet.items()
+            },
+        )
+        self.assertEqual(
+            [s["name"] for s in phase["subjects"]],
+            [
+                "Mathematics",
+                "Physical Sciences",
+                "Accounting",
+                "Economics",
+                "Geography",
+                "Mathematical Literacy",
+            ],
+        )
+        for subject in phase["subjects"]:
+            self.assertNotIn("grades", subject)
+        with open(WEEKLY_GRID, encoding="utf-8") as f:
+            grid = json.load(f)
+        self.assertEqual(grid["student_live_sessions_per_week"]["10"], 5)
+        self.assertEqual(grid["paired_tracks"], ["maths", "maths_literacy"])
+        self.assertIn("Six subjects", phase["text"])
+        self.assertIn("Mathematics and Mathematical Literacy share an evening", phase["text"])
+
+    def test_tabs_are_buttons_with_the_tabs_pattern_and_no_hover(self):
+        client = code_of(SUBJECTS_CLIENT)
+        self.assertRegex(read(SUBJECTS_CLIENT).lstrip(), r'^"use client";')
+        self.assertIn('role="tablist"', client)
+        self.assertRegex(
+            client,
+            r'<button\s+key=\{phase\.name\}\s+ref=\{[^}]*\}\s*\}\s+type="button"\s+role="tab"\s+id=\{tabId\(phase\)\}\s+aria-selected=\{isSelected\}\s+aria-controls=\{panelId\(phase\)\}\s+tabIndex=\{isSelected \? 0 : -1\}\s+className="sc-phase-tab"\s+onClick=\{\(\) => setSelectedName\(phase\.name\)\}\s+onKeyDown=',
+        )
+        # The tab's only content is the rectangle lms-curricula.tsx draws,
+        # asked for on every phase so a live one gets it too.
+        self.assertRegex(
+            client,
+            r'onKeyDown=\{\(event\) => onKeyDown\(event, index\)\}\s*>\s*<LmsPhaseGrades phase=\{phase\} outlined />\s*</button>',
+        )
+        self.assertEqual(client.count("<LmsPhaseGrades"), 1)
+        self.assertIn('role="tabpanel"', client)
+        self.assertIn("aria-labelledby={tabId(selected)}", client)
+        self.assertIn("{selected.subjects.map((subject) => (", client)
+        self.assertIn("sc-row", client)
+        for word in ("onMouseEnter", "onMouseOver", "onPointerEnter", "hover:"):
+            with self.subTest(word=word):
+                # The card's border tint on hover is the one hover here, as
+                # the 1.35.2 grid had; nothing selects a tab on hover.
+                if word == "hover:":
+                    self.assertEqual(client.count(word), 1)
+                else:
+                    self.assertNotIn(word, client)
+        self.assertNotIn("useSearchParams", client)
+        self.assertNotIn("localStorage", client)
+        # Roving tabindex: the arrows and Home/End move along the list.
+        moves = run_client_functions(
+            ["nextTabIndex"],
+            "console.log(JSON.stringify(["
+            "nextTabIndex('ArrowRight', 3, 4), nextTabIndex('ArrowLeft', 0, 4),"
+            "nextTabIndex('Home', 2, 4), nextTabIndex('End', 0, 4),"
+            "nextTabIndex('ArrowDown', 1, 4), nextTabIndex('ArrowUp', 1, 4),"
+            "nextTabIndex('Enter', 2, 4), nextTabIndex('a', 2, 4)]));",
+        )
+        self.assertEqual(moves, [0, 3, 0, 3, 2, 0, 2, 2])
+
+    def test_entry_keeps_meta_and_the_heading_and_renders_the_client_half(self):
+        entry = code_of(SUBJECTS_SECTION)
+        self.assertIn(
+            'import { LmsSubjectsPhases } from "@/components/custom/lms-subjects-section.client";',
+            entry,
+        )
+        self.assertIn("<LmsSubjectsPhases id={id} />", entry)
+        self.assertIn("if (!config || config.phases.length === 0) return null;", entry)
+        for gone in ("sc-badge-primary", "config.grades", "config.subjects", "LmsPhaseGrades", "phase.text"):
+            with self.subTest(gone=gone):
+                self.assertNotIn(gone, entry)
+        self.assertNotIn("sc-badge-primary", code_of(SUBJECTS_CLIENT))
+
+    def test_the_sheet_fills_the_selected_rectangle_and_nothing_hovers(self):
+        css = read(THEME_CSS)
+        self.assertEqual(css.count(".sc-phase-tab {"), 1)
+        tab = css.split(".sc-phase-tab {")[1].split("}")[0]
+        self.assertIn("border: 0;", tab)
+        self.assertIn("background: transparent;", tab)
+        self.assertIn("cursor: pointer;", tab)
+        selected = css.split('.sc-phase-tab[aria-selected="true"] > span {')[1].split("}")[0]
+        self.assertIn("background: var(--sc-primary);", selected)
+        self.assertIn("color: #ffffff;", selected)
+        self.assertIn(".sc-phase-tab:focus-visible {", css)
+        self.assertNotIn(".sc-phase-tab:hover", css)
+        # The rectangle's own rule is still the one of TestCambridgeOutline.
+        self.assertEqual(css.count(".sc-curriculum-outlined"), 1)
+
+    def test_subjects_card_and_faq_name_the_live_and_the_coming_grades(self):
+        card = [it for it in lift_features()["items"] if it["name"] == "Subjects"][0]
+        live = [p["grades"] for p in self.phases if not p.get("badge")]
+        self.assertEqual(card["lines"], live)
+        self.assertTrue(card.get("phases"))
+        features = code_of(FEATURES_SECTION)
+        self.assertRegex(
+            features,
+            r"\(LMS_LANDING_CONFIG\.subjects\?\.phases \?\? \[\]\)\.filter\(\(phase\) => phase\.badge\)",
+        )
+        answer = [
+            q for q in lift_config_block("faq")["items"] if q["question"] == "Which subjects and grades?"
+        ][0]["answer"]
+        for words in (
+            "Grades 8 to 12 are live",
+            "Grades 8 and 9: Mathematics, Natural Sciences, Social Sciences and Economic and Management Sciences",
+            "Grades 10 to 12: Mathematics, Physical Sciences, Accounting, Economics, Geography and Mathematical Literacy",
+            "On the way: Foundation Phase, Grades R to 3",
+            "and then Grades 4 to 7",
+        ):
+            with self.subTest(words=words):
+                self.assertIn(words, answer)
+        self.assertNotIn("soon", answer.lower())
+
+    def test_manifest_changelog_and_footer_say_1_36_0(self):
+        manifest = load_manifest()
+        self.assertGreaterEqual(
+            tuple(int(n) for n in manifest["version"].split(".")), (1, 36, 0)
+        )
+        pairs = {i["from"]: i for i in manifest["installs"]}
+        client = pairs["templates/components/custom/lms-subjects-section.client.tsx"]
+        self.assertEqual(client["to"], "components/custom/lms-subjects-section.client.tsx")
+        self.assertIn("Since 1.36.0", client["_comment"])
+        self.assertIn("make those rectangle clickable with default to grade 8-9", client["_comment"])
+        entry = pairs["templates/components/custom/lms-subjects-section.tsx"]
+        self.assertIn("lms-subjects-section.client.tsx", entry["_comment"])
+        about = manifest["_comment"]["about"]
+        self.assertIn("Since 1.36.0", about)
+        self.assertIn("subjects.defaultPhase", about)
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.35.2")[0].split())
+        self.assertIn("## 1.36.0", head)
+        self.assertIn("make those rectangle clickable with default to grade 8-9", head)
+        self.assertIn("`lms-subjects-section.client.tsx`", head)
+        self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.36.0", head)
+        self.assertIn(
+            f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
+        )
 
 class TestHeroHeadline(unittest.TestCase):
     """1.31.1 (Ray, 2026-09-11, 20:39:47Z: `hero drop "with suparcharge"`):

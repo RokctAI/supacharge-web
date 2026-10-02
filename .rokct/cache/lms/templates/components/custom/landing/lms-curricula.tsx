@@ -46,9 +46,19 @@
 // outlined span and one pill rule, and the word "soon" is still never
 // written in copy.
 //
-// No "use client": MenuLabel is a plain component, so both server entries
+// Since 1.36.0 the rectangle is also the subjects section's tab (Ray,
+// 2026-10-02: "make those rectangle clickable with default to grade 8-9"):
+// every phase, live or on its way, is a clickable rectangle there, so
+// CurriculumName takes `outlined` to draw the span around a name that has
+// no badge. The pill still follows a badge and nothing else; LmsCurricula
+// never asks for the outline, so CAPS and IEB are still bare names, and the
+// span is still the one place the class and the attribute live.
+//
+// No "use client": MenuLabel is a plain component, so the server entries
 // (lms-subjects-section.tsx, lms-features-section.tsx) render this on the
-// server and the pill is in the first HTML.
+// server and the pill is in the first HTML; the subjects section's client
+// half (lms-subjects-section.client.tsx) renders the same component inside
+// its tabs, where it is plain JSX like anything else.
 
 import React from "react";
 
@@ -66,16 +76,21 @@ export function curriculumSeparator(index: number, count: number): string {
   return index === count - 1 ? " and " : ", ";
 }
 
-/** One name and, when its entry carries a badge, the pill right after it. */
-function CurriculumName({ item }: { item: Curriculum }) {
-  if (!item.badge) return <>{item.name}</>;
+/**
+ * One name and, when its entry carries a badge, the pill right after it,
+ * the two in the border-only rectangle. `outlined` (1.36.0) asks for the
+ * rectangle around a name without a badge - a live phase's tab; it never
+ * adds a pill.
+ */
+function CurriculumName({ item, outlined }: { item: Curriculum; outlined?: boolean }) {
+  if (!item.badge && !outlined) return <>{item.name}</>;
   return (
     <span
       className="sc-curriculum-outlined inline-flex items-center gap-1.5 whitespace-nowrap align-baseline"
       data-curriculum-outlined=""
     >
       {item.name}
-      <MenuLabel badge={item.badge} />
+      {item.badge ? <MenuLabel badge={item.badge} /> : null}
     </span>
   );
 }
@@ -104,10 +119,14 @@ export function LmsCurricula() {
 /**
  * A phase's grades with its pill after them - "Grades R to 3" then the
  * soon pill - in the rectangle a badged curriculum wears (1.35.2). Inline
- * content only, like LmsCurricula.
+ * content only, like LmsCurricula. `outlined` (1.36.0) draws the rectangle
+ * around a live phase's grades too, for the subjects section's tabs, where
+ * every phase is one rectangle; the Subjects feature card leaves it off.
  */
-export function LmsPhaseGrades({ phase }: { phase: Phase }) {
-  return <CurriculumName item={{ name: phase.grades, badge: phase.badge }} />;
+export function LmsPhaseGrades({ phase, outlined }: { phase: Phase; outlined?: boolean }) {
+  return (
+    <CurriculumName item={{ name: phase.grades, badge: phase.badge }} outlined={outlined} />
+  );
 }
 
 export default LmsCurricula;

@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.36.0
+
+* Landing: the subjects section's grade rectangles are clickable tabs
+  (Ray, 2026-10-02: "i think there has to be another for grade R-3 with
+  its subjects and make those rectangle clickable with default to grade
+  8-9. i also think this section also need another soon with grade 4-7").
+  One tab per CAPS phase, in grade order: "Grades R to 3" and "Grades 4
+  to 7" with the soon pill, "Grades 8 to 9" and "Grades 10 to 12" live;
+  Grades 8 to 9 is selected on first paint. The grid below is the
+  selected phase's own subjects - Foundation Phase: Mathematics and
+  English Home Language; Grades 4 to 7: Mathematics, English Home
+  Language, Natural Sciences and Technology, Social Sciences, Life
+  Skills, and Grade 7's Technology, Economic and Management Sciences and
+  Life Orientation, named without tutors; Grades 8 to 9: Mathematics,
+  Natural Sciences, Social Sciences and Economic and Management Sciences
+  (a row per grade: the Economics duo in Grade 8, the Accounting duo in
+  Grade 9), with the same duos as Grades 10 to 12; Grades 10 to 12 the
+  six FET subjects as before. The fixed "Grades 8 to 12" badge and the
+  1.35.2 Foundation Phase card under the grid are gone; their words are
+  the tabs' and the selected panel's text.
+* The tabs are real buttons (`role="tab"`, `aria-selected`, roving
+  tabindex, Left/Right/Home/End) in a new client half,
+  `lms-subjects-section.client.tsx`; the entry keeps `meta` and the
+  heading. Each tab's only content is the outlined rectangle
+  lms-curricula.tsx draws (`LmsPhaseGrades`, now with `outlined` so a
+  live phase gets the rectangle without a pill); the selected one is
+  filled primary by `.sc-phase-tab[aria-selected="true"] > span` in
+  lms-theme.css. Nothing changes on hover.
+* Config: `Phase` gains `subjects`, `SubjectsConfig` gains
+  `defaultPhase` and loses `grades` and `subjects`, `Subject.tutors` is
+  optional and `Subject.grades` notes a subject taken in part of a phase.
+  The Subjects feature card's lines are the live grades ("Grades 8 to
+  9", "Grades 10 to 12") and its `phases` lines the badged phases; the
+  "Which subjects and grades?" answer names all four.
+* `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.36.0. No
+  base_sdk floor moves.
+
 ## 1.35.2
 
 * Landing: Foundation Phase (Grades R to 3) is shown as its own offering,
