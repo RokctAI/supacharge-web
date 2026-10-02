@@ -39,6 +39,13 @@
 // padding) and `data-curriculum-outlined` for the tests. An unbadged name has no span, so CAPS and IEB are exactly as they
 // were.
 //
+// Since 1.35.2 the same rectangle also carries a phase on its way
+// (LMS_LANDING_CONFIG.subjects.phases; Ray, 2026-10-02: "R-3 need to be
+// added to landing page with soon label"): LmsPhaseGrades draws "Grades R
+// to 3" and its pill through CurriculumName itself, so there is still one
+// outlined span and one pill rule, and the word "soon" is still never
+// written in copy.
+//
 // No "use client": MenuLabel is a plain component, so both server entries
 // (lms-subjects-section.tsx, lms-features-section.tsx) render this on the
 // server and the pill is in the first HTML.
@@ -47,6 +54,7 @@ import React from "react";
 
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import type { Curriculum } from "@/components/custom/landing/lms-landing-config";
+import type { Phase } from "@/components/custom/landing/lms-landing-config";
 import { MenuLabel } from "@/components/custom/menu-label";
 
 /**
@@ -91,6 +99,15 @@ export function LmsCurricula() {
       ))}
     </>
   );
+}
+
+/**
+ * A phase's grades with its pill after them - "Grades R to 3" then the
+ * soon pill - in the rectangle a badged curriculum wears (1.35.2). Inline
+ * content only, like LmsCurricula.
+ */
+export function LmsPhaseGrades({ phase }: { phase: Phase }) {
+  return <CurriculumName item={{ name: phase.grades, badge: phase.badge }} />;
 }
 
 export default LmsCurricula;

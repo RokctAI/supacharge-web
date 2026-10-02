@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.35.2
+
+* Landing: Foundation Phase (Grades R to 3) is shown as its own offering,
+  marked soon, beside the live Grades 8 to 12. The subjects section puts
+  "Grades R to 3" with the soon pill next to the "Grades 8 to 12" badge
+  and adds a Foundation Phase card under the subject grid (kids mode: one
+  live tutor, game-style rounds in Mathematics and English Home Language,
+  one app a parent and child share). The Subjects feature card lists it
+  after "Grades 8 to 12", and the "Which subjects and grades?" answer
+  names it. The config gains `subjects.phases` (`Phase`, with the same
+  `badge` a curriculum carries) and `Feature.phases`; the grades and pill
+  are drawn in the outlined span Cambridge uses (`LmsPhaseGrades` in
+  lms-curricula.tsx). Grades 4 to 7 are not listed.
+
 ## 1.35.1
 
 * Web quiz: checking an answer no longer breaks the type check. When the
