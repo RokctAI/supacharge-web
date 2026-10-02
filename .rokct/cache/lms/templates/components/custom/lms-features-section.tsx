@@ -137,16 +137,16 @@ function FeatureCard({ feature }: { feature: Feature }) {
               </span>
             </li>
           ) : null}
-          {(feature.lines ?? []).map((line) => (
-            <li key={line} className="sc-feature-line">
-              {line}
-            </li>
-          ))}
           {phases.map((phase) => (
             <li key={phase.name} className="sc-feature-line">
               <span>
                 <LmsPhaseGrades phase={phase} />
               </span>
+            </li>
+          ))}
+          {(feature.lines ?? []).map((line) => (
+            <li key={line} className="sc-feature-line">
+              {line}
             </li>
           ))}
         </ul>

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.50.1
+
+* fix(icons): every `lucide-react` icon moves to its `@remixicon/react`
+  equivalent (one icon set across the fleet). The manifest depends on
+  `@remixicon/react` `^4.6.0` instead of `lucide-react`. Icons only.
+
 ## 1.50.0
 
 * feat: admin nav Finance section gains **Customer Subscriptions**
