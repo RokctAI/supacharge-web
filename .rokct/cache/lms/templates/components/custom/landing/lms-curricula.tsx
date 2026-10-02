@@ -64,7 +64,7 @@ import React from "react";
 
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import type { Curriculum } from "@/components/custom/landing/lms-landing-config";
-import type { Phase } from "@/components/custom/landing/lms-landing-config";
+import type { GradesChip } from "@/components/custom/landing/lms-landing-config";
 import { MenuLabel } from "@/components/custom/menu-label";
 
 /**
@@ -122,8 +122,10 @@ export function LmsCurricula() {
  * content only, like LmsCurricula. `outlined` (1.36.0) draws the rectangle
  * around a live phase's grades too, for the subjects section's tabs, where
  * every phase is one rectangle; the Subjects feature card leaves it off.
+ * `phase` is anything with grades and a badge (GradesChip, 1.36.1): a
+ * Phase for its tab, or a phase's `pending` chip ("Grade 7" and the pill).
  */
-export function LmsPhaseGrades({ phase, outlined }: { phase: Phase; outlined?: boolean }) {
+export function LmsPhaseGrades({ phase, outlined }: { phase: GradesChip; outlined?: boolean }) {
   return (
     <CurriculumName item={{ name: phase.grades, badge: phase.badge }} outlined={outlined} />
   );

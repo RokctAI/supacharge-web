@@ -228,6 +228,7 @@ components/custom/theme-provider.tsx
 /components/custom/landing/lms-fonts.ts
 /components/custom/landing/lms-footer-chrome.ts
 /components/custom/landing/lms-founders.ts
+/components/custom/landing/lms-grade-tabs.tsx
 /components/custom/landing/lms-header-menu.ts
 /components/custom/landing/lms-hero-copy.ts
 /components/custom/landing/lms-hero-form.tsx

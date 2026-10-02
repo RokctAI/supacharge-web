@@ -49,14 +49,34 @@
 // The two rows are both in the DOM and the breakpoint picks one, so the
 // server sends the right row for the width and nothing shifts on
 // hydration; the portraits are the same URLs in both, fetched once.
+//
+// Since 1.36.1 (Ray, 2026-10-02, approving the tutor and host grade tabs)
+// each roster - the tutors and the session assistants - has the subjects
+// section's grade tabs over it as a filter (landing/lms-grade-tabs.tsx,
+// the same buttons, keys and `.sc-phase-tab` look): All Grades, selected
+// on first paint, then Grades 7 to 9 and Grades 10 to 12
+// (LMS_LANDING_CONFIG.tutors.gradeFilters). There is no Grades R to 3 tab
+// - kids mode has no tutor persona - and no Grades 4 to 6 tab. A tutor
+// shows under a phase when a grade they teach (Tutor.grades, the numbers
+// the card's own grade badge reads) falls in it; an assistant under the
+// phase of their own grade (Assistant.grade). A persona without grades -
+// a founder, were one ever mixed into a row - shows under All Grades only.
+// Each row keeps its own selection in React state: no URL state, nothing
+// remembered between visits, nothing on hover. The roster under a tab is
+// remounted (keyed by the filter) so the deck starts at its first card
+// and the marquee measures the cards it now holds.
 
-import React from "react";
+import React, { useState } from "react";
 
 import { LmsCardDeck } from "@/components/custom/landing/lms-card-deck";
 import { useMediaQuery } from "@/components/custom/landing/lms-flip-card";
+import { LmsGradeTabs, gradeTabIds } from "@/components/custom/landing/lms-grade-tabs";
 import {
   LMS_LANDING_CONFIG,
   type DeckLabels,
+  type GradeFilter,
+  type GradeTab,
+  type Phase,
 } from "@/components/custom/landing/lms-landing-config";
 import { LmsMarquee } from "@/components/custom/landing/lms-marquee";
 import { LmsTutorCard } from "@/components/custom/landing/lms-tutor-card";
@@ -110,6 +130,85 @@ function Roster({
   );
 }
 
+/**
+ * Whether a persona teaching or hosting `grades` shows under `filter`:
+ * always under a filter without a range (All Grades), otherwise when one
+ * of the grades falls in it. No grades shows under All Grades only.
+ * Exported for the tests.
+ */
+export function inGradeFilter(grades: number[] | undefined, filter: GradeFilter): boolean {
+  if (!filter.range) return true;
+  const [first, last] = filter.range;
+  return (grades ?? []).some((grade) => grade >= first && grade <= last);
+}
+
+/**
+ * The filter selected on first paint: the config's `defaultGradeFilter`
+ * by name, else the first filter. Exported for the tests.
+ */
+export function defaultGradeFilterOf(
+  filters: GradeFilter[],
+  defaultFilter: string,
+): GradeFilter | undefined {
+  return filters.find((filter) => filter.name === defaultFilter) ?? filters[0];
+}
+
+/**
+ * The tabs the filters draw: a filter's own words, else the `grades` of
+ * the subjects phase it is named for ("Senior Phase" -> "Grades 7 to 9"),
+ * else its name. Exported for the tests.
+ */
+export function gradeFilterTabs(filters: GradeFilter[], phases: Phase[]): GradeTab[] {
+  return filters.map((filter) => ({
+    name: filter.name,
+    grades:
+      filter.grades ?? phases.find((phase) => phase.name === filter.name)?.grades ?? filter.name,
+  }));
+}
+
+/**
+ * One roster's grade tabs and, as their panel, the cards `render` draws
+ * for the selected filter. Without filters it is the panel alone.
+ */
+function GradeFiltered({
+  filters,
+  defaultFilter,
+  label,
+  prefix,
+  render,
+}: {
+  filters: GradeFilter[];
+  defaultFilter: string;
+  label: string;
+  prefix: string;
+  render: (filter: GradeFilter | undefined) => React.ReactNode;
+}) {
+  const tabs = gradeFilterTabs(filters, LMS_LANDING_CONFIG.subjects?.phases ?? []);
+  const [selectedName, setSelectedName] = useState<string | undefined>(
+    () => defaultGradeFilterOf(filters, defaultFilter)?.name,
+  );
+  const selected = filters.find((filter) => filter.name === selectedName) ?? filters[0];
+  if (!selected) return <>{render(undefined)}</>;
+  const ids = gradeTabIds(prefix, selected.name);
+
+  return (
+    <>
+      <div className={CONTAINER}>
+        <LmsGradeTabs
+          tabs={tabs}
+          selected={selected.name}
+          onSelect={setSelectedName}
+          label={label}
+          prefix={prefix}
+        />
+      </div>
+      <div role="tabpanel" id={ids.panel} aria-labelledby={ids.tab} className="w-full">
+        <React.Fragment key={selected.name}>{render(selected)}</React.Fragment>
+      </div>
+    </>
+  );
+}
+
 export function LmsTutorsSection({
   id,
   signupUrl = "/register",
@@ -119,6 +218,8 @@ export function LmsTutorsSection({
 }) {
   const config = LMS_LANDING_CONFIG.tutors;
   if (!config || config.tutors.length === 0) return null;
+  const filters = config.gradeFilters ?? [];
+  const prefix = id ?? "tutors";
 
   return (
     <section
@@ -137,18 +238,28 @@ export function LmsTutorsSection({
         </p>
       </div>
 
-      <div className="mt-12">
-        <Roster labels={config.deck}>
-          {config.tutors.map((tutor, index) => (
-            <LmsTutorCard
-              key={tutor.slug ?? tutor.name}
-              persona={tutor}
-              role="tutor"
-              signupUrl={signupUrl}
-              priority={index < 4}
-            />
-          ))}
-        </Roster>
+      <div className="mt-12 flex flex-col gap-8">
+        <GradeFiltered
+          filters={filters}
+          defaultFilter={config.defaultGradeFilter}
+          label={config.gradeFiltersLabel}
+          prefix={`${prefix}-tutors`}
+          render={(filter) => (
+            <Roster labels={config.deck}>
+              {config.tutors
+                .filter((tutor) => !filter || inGradeFilter(tutor.grades, filter))
+                .map((tutor, index) => (
+                  <LmsTutorCard
+                    key={tutor.slug ?? tutor.name}
+                    persona={tutor}
+                    role="tutor"
+                    signupUrl={signupUrl}
+                    priority={index < 4}
+                  />
+                ))}
+            </Roster>
+          )}
+        />
       </div>
 
       {config.assistants.length > 0 && (
@@ -158,22 +269,39 @@ export function LmsTutorsSection({
               {config.assistantsHeading}
             </h3>
           </div>
-          <Roster
-            labels={config.assistantsDeck}
-            deckWrapClassName="w-full lg:max-w-3xl"
-            /* Three of them: two across with the third's edge showing,
-               then all three at once with nothing left to swipe to. */
-            deckClassName="sc-deck-trio"
-          >
-            {config.assistants.map((assistant) => (
-              <LmsTutorCard
-                key={assistant.slug ?? assistant.name}
-                persona={assistant}
-                role="assistant"
-                signupUrl={signupUrl}
-              />
-            ))}
-          </Roster>
+          <GradeFiltered
+            filters={filters}
+            defaultFilter={config.defaultGradeFilter}
+            label={config.assistantsGradeFiltersLabel}
+            prefix={`${prefix}-assistants`}
+            render={(filter) => (
+              <Roster
+                labels={config.assistantsDeck}
+                deckWrapClassName="w-full lg:max-w-3xl"
+                /* Three of them: two across with the third's edge showing,
+                   then all three at once with nothing left to swipe to. */
+                deckClassName="sc-deck-trio"
+              >
+                {config.assistants
+                  .filter(
+                    (assistant) =>
+                      !filter ||
+                      inGradeFilter(
+                        assistant.grade === undefined ? undefined : [assistant.grade],
+                        filter,
+                      ),
+                  )
+                  .map((assistant) => (
+                    <LmsTutorCard
+                      key={assistant.slug ?? assistant.name}
+                      persona={assistant}
+                      role="assistant"
+                      signupUrl={signupUrl}
+                    />
+                  ))}
+              </Roster>
+            )}
+          />
         </div>
       )}
     </section>

@@ -29,9 +29,10 @@
 // the same outlined rectangle lms-curricula.tsx draws for a badged
 // curriculum (LmsPhaseGrades, `outlined`), the pill still after a phase on
 // its way - and the grid below is the selected phase's own subjects. The
-// selection is React state here, Grades 8 to 9 on first paint (the config's
-// `defaultPhase`), so the server renders that tab selected and its grid in
-// the first HTML; no URL state, nothing remembered between visits.
+// selection is React state here, the config's `defaultPhase` on first
+// paint (the Senior Phase tab, since 1.36.1 "Grades 7 to 9"), so the
+// server renders that tab selected and its grid in the first HTML; no URL
+// state, nothing remembered between visits.
 //
 // The tabs follow the WAI-ARIA tabs pattern: a `tablist` of real <button
 // role="tab"> elements, `aria-selected` on the chosen one, each tab naming
@@ -39,30 +40,33 @@
 // the roving tabindex so Tab lands on the selected tab once and the arrow
 // keys (Left/Right, Home/End) move the selection along the list. A click
 // or a key selects; nothing depends on hover. Only the selected panel is
-// in the DOM, so a screen reader hears one grid.
+// in the DOM, so a screen reader hears one grid. Since 1.36.1 the row of
+// tabs is landing/lms-grade-tabs.tsx (LmsGradeTabs), the one the tutors
+// section's grade filters wear too; this half keeps the selection and the
+// panel.
+//
+// Since 1.36.1 (Ray, 2026-10-02, approving the regrouping) the tabs are
+// the CAPS phases by subject set - Grades R to 3, 4 to 6, 7 to 9, 10 to
+// 12 - so the Senior Phase tab is live while its Grade 7 is still on the
+// way: the panel's text says so and the phase's `pending` chip ("Grade 7"
+// with the pill, the same rectangle through LmsPhaseGrades) follows the
+// text. The pill is never on a live tab.
 //
 // A phase on its way names its subjects without a duo (Subject.tutors is
 // absent): the card shows the name and, where the subject is not taken by
-// the whole phase, its grades ("Grade 7"). A live phase's card shows the
+// the whole phase, its grades ("Grade 8" on an EMS row). A live phase's card shows the
 // Expert and Simplifier rows the 1.35.2 grid showed.
 //
 // Below 640px the grid is one swipeable row (`sc-row`, landing/lms-theme.css;
 // Ray, 2026-09-09: "most cards should be one row in mobile. even subjects
 // cards"); from 640px up it is the two- then three-column grid.
 
-import React, { useRef, useState, type KeyboardEvent } from "react";
+import React, { useState } from "react";
 
 import { LmsPhaseGrades } from "@/components/custom/landing/lms-curricula";
+import { LmsGradeTabs, gradeTabIds } from "@/components/custom/landing/lms-grade-tabs";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import type { Phase, Subject } from "@/components/custom/landing/lms-landing-config";
-
-/** A DOM id from a phase name: "Senior Phase" -> "senior-phase". */
-function slugOf(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 /**
  * The phase selected on first paint: the config's `defaultPhase` by name,
@@ -75,28 +79,6 @@ export function defaultPhaseOf(phases: Phase[], defaultPhase: string): Phase | u
     phases.find((phase) => !phase.badge) ??
     phases[0]
   );
-}
-
-/**
- * Where an arrow or Home/End key moves the selection from `index` of
- * `count`: Right and Down one along (wrapping), Left and Up one back
- * (wrapping), Home to the first, End to the last; any other key leaves it.
- */
-export function nextTabIndex(key: string, index: number, count: number): number {
-  switch (key) {
-    case "ArrowRight":
-    case "ArrowDown":
-      return (index + 1) % count;
-    case "ArrowLeft":
-    case "ArrowUp":
-      return (index - 1 + count) % count;
-    case "Home":
-      return 0;
-    case "End":
-      return count - 1;
-    default:
-      return index;
-  }
 }
 
 function SubjectCard({ subject }: { subject: Subject }) {
@@ -137,57 +119,26 @@ export function LmsSubjectsPhases({ id }: { id?: string }) {
   const [selectedName, setSelectedName] = useState<string | undefined>(
     () => (config ? defaultPhaseOf(phases, config.defaultPhase)?.name : undefined),
   );
-  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   if (!config || phases.length === 0) return null;
   const selected = phases.find((phase) => phase.name === selectedName) ?? phases[0];
   const prefix = id ?? "subjects";
-  const tabId = (phase: Phase) => `${prefix}-tab-${slugOf(phase.name)}`;
-  const panelId = (phase: Phase) => `${prefix}-panel-${slugOf(phase.name)}`;
-
-  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    const next = nextTabIndex(event.key, index, phases.length);
-    if (next === index) return;
-    event.preventDefault();
-    setSelectedName(phases[next].name);
-    tabRefs.current[next]?.focus();
-  };
+  const ids = gradeTabIds(prefix, selected.name);
 
   return (
     <>
-      <div
-        role="tablist"
-        aria-label={config.heading}
-        className="flex flex-wrap items-center justify-center gap-2 text-sm"
-      >
-        {phases.map((phase, index) => {
-          const isSelected = phase.name === selected.name;
-          return (
-            <button
-              key={phase.name}
-              ref={(element) => {
-                tabRefs.current[index] = element;
-              }}
-              type="button"
-              role="tab"
-              id={tabId(phase)}
-              aria-selected={isSelected}
-              aria-controls={panelId(phase)}
-              tabIndex={isSelected ? 0 : -1}
-              className="sc-phase-tab"
-              onClick={() => setSelectedName(phase.name)}
-              onKeyDown={(event) => onKeyDown(event, index)}
-            >
-              <LmsPhaseGrades phase={phase} outlined />
-            </button>
-          );
-        })}
-      </div>
+      <LmsGradeTabs
+        tabs={phases}
+        selected={selected.name}
+        onSelect={setSelectedName}
+        label={config.heading}
+        prefix={prefix}
+      />
 
       <div
         role="tabpanel"
-        id={panelId(selected)}
-        aria-labelledby={tabId(selected)}
+        id={ids.panel}
+        aria-labelledby={ids.tab}
         className="flex flex-col gap-8"
       >
         <div className="flex flex-col items-center text-center gap-2">
@@ -197,6 +148,11 @@ export function LmsSubjectsPhases({ id }: { id?: string }) {
           <p className="text-sm md:text-base text-[var(--sc-ink-2)] leading-relaxed max-w-2xl">
             {selected.text}
           </p>
+          {selected.pending ? (
+            <span className="text-sm font-medium text-[var(--sc-ink)]">
+              <LmsPhaseGrades phase={selected.pending} />
+            </span>
+          ) : null}
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sc-row">

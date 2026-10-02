@@ -30,6 +30,10 @@
 // (lms-subjects-section.client.tsx): Grades R to 3 and Grades 4 to 7 with
 // the pill, Grades 8 to 9 and Grades 10 to 12 live, Grades 8 to 9 selected
 // on first paint, and the grid is the selected phase's own subjects.
+// Since 1.36.1 (Ray, 2026-10-02, approving the regrouping) the tabs are
+// the CAPS phases by subject set: Grades R to 3 and Grades 4 to 6 with the
+// pill, Grades 7 to 9 (selected on first paint; Grades 8 and 9 live, Grade
+// 7 on the way) and Grades 10 to 12.
 //
 // Ray, 2026-09-09, naming this section: "most cards should be one row in
 // mobile. even subjects cards". Six subjects stacked is six screens of

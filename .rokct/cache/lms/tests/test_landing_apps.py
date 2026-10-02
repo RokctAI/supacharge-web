@@ -115,6 +115,8 @@ FEATURES_SECTION = os.path.join(CUSTOM, "lms-features-section.tsx")
 SUBJECTS_SECTION = os.path.join(CUSTOM, "lms-subjects-section.tsx")
 # 1.36.0: the grade-phase tabs and the selected phase's grid, the client half.
 SUBJECTS_CLIENT = os.path.join(CUSTOM, "lms-subjects-section.client.tsx")
+# 1.36.1: the one row of grade tabs the subjects and tutors sections render.
+GRADE_TABS = os.path.join(LANDING, "lms-grade-tabs.tsx")
 # 1.25.0: the one curriculum line, Cambridge marked soon.
 CURRICULA = os.path.join(LANDING, "lms-curricula.tsx")
 PARTNERS_SECTION = os.path.join(CUSTOM, "lms-partners-section.tsx")
@@ -2138,8 +2140,9 @@ class TestCurricula(unittest.TestCase):
         )
         card = [it for it in lift_features()["items"] if it["name"] == "Subjects"][0]
         self.assertTrue(card.get("curricula"))
-        # 1.36.0: the live phases' grades, one line each (TestPhaseTabs).
-        self.assertEqual(card["lines"], ["Grades 8 to 9", "Grades 10 to 12"])
+        # 1.36.0: the live phases' grades, one line each (TestPhaseTabs);
+        # 1.36.1: the Senior Phase tab is Grades 7 to 9.
+        self.assertEqual(card["lines"], ["Grades 7 to 9", "Grades 10 to 12"])
         for it in lift_features()["items"]:
             if it["name"] != "Subjects":
                 with self.subTest(card=it["name"]):
@@ -2398,16 +2401,17 @@ def lift_config_block(key):
     return json.loads(run.stdout.strip().splitlines()[-1])
 
 
-def run_client_functions(names, script):
-    """Run `script` under node after the named exported functions of the
-    subjects client half, lifted out of it as the curricula test lifts
-    curriculumSeparator; the last stdout line, parsed as JSON."""
-    source = read(SUBJECTS_CLIENT)
+def run_client_functions(names, script, path=SUBJECTS_CLIENT):
+    """Run `script` under node after the named exported functions of a
+    client module (the subjects client half unless `path` says otherwise),
+    lifted out of it as the curricula test lifts curriculumSeparator; the
+    last stdout line, parsed as JSON."""
+    source = read(path)
     fns = []
     for name in names:
         match = re.search(r"export function " + name + r"\(.*?\n\}", source, re.S)
         if not match:
-            raise AssertionError(f"{name} not found in the subjects client half")
+            raise AssertionError(f"{name} not found in {os.path.basename(path)}")
         fns.append(match.group(0))
     node = shutil.which("node")
     if not node:
@@ -2436,7 +2440,13 @@ class TestPhaseTabs(unittest.TestCase):
     tabs - one clickable rectangle per CAPS phase, in grade order, the two
     on their way with the soon pill, Grades 8 to 9 selected on first paint
     - and the grid below is the selected phase's own subjects, the live
-    ones with the roster's tutor duos."""
+    ones with the roster's tutor duos.
+
+    1.36.1 (Ray, 2026-10-02, approving the regrouping): the tabs are the
+    CAPS phases by subject set - Grades R to 3 and Grades 4 to 6 on their
+    way, Grades 7 to 9 (the default; Grades 8 and 9 live, Grade 7 on the
+    way as the phase's `pending` chip) and Grades 10 to 12 - and the row of
+    tabs is landing/lms-grade-tabs.tsx."""
 
     FET_NAMES = {
         "maths": "Mathematics",
@@ -2459,11 +2469,11 @@ class TestPhaseTabs(unittest.TestCase):
     def test_the_four_phases_in_grade_order_two_on_their_way(self):
         self.assertEqual(
             [p["grades"] for p in self.phases],
-            ["Grades R to 3", "Grades 4 to 7", "Grades 8 to 9", "Grades 10 to 12"],
+            ["Grades R to 3", "Grades 4 to 6", "Grades 7 to 9", "Grades 10 to 12"],
         )
         self.assertEqual(
             [p["name"] for p in self.phases],
-            ["Foundation Phase", "Intermediate Phase and Grade 7", "Senior Phase", "FET Phase"],
+            ["Foundation Phase", "Intermediate Phase", "Senior Phase", "FET Phase"],
         )
         self.assertEqual(
             [p.get("badge") for p in self.phases], ["soon", "soon", None, None]
@@ -2472,15 +2482,21 @@ class TestPhaseTabs(unittest.TestCase):
             with self.subTest(phase=p["name"]):
                 self.assertTrue(p["text"].strip())
                 self.assertTrue(p["subjects"])
-                self.assertNotIn("soon", p["text"].lower())
+                # "soon" is only ever a badge value, never copy.
+                for words in [p["name"], p["grades"], p["text"]] + [
+                    s["name"] for s in p["subjects"]
+                ] + [s.get("grades", "") for s in p["subjects"]] + [
+                    p.get("pending", {}).get("grades", "")
+                ]:
+                    self.assertNotIn("soon", words.lower())
         # The fixed badge and its one grades line are gone from the config.
         self.assertNotIn("grades", set(self.subjects) - {"phases"})
         self.assertNotIn("subjects", self.subjects)
 
-    def test_the_default_tab_is_grades_8_to_9_and_live(self):
+    def test_the_default_tab_is_grades_7_to_9_and_live(self):
         default = [p for p in self.phases if p["name"] == self.subjects["defaultPhase"]]
         self.assertEqual(len(default), 1)
-        self.assertEqual(default[0]["grades"], "Grades 8 to 9")
+        self.assertEqual(default[0]["grades"], "Grades 7 to 9")
         self.assertNotIn("badge", default[0])
         # The client picks it by name, falls back to the first live phase,
         # and never to a phase on its way while a live one exists.
@@ -2507,30 +2523,35 @@ class TestPhaseTabs(unittest.TestCase):
         )
         self.assertIn("Kids mode", r3["text"])
         self.assertIn("one app a parent and child share", r3["text"])
-        g47 = self.by_grades["Grades 4 to 7"]
+        g46 = self.by_grades["Grades 4 to 6"]
+        self.assertEqual(g46["name"], "Intermediate Phase")
         self.assertEqual(
-            [(s["name"], s.get("grades")) for s in g47["subjects"]],
+            [(s["name"], s.get("grades")) for s in g46["subjects"]],
             [
                 ("Mathematics", None),
                 ("English Home Language", None),
-                ("Natural Sciences and Technology", "Grades 4 to 6"),
+                ("Natural Sciences and Technology", None),
                 ("Social Sciences", None),
-                ("Life Skills", "Grades 4 to 6"),
-                ("Technology", "Grade 7"),
-                ("Economic and Management Sciences", "Grade 7"),
-                ("Life Orientation", "Grade 7"),
+                ("Life Skills", None),
             ],
         )
-        for phase in (r3, g47):
+        self.assertIn("Foundation Phase", g46["text"])
+        self.assertIn("On the way", g46["text"])
+        # Neither phase on its way has a part still to come: it all is.
+        for phase in (r3, g46):
+            self.assertNotIn("pending", phase)
+        for phase in (r3, g46):
             for subject in phase["subjects"]:
                 with self.subTest(phase=phase["grades"], subject=subject["name"]):
                     self.assertNotIn("tutors", subject)
 
-    def test_grades_8_to_9_are_the_rosters_senior_phase_duos(self):
+    def test_grades_7_to_9_are_the_rosters_senior_phase_duos(self):
         with open(ROSTER, encoding="utf-8") as f:
             senior = json.load(f)["senior_phase"]
         names = self.tutor_names()
-        phase = self.by_grades["Grades 8 to 9"]
+        phase = self.by_grades["Grades 7 to 9"]
+        self.assertEqual(phase["name"], "Senior Phase")
+        self.assertNotIn("badge", phase)
         rows = {(s["name"], s.get("grades")): s["tutors"] for s in phase["subjects"]}
         self.assertEqual(senior["grades"], [8, 9])
         expected = {}
@@ -2558,10 +2579,33 @@ class TestPhaseTabs(unittest.TestCase):
         # The text counts the weekly grid's evenings: four, Thursday free.
         with open(WEEKLY_GRID, encoding="utf-8") as f:
             grid = json.load(f)
-        self.assertEqual(grid["student_live_sessions_per_week"]["8"], 4)
-        self.assertEqual(grid["free_weekday"]["8"], ["Thu"])
-        self.assertIn("Four subjects", phase["text"])
+        for grade in ("8", "9"):
+            with self.subTest(grade=grade):
+                self.assertEqual(grid["student_live_sessions_per_week"][grade], 4)
+                self.assertEqual(grid["free_weekday"][grade], ["Thu"])
+        # Grade 7 is in the phase, not on the timetable: nothing taught.
+        self.assertNotIn("7", grid["student_live_sessions_per_week"])
+        self.assertIn("four subjects", phase["text"].lower())
         self.assertIn("Thursday free", phase["text"])
+        # The tab is live; inside it, plain words for which grades are, and
+        # the one still on its way as a chip with the pill, not the tab.
+        self.assertIn("Grades 8 and 9 are live", phase["text"])
+        self.assertIn("Grade 7 is on the way", phase["text"])
+        self.assertEqual(phase["pending"], {"grades": "Grade 7", "badge": "soon"})
+        # The subjects are the roster's, by its own names, and nothing
+        # outside it - no Technology, no Life Orientation - anywhere.
+        self.assertEqual(
+            {s["name"] for s in phase["subjects"]}, set(senior["subject_names"].values())
+        )
+        for p in self.phases:
+            for gone in ("Technology", "Life Orientation"):
+                with self.subTest(phase=p["name"], gone=gone):
+                    self.assertNotIn(gone, [s["name"] for s in p["subjects"]])
+        client = code_of(SUBJECTS_CLIENT)
+        self.assertRegex(
+            client,
+            r"\{selected\.pending \? \(\s*<span[^>]*>\s*<LmsPhaseGrades phase=\{selected\.pending\} />\s*</span>\s*\) : null\}",
+        )
 
     def test_grades_10_to_12_are_the_rosters_fet_duos_as_before(self):
         with open(ROSTER, encoding="utf-8") as f:
@@ -2597,34 +2641,55 @@ class TestPhaseTabs(unittest.TestCase):
         self.assertIn("Mathematics and Mathematical Literacy share an evening", phase["text"])
 
     def test_tabs_are_buttons_with_the_tabs_pattern_and_no_hover(self):
-        client = code_of(SUBJECTS_CLIENT)
-        self.assertRegex(read(SUBJECTS_CLIENT).lstrip(), r'^"use client";')
-        self.assertIn('role="tablist"', client)
+        # 1.36.1: the row of tabs is lms-grade-tabs.tsx, rendered here.
+        tabs = code_of(GRADE_TABS)
+        self.assertRegex(read(GRADE_TABS).lstrip(), r'^"use client";')
+        self.assertIn('role="tablist"', tabs)
+        self.assertIn("aria-label={label}", tabs)
         self.assertRegex(
-            client,
-            r'<button\s+key=\{phase\.name\}\s+ref=\{[^}]*\}\s*\}\s+type="button"\s+role="tab"\s+id=\{tabId\(phase\)\}\s+aria-selected=\{isSelected\}\s+aria-controls=\{panelId\(phase\)\}\s+tabIndex=\{isSelected \? 0 : -1\}\s+className="sc-phase-tab"\s+onClick=\{\(\) => setSelectedName\(phase\.name\)\}\s+onKeyDown=',
+            tabs,
+            r'<button\s+key=\{tab\.name\}\s+ref=\{[^}]*\}\s*\}\s+type="button"\s+role="tab"\s+id=\{ids\.tab\}\s+aria-selected=\{isSelected\}\s+aria-controls=\{ids\.panel\}\s+tabIndex=\{isSelected \? 0 : -1\}\s+className="sc-phase-tab"\s+onClick=\{\(\) => onSelect\(tab\.name\)\}\s+onKeyDown=',
         )
         # The tab's only content is the rectangle lms-curricula.tsx draws,
-        # asked for on every phase so a live one gets it too.
+        # asked for on every tab so a live one gets it too.
+        self.assertRegex(
+            tabs,
+            r'onKeyDown=\{\(event\) => onKeyDown\(event, index\)\}\s*>\s*<LmsPhaseGrades phase=\{tab\} outlined />\s*</button>',
+        )
+        self.assertEqual(tabs.count("<LmsPhaseGrades"), 1)
+        self.assertNotIn("useState", tabs)
+        client = code_of(SUBJECTS_CLIENT)
+        self.assertRegex(read(SUBJECTS_CLIENT).lstrip(), r'^"use client";')
+        self.assertIn(
+            'import { LmsGradeTabs, gradeTabIds } from "@/components/custom/landing/lms-grade-tabs";',
+            client,
+        )
         self.assertRegex(
             client,
-            r'onKeyDown=\{\(event\) => onKeyDown\(event, index\)\}\s*>\s*<LmsPhaseGrades phase=\{phase\} outlined />\s*</button>',
+            r"<LmsGradeTabs\s+tabs=\{phases\}\s+selected=\{selected\.name\}\s+onSelect=\{setSelectedName\}\s+label=\{config\.heading\}\s+prefix=\{prefix\}\s*/>",
         )
+        self.assertNotIn('role="tab"', client)
+        self.assertNotIn("nextTabIndex", client)
+        # The pending chip is the one other rectangle here.
         self.assertEqual(client.count("<LmsPhaseGrades"), 1)
         self.assertIn('role="tabpanel"', client)
-        self.assertIn("aria-labelledby={tabId(selected)}", client)
+        self.assertIn("id={ids.panel}", client)
+        self.assertIn("aria-labelledby={ids.tab}", client)
+        self.assertIn("const ids = gradeTabIds(prefix, selected.name);", client)
         self.assertIn("{selected.subjects.map((subject) => (", client)
         self.assertIn("sc-row", client)
-        for word in ("onMouseEnter", "onMouseOver", "onPointerEnter", "hover:"):
-            with self.subTest(word=word):
-                # The card's border tint on hover is the one hover here, as
-                # the 1.35.2 grid had; nothing selects a tab on hover.
-                if word == "hover:":
-                    self.assertEqual(client.count(word), 1)
-                else:
-                    self.assertNotIn(word, client)
-        self.assertNotIn("useSearchParams", client)
-        self.assertNotIn("localStorage", client)
+        for source, hovers in ((client, 1), (tabs, 0)):
+            for word in ("onMouseEnter", "onMouseOver", "onPointerEnter", "hover:"):
+                with self.subTest(word=word, hovers=hovers):
+                    # The card's border tint on hover is the one hover in
+                    # the client half, as the 1.35.2 grid had; nothing
+                    # selects a tab on hover.
+                    if word == "hover:":
+                        self.assertEqual(source.count(word), hovers)
+                    else:
+                        self.assertNotIn(word, source)
+            self.assertNotIn("useSearchParams", source)
+            self.assertNotIn("localStorage", source)
         # Roving tabindex: the arrows and Home/End move along the list.
         moves = run_client_functions(
             ["nextTabIndex"],
@@ -2633,8 +2698,17 @@ class TestPhaseTabs(unittest.TestCase):
             "nextTabIndex('Home', 2, 4), nextTabIndex('End', 0, 4),"
             "nextTabIndex('ArrowDown', 1, 4), nextTabIndex('ArrowUp', 1, 4),"
             "nextTabIndex('Enter', 2, 4), nextTabIndex('a', 2, 4)]));",
+            path=GRADE_TABS,
         )
         self.assertEqual(moves, [0, 3, 0, 3, 2, 0, 2, 2])
+        ids = run_client_functions(
+            ["slugOf", "gradeTabIds"],
+            "console.log(JSON.stringify(gradeTabIds('subjects', 'Senior Phase')));",
+            path=GRADE_TABS,
+        )
+        self.assertEqual(
+            ids, {"tab": "subjects-tab-senior-phase", "panel": "subjects-panel-senior-phase"}
+        )
 
     def test_entry_keeps_meta_and_the_heading_and_renders_the_client_half(self):
         entry = code_of(SUBJECTS_SECTION)
@@ -2677,12 +2751,18 @@ class TestPhaseTabs(unittest.TestCase):
         answer = [
             q for q in lift_config_block("faq")["items"] if q["question"] == "Which subjects and grades?"
         ][0]["answer"]
+        self.assertEqual(card["lines"], ["Grades 7 to 9", "Grades 10 to 12"])
+        self.assertEqual(
+            [p["grades"] for p in self.phases if p.get("badge")],
+            ["Grades R to 3", "Grades 4 to 6"],
+        )
         for words in (
-            "Grades 8 to 12 are live",
+            "Grades 8 to 12 are live today",
             "Grades 8 and 9: Mathematics, Natural Sciences, Social Sciences and Economic and Management Sciences",
             "Grades 10 to 12: Mathematics, Physical Sciences, Accounting, Economics, Geography and Mathematical Literacy",
-            "On the way: Foundation Phase, Grades R to 3",
-            "and then Grades 4 to 7",
+            "On the way: Grade 7",
+            "Grades 4 to 6, the Intermediate Phase",
+            "Foundation Phase, Grades R to 3",
         ):
             with self.subTest(words=words):
                 self.assertIn(words, answer)
@@ -2712,6 +2792,192 @@ class TestPhaseTabs(unittest.TestCase):
         self.assertIn(
             f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
         )
+
+    def test_manifest_changelog_and_footer_say_1_36_1(self):
+        manifest = load_manifest()
+        self.assertGreaterEqual(
+            tuple(int(n) for n in manifest["version"].split(".")), (1, 36, 1)
+        )
+        pairs = {i["from"]: i for i in manifest["installs"]}
+        tabs = pairs["templates/components/custom/landing/lms-grade-tabs.tsx"]
+        self.assertEqual(tabs["to"], "components/custom/landing/lms-grade-tabs.tsx")
+        self.assertIn("Since 1.36.1", tabs["_comment"])
+        self.assertIn("Since 1.36.1", manifest["_comment"]["about"])
+        self.assertIn("tutors.gradeFilters", manifest["_comment"]["about"])
+        changelog = read(os.path.join(SDK_ROOT, "CHANGELOG.md"))
+        head = " ".join(changelog.split("## 1.36.0")[0].split())
+        self.assertIn("## 1.36.1", head)
+        self.assertIn('"Grades 4 to 6"', head)
+        self.assertIn('"Grades 7 to 9"', head)
+        self.assertIn('"All Grades"', head)
+        self.assertIn("`landing/lms-grade-tabs.tsx`", head)
+        self.assertIn("`LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.36.1", head)
+        self.assertIn(
+            f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
+        )
+
+
+class TestGradeFilters(unittest.TestCase):
+    """1.36.1 (Ray, 2026-10-02, approving the tutor and host grade tabs):
+    the tutors section's two rosters - the tutors and the session
+    assistants - each wear the subjects section's grade tabs as a filter:
+    All Grades (selected on first paint), Grades 7 to 9, Grades 10 to 12;
+    no Grades R to 3 (kids mode has no tutor persona) and no Grades 4 to 6.
+    A tutor shows under a phase when the grades they teach meet it, an
+    assistant under the phase of their own grade, a persona without grades
+    under All Grades only."""
+
+    FILTER_FNS = ["inGradeFilter", "defaultGradeFilterOf", "gradeFilterTabs"]
+
+    def setUp(self):
+        self.tutors = lift_config_block("tutors")
+        self.filters = self.tutors["gradeFilters"]
+        self.phases = lift_subjects()["phases"]
+
+    def run_filters(self, script):
+        return run_client_functions(self.FILTER_FNS, script, path=TUTORS_CLIENT)
+
+    def members(self, personas, grades_of):
+        """{filter name: [persona names]} as the client's inGradeFilter has it."""
+        rows = [[p["name"], grades_of(p)] for p in personas]
+        return self.run_filters(
+            "const filters = %s; const rows = %s;\n"
+            "console.log(JSON.stringify(Object.fromEntries(filters.map((f) => ["
+            "f.name, rows.filter(([, g]) => inGradeFilter(g ?? undefined, f)).map(([n]) => n)]))));"
+            % (json.dumps(self.filters), json.dumps(rows))
+        )
+
+    def test_the_tab_set_is_all_grades_then_the_live_phases(self):
+        tabs = self.run_filters(
+            "console.log(JSON.stringify(gradeFilterTabs(%s, %s)));"
+            % (json.dumps(self.filters), json.dumps(self.phases))
+        )
+        self.assertEqual(
+            [t["grades"] for t in tabs], ["All Grades", "Grades 7 to 9", "Grades 10 to 12"]
+        )
+        self.assertEqual(
+            [t["name"] for t in tabs], ["All Grades", "Senior Phase", "FET Phase"]
+        )
+        for tab in tabs:
+            self.assertNotIn("badge", tab)
+        # A phase filter is named for its subjects phase, a live one, and its
+        # range is that phase's grades; All Grades has no range.
+        by_name = {p["name"]: p for p in self.phases}
+        self.assertEqual(self.filters[0], {"name": "All Grades", "grades": "All Grades"})
+        for f in self.filters[1:]:
+            with self.subTest(filter=f["name"]):
+                phase = by_name[f["name"]]
+                self.assertNotIn("badge", phase)
+                self.assertNotIn("grades", f)
+                first, last = f["range"]
+                self.assertEqual(phase["grades"], f"Grades {first} to {last}")
+        for absent in ("Grades R to 3", "Grades 4 to 6"):
+            self.assertNotIn(absent, [t["grades"] for t in tabs])
+
+    def test_all_grades_is_selected_on_first_paint(self):
+        self.assertEqual(self.tutors["defaultGradeFilter"], "All Grades")
+        picked = self.run_filters(
+            "const filters = %s;\n"
+            "console.log(JSON.stringify([defaultGradeFilterOf(filters, %s)?.name,"
+            "defaultGradeFilterOf(filters, 'nowhere')?.name]));"
+            % (json.dumps(self.filters), json.dumps(self.tutors["defaultGradeFilter"]))
+        )
+        self.assertEqual(picked, ["All Grades", "All Grades"])
+        client = code_of(TUTORS_CLIENT)
+        self.assertRegex(
+            client,
+            r"useState<string \| undefined>\(\s*\(\) => defaultGradeFilterOf\(filters, defaultFilter\)\?\.name,?\s*\)",
+        )
+        self.assertEqual(client.count("defaultFilter={config.defaultGradeFilter}"), 2)
+
+    def test_tutor_grades_are_the_rosters(self):
+        with open(ROSTER, encoding="utf-8") as f:
+            roster = json.load(f)
+        senior = roster["senior_phase"]
+        cast_senior = set()
+        for duo in senior["subjects"].values():
+            for d in duo.get("grade_duos", {"": duo}).values():
+                cast_senior.update((d["expert"], d["simplifier"]))
+        for tutor in self.tutors["tutors"]:
+            with self.subTest(tutor=tutor["name"]):
+                expected = (senior["grades"] if tutor["slug"] in cast_senior else []) + roster[
+                    "fet_grades"
+                ]
+                self.assertEqual(tutor["grades"], expected)
+
+    def test_tutors_show_under_the_phases_their_grades_meet(self):
+        members = self.members(self.tutors["tutors"], lambda t: t.get("grades"))
+        everyone = [t["name"] for t in self.tutors["tutors"]]
+        maths_lit = [
+            t["name"] for t in self.tutors["tutors"] if t["subject"] == "Mathematical Literacy"
+        ]
+        self.assertEqual(maths_lit, ["Priya Pillay", "Joe September"])
+        self.assertEqual(members["All Grades"], everyone)
+        self.assertEqual(members["FET Phase"], everyone)
+        self.assertEqual(members["Senior Phase"], [n for n in everyone if n not in maths_lit])
+        self.assertEqual(len(members["Senior Phase"]), 10)
+
+    def test_hosts_show_under_the_phase_of_their_grade(self):
+        assistants = self.tutors["assistants"]
+        for a in assistants:
+            with self.subTest(assistant=a["name"]):
+                self.assertEqual(a["role"], f"Grade {a['grade']} session assistant")
+                # `grade`, never `grades`: the card draws no grade badge on
+                # an assistant.
+                self.assertNotIn("grades", a)
+        members = self.members(assistants, lambda a: [a["grade"]] if "grade" in a else None)
+        self.assertEqual(
+            members,
+            {
+                "All Grades": ["Lerato", "Kavitha", "Thandi", "Bianca", "Mandy"],
+                "Senior Phase": ["Lerato", "Kavitha"],
+                "FET Phase": ["Thandi", "Bianca", "Mandy"],
+            },
+        )
+
+    def test_a_persona_without_grades_shows_under_all_grades_only(self):
+        members = self.members(
+            [{"name": "Ray Thompson"}, {"name": "No one"}], lambda p: None
+        )
+        self.assertEqual(
+            members,
+            {"All Grades": ["Ray Thompson", "No one"], "Senior Phase": [], "FET Phase": []},
+        )
+
+    def test_both_rows_wear_the_shared_tabs_as_filters(self):
+        client = code_of(TUTORS_CLIENT)
+        self.assertRegex(read(TUTORS_CLIENT), r'(?m)^"use client";')
+        self.assertIn(
+            'import { LmsGradeTabs, gradeTabIds } from "@/components/custom/landing/lms-grade-tabs";',
+            client,
+        )
+        self.assertEqual(client.count("<LmsGradeTabs"), 1)
+        self.assertEqual(client.count("<GradeFiltered"), 2)
+        self.assertIn("prefix={`${prefix}-tutors`}", client)
+        self.assertIn("prefix={`${prefix}-assistants`}", client)
+        self.assertIn("label={config.gradeFiltersLabel}", client)
+        self.assertIn("label={config.assistantsGradeFiltersLabel}", client)
+        self.assertRegex(
+            client,
+            r'<div role="tabpanel" id=\{ids\.panel\} aria-labelledby=\{ids\.tab\}',
+        )
+        self.assertIn("inGradeFilter(tutor.grades, filter)", client)
+        self.assertIn("assistant.grade === undefined ? undefined : [assistant.grade]", client)
+        # The roster under a tab is remounted per filter.
+        self.assertIn("<React.Fragment key={selected.name}>", client)
+        for word in ("onMouseEnter", "onMouseOver", "onPointerEnter", "hover:", "useSearchParams", "localStorage"):
+            with self.subTest(word=word):
+                self.assertNotIn(word, client)
+        # No icon library came with the tabs.
+        for lib in ("lucide-react", "@mui/", "material"):
+            with self.subTest(lib=lib):
+                self.assertNotIn(lib, client)
+                self.assertNotIn(lib, code_of(GRADE_TABS))
+        self.assertTrue(self.tutors["gradeFiltersLabel"])
+        self.assertTrue(self.tutors["assistantsGradeFiltersLabel"])
+        # The entry is still the server-readable half.
+        self.assertNotIn("use client", code_of(TUTORS_SECTION))
+
 
 class TestHeroHeadline(unittest.TestCase):
     """1.31.1 (Ray, 2026-09-11, 20:39:47Z: `hero drop "with suparcharge"`):
