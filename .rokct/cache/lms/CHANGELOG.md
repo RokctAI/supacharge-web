@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.36.2
+
+* Landing: the Subjects card in "Your day, sorted." merges its "Grades 7
+  to 9" and "Grades 10 to 12" rows into one "Grades 7 to 12" row, and
+  draws the phases on their way first, so the card reads Grades R to 3,
+  Grades 4 to 6 (each with the soon pill), then Grades 7 to 12. The
+  subjects section's phase tabs are unchanged.
+
 ## 1.36.1
 
 * Landing: the grade tabs follow the CAPS phases by subject set (Ray,

@@ -773,6 +773,8 @@ class TestFeatureCards(unittest.TestCase):
                         words.get(it["figure"], it["figure"]), it["text"].lower()
                     )
             for line in it.get("lines", []):
+                if it["name"] == "Subjects":
+                    continue  # one row spanning the live phases (TestPhaseTabs)
                 with self.subTest(card=it["name"], line=line):
                     self.assertEqual(
                         config.count(f'"{line}"'),
@@ -2141,8 +2143,9 @@ class TestCurricula(unittest.TestCase):
         card = [it for it in lift_features()["items"] if it["name"] == "Subjects"][0]
         self.assertTrue(card.get("curricula"))
         # 1.36.0: the live phases' grades, one line each (TestPhaseTabs);
-        # 1.36.1: the Senior Phase tab is Grades 7 to 9.
-        self.assertEqual(card["lines"], ["Grades 7 to 9", "Grades 10 to 12"])
+        # 1.36.1: the Senior Phase tab is Grades 7 to 9; the card merges
+        # the live phases into one row.
+        self.assertEqual(card["lines"], ["Grades 7 to 12"])
         for it in lift_features()["items"]:
             if it["name"] != "Subjects":
                 with self.subTest(card=it["name"]):
@@ -2741,7 +2744,9 @@ class TestPhaseTabs(unittest.TestCase):
     def test_subjects_card_and_faq_name_the_live_and_the_coming_grades(self):
         card = [it for it in lift_features()["items"] if it["name"] == "Subjects"][0]
         live = [p["grades"] for p in self.phases if not p.get("badge")]
-        self.assertEqual(card["lines"], live)
+        self.assertEqual(
+            card["lines"], [live[0].rsplit(" to ", 1)[0] + " to " + live[-1].rsplit(" to ", 1)[1]]
+        )
         self.assertTrue(card.get("phases"))
         features = code_of(FEATURES_SECTION)
         self.assertRegex(
@@ -2751,7 +2756,7 @@ class TestPhaseTabs(unittest.TestCase):
         answer = [
             q for q in lift_config_block("faq")["items"] if q["question"] == "Which subjects and grades?"
         ][0]["answer"]
-        self.assertEqual(card["lines"], ["Grades 7 to 9", "Grades 10 to 12"])
+        self.assertEqual(card["lines"], ["Grades 7 to 12"])
         self.assertEqual(
             [p["grades"] for p in self.phases if p.get("badge")],
             ["Grades R to 3", "Grades 4 to 6"],

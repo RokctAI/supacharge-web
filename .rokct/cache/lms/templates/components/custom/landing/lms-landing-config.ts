@@ -1106,7 +1106,9 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         icon: BookOpenCheck,
         treatment: "list",
         curricula: true,
-        lines: ["Grades 7 to 9", "Grades 10 to 12"],
+        // The live phases as one row (Grades 7 to 9 and 10 to 12), drawn
+        // after the phases on their way so the card reads R to 3 first.
+        lines: ["Grades 7 to 12"],
         phases: true,
       },
       {
