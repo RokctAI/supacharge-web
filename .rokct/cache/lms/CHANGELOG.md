@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.36.9
+
+* Team: /team shows the Supacharge team (Ray, 2026-10-03: the About
+  page's "Meet the team" button and the footer's Team link went to an
+  empty page). corporate_sdk's /team draws the shell's data/team.json and
+  the home SDK's sections for the page; Supacharge had neither, so it
+  showed only "No team members have been listed yet." The new
+  lms-team-section.tsx registers for the page (`meta.page: "team"`) and
+  renders the landing's own tutors section - the tutors and the session
+  hosts with their grade tabs and flip cards - and the About page's
+  founder card, in the landing's token scope. No new people or copy.
+  `LMS_LANDING_VERSION` goes to 1.36.9.
+* Team: the title carries the number of cards on the page (Ray,
+  2026-10-03: "Team [45]", the number in a rectangle). The section's
+  wrapper states `data-team-count` - `teamCardCount()`: the tutors and
+  session hosts the tutors section maps plus the founders - and
+  corporate_sdk 1.3.0's `/team` title sums it into a badge beside "Team";
+  lms-theme.css draws that badge in the primary token. Nothing is
+  hard-coded.
+
 ## 1.36.8
 
 * About: the page is about Supacharge and the company behind it, not the

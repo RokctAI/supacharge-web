@@ -1,6 +1,6 @@
 {
   "name": "lms_sdk",
-  "version": "1.36.8",
+  "version": "1.36.9",
   "installs": [
     {
       "from": "templates/app/handson/all/lms",
@@ -178,6 +178,16 @@
       "from": "templates/components/custom/lms-tutors-section.client.tsx",
       "to": "components/custom/lms-tutors-section.client.tsx",
       "_comment": "Since 1.36.1 each roster - the tutors and the session assistants - has grade tabs over it as a filter (Ray, 2026-10-02, approving the tutor and host grade tabs): LMS_LANDING_CONFIG.tutors.gradeFilters, All Grades (`defaultGradeFilter`, selected on first paint), Grades 7 to 9 and Grades 10 to 12, drawn by landing/lms-grade-tabs.tsx; a tutor shows under a phase when Tutor.grades meets it, an assistant when Assistant.grade falls in it, a persona without grades under All Grades only. Each row's selection is its own React state. Since 1.24.0 the client half of lms-tutors-section.tsx (the reduced-motion media query the roster picks the deck or the marquee on), rendered by the entry's default export; a section's hooks never sit in the module base reads meta from."
+    },
+    {
+      "from": "templates/components/custom/lms-team-section.tsx",
+      "to": "components/custom/lms-team-section.tsx",
+      "_comment": "1.36.9: the server-readable ENTRY (meta with page: \"team\" - base_sdk 1.38.0's page slot - order 10, no nav entry, always renders; the registered default export, no \"use client\"). Drawn by corporate_sdk's /team through base's pageSectionsFor(\"team\"), never by the landing: before it the page had no team.json and no section, so it showed only its empty line."
+    },
+    {
+      "from": "templates/components/custom/lms-team-section.client.tsx",
+      "to": "components/custom/lms-team-section.client.tsx",
+      "_comment": "1.36.9: the client half of lms-team-section.tsx: the landing's own tutors section (tutors and session hosts, grade tabs, flip cards) and the About page's founder card, in the landing's token scope. No new people, copy or claims."
     },
     {
       "from": "templates/components/custom/lms-founder-section.tsx",
@@ -372,6 +382,11 @@
       "target": "components/custom/landing/network-strip.ts",
       "placeholder": "// @rokct-sdk-network-strip-start",
       "replacement": "  { id: \"lms-network-strip\", load: () => import(\"@/components/custom/landing/lms-network-strip\") },"
+    },
+    {
+      "target": "components/custom/landing/page-sections.ts",
+      "placeholder": "// @rokct-sdk-page-sections-start",
+      "replacement": "  { id: \"lms-team-section\", load: () => import(\"@/components/custom/lms-team-section\") },"
     },
     {
       "target": "components/custom/landing/page-sections.ts",

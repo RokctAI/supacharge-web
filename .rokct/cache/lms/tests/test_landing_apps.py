@@ -1941,6 +1941,9 @@ class TestServerSafeSections(unittest.TestCase):
                 "lms-faq-section",
                 "lms-testimonials-section",
                 "lms-footer-section",
+                # 1.36.9: the team page's section, drawn on /team only
+                # (meta.page "team"), never on the landing.
+                "lms-team-section",
                 # 1.27.0: the founder card, registered here and drawn on /about
                 # only (meta.page "about"), never on the landing.
                 "lms-founder-section",
@@ -2000,8 +2003,8 @@ class TestServerSafeSections(unittest.TestCase):
                 self.assertIn(f'from "@/components/custom/{section_id}.client"', entry)
         self.assertEqual(
             halves,
-            6,
-            "floating nav, subjects (1.36.0), tutors, pricing, faq and the founder section carry a client half",
+            7,
+            "floating nav, subjects (1.36.0), tutors, pricing, faq, the founder section and the team section (1.36.9) carry a client half",
         )
 
     def test_pricing_keeps_its_pure_rule_in_the_entry(self):
@@ -2844,11 +2847,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.8")
+        self.assertEqual(manifest["version"], "1.36.9")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.8"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.9"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -3793,3 +3796,49 @@ class TestAboutIsThePlatform(unittest.TestCase):
     def test_remixicon_only(self):
         self.assertIn('from "@remixicon/react"', self.client)
         self.assertNotIn("lucide", self.client)
+
+
+class TestTeamCount(unittest.TestCase):
+    """1.36.9 (Ray, 2026-10-03: "Team [45]", the number in a rectangle
+    beside the /team title): the team section states on its wrapper how
+    many cards it draws (data-team-count), corporate_sdk 1.3.0's title sums
+    it into the badge. The stated number is computed from the same arrays
+    the cards are mapped from - every tutor, every host/assistant, every
+    founder - never written down."""
+
+    TEAM_CLIENT = os.path.join(CUSTOM, "lms-team-section.client.tsx")
+
+    def test_the_badge_count_is_the_number_of_rendered_cards(self):
+        tutors = lift_config_block("tutors")
+        founders = len(re.findall(r'^    id: "founder_', read(FOUNDERS), re.M))
+        self.assertGreater(founders, 0)
+        expected = len(tutors["tutors"]) + len(tutors["assistants"]) + founders
+        code = code_of(self.TEAM_CLIENT)
+        fn = re.search(r"^export function teamCardCount\(.*?^\}", code, re.S | re.M)
+        self.assertIsNotNone(fn, "teamCardCount not found")
+        script = (
+            "const LMS_LANDING_CONFIG = { tutors: %s };\n"
+            "const LMS_FOUNDERS = Array.from({ length: %d }, (_, i) => ({ id: String(i) }));\n"
+            "%s\nconsole.log(JSON.stringify(teamCardCount()));\n"
+            % (json.dumps(tutors), founders, fn.group(0).replace("export function", "function", 1))
+        )
+        node = shutil.which("node")
+        if not node:
+            raise unittest.SkipTest("node is not installed")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "count.mts")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(script)
+            run = subprocess.run([node, "--experimental-strip-types", "--no-warnings", path],
+                                 capture_output=True, text=True, timeout=60)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(json.loads(run.stdout), expected)
+        # The cards are drawn from exactly those arrays, each in full under
+        # All Grades: the tutors and assistants rosters, then the founders.
+        tutors_client = code_of(TUTORS_CLIENT)
+        self.assertIn("{config.tutors\n", tutors_client)
+        self.assertIn("{config.assistants\n", tutors_client)
+        self.assertEqual(tutors_client.count("<LmsTutorCard"), 2)
+        self.assertEqual(code.count("<LmsTutorCard"), 1)
+        self.assertIn("{founders.map((founder) => {", code)
+        self.assertIn("data-team-count={teamCardCount(founders)}", code)
