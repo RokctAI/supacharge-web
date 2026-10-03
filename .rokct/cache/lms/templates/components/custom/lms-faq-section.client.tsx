@@ -20,7 +20,7 @@
 
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Minus, Plus } from "lucide-react";
+import { RiSubtractLine, RiAddLine } from "@remixicon/react";
 
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 
@@ -64,9 +64,9 @@ export function LmsFaqSection({ id }: { id?: string }) {
                   </span>
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--sc-card-alt)] text-[var(--sc-ink-2)]">
                     {open ? (
-                      <Minus className="size-4" aria-hidden="true" />
+                      <RiSubtractLine className="size-4" aria-hidden="true" />
                     ) : (
-                      <Plus className="size-4" aria-hidden="true" />
+                      <RiAddLine className="size-4" aria-hidden="true" />
                     )}
                   </span>
                 </button>

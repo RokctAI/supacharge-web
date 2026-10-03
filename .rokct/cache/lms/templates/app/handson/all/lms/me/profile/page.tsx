@@ -35,7 +35,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Award, User, Download } from "lucide-react";
+import { RiAwardLine, RiUserLine, RiDownloadLine } from "@remixicon/react";
 import { formatDate } from "@/app/lib/format";
 
 export default function ProfilePage() {
@@ -173,7 +173,7 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Award className="h-6 w-6 text-yellow-500" />
+                <RiAwardLine className="h-6 w-6 text-yellow-500" />
                 My Certificates
               </CardTitle>
             </CardHeader>
@@ -204,7 +204,7 @@ export default function ProfilePage() {
                             target="_blank"
                             rel="noreferrer"
                           >
-                            <Download className="mr-2 h-4 w-4" /> Download
+                            <RiDownloadLine className="mr-2 h-4 w-4" /> Download
                           </a>
                         </Button>
                       )}

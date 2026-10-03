@@ -29,7 +29,7 @@
 // nothing here names the brand or a host: the calendar's name and the feed
 // URL come from the backend's answer.
 
-import { CalendarDays, ExternalLink } from "lucide-react";
+import { RiCalendar2Line, RiExternalLinkLine } from "@remixicon/react";
 import React from "react";
 
 import t from "@/app/lib/i18n";
@@ -183,7 +183,7 @@ function WindowRow({ event }: { event: CalendarEvent }) {
             rel="noopener noreferrer"
           >
             {event.source.title ?? L("source", "Source")}
-            <ExternalLink className="size-3" aria-hidden="true" />
+            <RiExternalLinkLine className="size-3" aria-hidden="true" />
           </a>
         ) : null}
       </div>
@@ -214,7 +214,7 @@ function SubscribeCard({ calendar }: { calendar: MarketingCalendar }) {
             className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             href={webcalUrl(calendar.feed_url)}
           >
-            <CalendarDays className="size-4" aria-hidden="true" />
+            <RiCalendar2Line className="size-4" aria-hidden="true" />
             {L("subscribe_link", "Subscribe to calendar")}
           </a>
           <LmsCopyLinkButton

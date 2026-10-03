@@ -45,17 +45,8 @@
 // `[[PLACEHOLDER]]` token, never a guess: `LMS_LANDING_PLACEHOLDERS` lists
 // them so a host can find every one.
 
-import type { LucideIcon } from "lucide-react";
-import {
-  BookOpenCheck,
-  CalendarClock,
-  ClipboardCheck,
-  Library,
-  Trophy,
-  UserRound,
-  Users,
-  WalletCards,
-} from "lucide-react";
+import type { RemixiconComponentType } from "@remixicon/react";
+import { RiBookOpenLine, RiCalendarScheduleLine, RiClipboardLine, RiBookShelfLine, RiTrophyLine, RiUserLine, RiGroupLine, RiWallet3Line } from "@remixicon/react";
 
 import type { HeaderMenuIcon } from "@/components/custom/landing/header-menu";
 import type { LandingNavBadge } from "@/components/custom/landing/landing-config";
@@ -209,6 +200,12 @@ export interface Subject {
    * Absent, the subject runs through the whole phase.
    */
   grades?: string;
+  /**
+   * A short line of what the subject builds, under its name (1.36.4):
+   * Foundation Phase only, so the CAPS name reads alongside the plain
+   * skills of a first school year - reading, writing, arithmetic.
+   */
+  skills?: string;
 }
 
 /**
@@ -463,7 +460,7 @@ export type FeatureTreatment = "glow" | "numeral" | "list" | "gradient" | "outli
 export interface Feature {
   name: string;
   text: string;
-  icon: LucideIcon;
+  icon: RemixiconComponentType;
   treatment: FeatureTreatment;
   /** Two columns from 640px up, and first in the flow below 1024px; exactly two cards. */
   wide?: boolean;
@@ -810,7 +807,10 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         text: "Kids mode, where the tutor is the lesson: one live tutor, game-style rounds in Mathematics and English Home Language, and one app a parent and child share, with a profile for each child.",
         badge: "soon",
         // Named, not cast: no duo until the phase exists.
-        subjects: [{ name: "Mathematics" }, { name: "English Home Language" }],
+        subjects: [
+          { name: "Mathematics", skills: "Arithmetic, patterns, shapes, measuring" },
+          { name: "English Home Language", skills: "Reading, writing, phonics" },
+        ],
       },
       {
         // CAPS's Intermediate Phase, named, not cast: on its way after
@@ -1096,14 +1096,14 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         name: "Schedule",
         text: "Your day at a glance, with the next live session front and centre.",
-        icon: CalendarClock,
+        icon: RiCalendarScheduleLine,
         treatment: "glow",
         wide: true,
       },
       {
         name: "Subjects",
         text: "Browse every subject you take, term by term.",
-        icon: BookOpenCheck,
+        icon: RiBookOpenLine,
         treatment: "list",
         curricula: true,
         // The live phases as one row (Grades 7 to 9 and 10 to 12), drawn
@@ -1114,7 +1114,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         name: "Tutors",
         text: "Two tutors per subject - find the one whose style clicks with you.",
-        icon: Users,
+        icon: RiGroupLine,
         treatment: "numeral",
         wide: true,
         figure: "2",
@@ -1122,31 +1122,31 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         name: "Library",
         text: "Rewatch past lessons and dip into knowledge bites whenever you like.",
-        icon: Library,
+        icon: RiBookShelfLine,
         treatment: "gradient",
       },
       {
         name: "Practice",
         text: "Sharpen your skills with practice built around your subjects.",
-        icon: ClipboardCheck,
+        icon: RiClipboardLine,
         treatment: "outlined",
       },
       {
         name: "League",
         text: "Earn points as you learn and see how you stack up this week.",
-        icon: Trophy,
+        icon: RiTrophyLine,
         treatment: "glow",
       },
       {
         name: "My plan",
         text: "See exactly what your plan includes - no surprises.",
-        icon: WalletCards,
+        icon: RiWallet3Line,
         treatment: "gradient",
       },
       {
         name: "Profile",
         text: "Your grade, subjects and progress in one place.",
-        icon: UserRound,
+        icon: RiUserLine,
         treatment: "outlined",
       },
     ],

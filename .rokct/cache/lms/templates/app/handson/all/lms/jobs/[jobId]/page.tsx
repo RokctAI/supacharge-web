@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Briefcase, MapPin, Building2, ArrowLeft } from "lucide-react";
+import { RiBriefcaseLine, RiMapPinLine, RiBuilding2Line, RiArrowLeftLine } from "@remixicon/react";
 import Link from "next/link";
 
 export default function JobDetailPage() {
@@ -61,7 +61,7 @@ export default function JobDetailPage() {
     <div className="container max-w-4xl py-10 space-y-8">
       <Button variant="ghost" asChild className="mb-4">
         <Link href="../jobs">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Jobs
+          <RiArrowLeftLine className="mr-2 h-4 w-4" /> Back to Jobs
         </Link>
       </Button>
 
@@ -72,10 +72,10 @@ export default function JobDetailPage() {
         </div>
         <div className="flex flex-wrap gap-4 text-muted-foreground">
           <span className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" /> {job.company}
+            <RiBuilding2Line className="h-4 w-4" /> {job.company}
           </span>
           <span className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" /> {job.location}
+            <RiMapPinLine className="h-4 w-4" /> {job.location}
           </span>
           <Badge variant="outline">{job.type}</Badge>
           <Badge variant={job.status === "Open" ? "default" : "secondary"}>

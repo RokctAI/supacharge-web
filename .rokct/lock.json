@@ -19,7 +19,7 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/telemetry/nextjs",
       "ref": "main",
-      "commit": "24bb825bd221a77416f1575d92ccc6867516f97c",
+      "commit": "3ada3cc2e56546d7aab36f449a72c20f18d2181f",
       "version": "1.2.2",
       "install_py_sha256": "318d20eb7123ffaa549618d06b4530dfce5df9ba0b07df2328c0c6e1738e36c4",
       "content_sha256": "97652d52df5b1f4fada6bfb41793a47df1b90cc5343aaf317139683cd75db1c1"
@@ -31,10 +31,10 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/base/nextjs",
       "ref": "main",
-      "commit": "24bb825bd221a77416f1575d92ccc6867516f97c",
-      "version": "1.50.1",
+      "commit": "3ada3cc2e56546d7aab36f449a72c20f18d2181f",
+      "version": "1.51.0",
       "install_py_sha256": "b6c434a1c05611d29f1018f68b9423383f7ecfbf9cc1efe74825ba6c4df98fff",
-      "content_sha256": "34b1fc6681970e2efbfa0d7be5925422ef2e6d3ef1507e146ecdd617dd43cf2b"
+      "content_sha256": "5d5b6f5f6506d0b985266ef8fd2cbecdf4a3922030508fad041ba77541244ec0"
     },
     {
       "name": "auth_sdk",
@@ -43,7 +43,7 @@
       "git": "https://github.com/RokctAI/Users",
       "path": "../Users/auth/nextjs",
       "ref": "main",
-      "commit": "4deb752d0a15ce2dd513d107bcbb85d52db4096b",
+      "commit": "34e4691695e32d3442635a810dbb324257d32477",
       "version": "1.9.0",
       "install_py_sha256": "b9b0d4156a68d46f528be2b885eed17cc7dba21f6b4b48b2991ba2c3274ae21b",
       "content_sha256": "39ec614c39662d5e8f1ef02211c31f5840fee63dc839b80120fc30683ad091b6"
@@ -67,10 +67,10 @@
       "git": "https://github.com/RokctAI/agent",
       "path": "../agent/lms/nextjs",
       "ref": "main",
-      "commit": "71c44de4f02ab4fe87bf5f648c6d697cde70a7f2",
-      "version": "1.36.2",
+      "commit": "80c0e4f261be71caee94c36b4f84585f6905fafa",
+      "version": "1.36.4",
       "install_py_sha256": "65a891707fd3c741b55681a8cb05ad4dd2d0833ee5643f490928267891144741",
-      "content_sha256": "f3c279b8fbbd7ec8a9267fe2b6918cf04bd5581f17dc538e4eb0cfab73aa9892"
+      "content_sha256": "045b7593eaefbd751938f25cf25eacf446736840ccb0a947deb2429849d36cfd"
     }
   ]
 }

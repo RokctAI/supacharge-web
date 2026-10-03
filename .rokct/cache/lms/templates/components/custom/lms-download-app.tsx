@@ -40,7 +40,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Monitor, Smartphone, type LucideIcon } from "lucide-react";
+import { RiComputerLine, RiSmartphoneLine, type RemixiconComponentType } from "@remixicon/react";
 
 import { Button } from "@/components/ui/button";
 import { LMS_APP_MARKS } from "@/components/custom/landing/lms-hero-copy";
@@ -64,11 +64,11 @@ export const LMS_DOWNLOAD_APP_COPY = {
  * in only for an entry whose mark is one of the frame's named glyphs rather
  * than a file, which no entry is today.
  */
-const APP_GLYPHS: Record<LandingApp["id"], LucideIcon> = {
-  android: Smartphone,
-  desktop: Monitor,
-  ios: Smartphone,
-  huawei: Smartphone,
+const APP_GLYPHS: Record<LandingApp["id"], RemixiconComponentType> = {
+  android: RiSmartphoneLine,
+  desktop: RiComputerLine,
+  ios: RiSmartphoneLine,
+  huawei: RiSmartphoneLine,
 };
 
 export interface LmsDownloadAppPromptProps {

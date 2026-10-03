@@ -20,7 +20,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CheckCircle, Circle, PlayCircle, FileText } from "lucide-react";
+import { RiCheckboxCircleLine, RiCircleLine, RiPlayCircleLine, RiFileTextLine } from "@remixicon/react";
 
 interface Lesson {
   name: string;
@@ -87,11 +87,11 @@ export function LearningSidebar({ course, className }: SidebarProps) {
                       )}
                     >
                       {lesson.is_complete ? (
-                        <CheckCircle className="h-4 w-4 shrink-0 text-green-500" />
+                        <RiCheckboxCircleLine className="h-4 w-4 shrink-0 text-green-500" />
                       ) : isActive(lesson.name) ? (
-                        <PlayCircle className="h-4 w-4 shrink-0 text-primary-foreground" />
+                        <RiPlayCircleLine className="h-4 w-4 shrink-0 text-primary-foreground" />
                       ) : (
-                        <Circle className="h-4 w-4 shrink-0 opacity-40" />
+                        <RiCircleLine className="h-4 w-4 shrink-0 opacity-40" />
                       )}
                       <span className="line-clamp-1">{lesson.title}</span>
                     </Link>

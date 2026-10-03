@@ -32,7 +32,7 @@
 // only theme tokens are painted, and a figure the backend could not compute
 // is drawn as "no data" rather than as a confident zero.
 
-import { Activity, AlertTriangle, TrendingDown } from "lucide-react";
+import { RiPulseLine, RiAlertLine, RiArrowRightDownLine } from "@remixicon/react";
 import React from "react";
 
 import t from "@/app/lib/i18n";
@@ -172,7 +172,7 @@ function AdTable({ report }: { report: AdPerformanceReport }) {
       <CardHeader>
         <CardDescription>{L("table_eyebrow", "Every ad in the window")}</CardDescription>
         <CardTitle className="flex items-center gap-2 text-xl">
-          <TrendingDown className="size-4" aria-hidden="true" />
+          <RiArrowRightDownLine className="size-4" aria-hidden="true" />
           {L("table_title", "Ad by ad")}
         </CardTitle>
       </CardHeader>
@@ -233,7 +233,7 @@ function FlagsCard({ report }: { report: AdPerformanceReport }) {
       <CardHeader>
         <CardDescription>{L("flags_eyebrow", "What is decaying")}</CardDescription>
         <CardTitle className="flex items-center gap-2 text-xl">
-          <AlertTriangle className="size-4" aria-hidden="true" />
+          <RiAlertLine className="size-4" aria-hidden="true" />
           {L("flags_title", "Flags and suggested actions")}
         </CardTitle>
       </CardHeader>
@@ -269,7 +269,7 @@ export function LmsAdPerformance({ report }: { report: AdPerformanceReport }) {
     <section className="space-y-4">
       <header className="space-y-1">
         <h2 className="flex items-center gap-2 text-xl font-semibold">
-          <Activity className="size-5" aria-hidden="true" />
+          <RiPulseLine className="size-5" aria-hidden="true" />
           {L("title", "Ad performance")}
         </h2>
         <p className="text-muted-foreground">
@@ -304,7 +304,7 @@ export function LmsAdPerformanceNotConnected() {
   return (
     <section className="space-y-4">
       <h2 className="flex items-center gap-2 text-xl font-semibold">
-        <Activity className="size-5" aria-hidden="true" />
+        <RiPulseLine className="size-5" aria-hidden="true" />
         {L("title", "Ad performance")}
       </h2>
       <Card>

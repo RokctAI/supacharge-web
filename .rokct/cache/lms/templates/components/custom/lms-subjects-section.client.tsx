@@ -91,6 +91,9 @@ function SubjectCard({ subject }: { subject: Subject }) {
         {subject.grades ? (
           <span className="text-sm font-medium text-[var(--sc-ink-2)]">{subject.grades}</span>
         ) : null}
+        {subject.skills ? (
+          <span className="text-sm text-[var(--sc-ink-2)]">{subject.skills}</span>
+        ) : null}
       </div>
       {subject.tutors ? (
         <dl className="flex flex-col gap-1 text-sm">

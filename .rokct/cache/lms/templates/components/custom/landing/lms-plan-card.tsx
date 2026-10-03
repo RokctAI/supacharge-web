@@ -34,7 +34,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { CheckIcon } from "lucide-react";
+import { RiCheckLine } from "@remixicon/react";
 
 import type { LandingPlan } from "@/app/actions/base/landing";
 import { LmsFlipCard, stopFlip } from "@/components/custom/landing/lms-flip-card";
@@ -130,7 +130,7 @@ export function LmsPlanCard({
           <ul className="flex flex-col gap-2 text-sm text-[var(--sc-ink-2)]">
             {features.map((line, i) => (
               <li key={i} className="flex items-start gap-2">
-                <CheckIcon className="mt-0.5 size-4 shrink-0 text-yellow-500" aria-hidden="true" />
+                <RiCheckLine className="mt-0.5 size-4 shrink-0 text-yellow-500" aria-hidden="true" />
                 <span>{line}</span>
               </li>
             ))}

@@ -31,7 +31,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { BellRing, CalendarCheck2, ShieldCheck } from "lucide-react";
+import { RiNotification4Line, RiCalendarCheckLine, RiShieldCheckLine } from "@remixicon/react";
 
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import type {
@@ -79,7 +79,7 @@ export function LmsPartnersSection({
 
         <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-4 sc-row">
           <div className="flex flex-col gap-4 sc-card p-6 md:p-8">
-            <CalendarCheck2 className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
+            <RiCalendarCheckLine className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
             <h3 className="text-xl font-bold text-[var(--sc-ink)]">
               {config.weeklyHeading}
             </h3>
@@ -91,7 +91,7 @@ export function LmsPartnersSection({
           </div>
 
           <div className="flex flex-col gap-4 sc-card p-6 md:p-8">
-            <BellRing className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
+            <RiNotification4Line className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
             <h3 className="text-xl font-bold text-[var(--sc-ink)]">
               {config.alertsHeading}
             </h3>
@@ -103,7 +103,7 @@ export function LmsPartnersSection({
           </div>
 
           <div className="flex flex-col gap-4 sc-card sc-card-primary p-6 md:p-8">
-            <ShieldCheck className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
+            <RiShieldCheckLine className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
             <p className="text-lg leading-relaxed">{config.boundary}</p>
             <div className="mt-auto border-t border-[var(--sc-primary)] pt-4">
               <h4 className="font-bold">{config.sponsors.heading}</h4>

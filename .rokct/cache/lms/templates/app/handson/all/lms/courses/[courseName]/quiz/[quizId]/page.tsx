@@ -42,7 +42,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { RiCheckboxCircleLine, RiCloseCircleLine, RiTimeLine } from "@remixicon/react";
 
 export default function QuizPage() {
   const params = useParams();
@@ -339,7 +339,7 @@ export default function QuizPage() {
         </div>
         {quiz.duration && (
           <div className="flex items-center gap-2 font-mono text-lg text-orange-600">
-            <Clock className="h-5 w-5" />
+            <RiTimeLine className="h-5 w-5" />
             {formatTime(timeLeft)}
           </div>
         )}
@@ -417,12 +417,12 @@ export default function QuizPage() {
                           )}
                       </div>
                       {showAnswers.length > 0 && answerStatus === 1 && (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <RiCheckboxCircleLine className="h-5 w-5 text-green-500" />
                       )}
                       {showAnswers.length > 0 &&
                         answerStatus === 0 &&
                         isSelected && (
-                          <XCircle className="h-5 w-5 text-red-500" />
+                          <RiCloseCircleLine className="h-5 w-5 text-red-500" />
                         )}
                     </div>
                   );
