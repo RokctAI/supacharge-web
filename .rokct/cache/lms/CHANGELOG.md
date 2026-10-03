@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.36.8
+
+* About: the page is about Supacharge and the company behind it, not the
+  founder (Ray, 2026-10-03: "about is not about the founder. i wanted a
+  founder to be there but the page is about the platform or the company
+  behind"). In order: the "Access, not capability." header; the platform
+  (the site description, the CAPS blurb and the four phases with their
+  "soon" badges, read off the landing config); how it works (the sessions
+  heading and blurb over four cards - two tutors per subject, doors open
+  and close, audio and whiteboard, accountability partners - each in the
+  landing's own words); the company (the footer's copyright holder, one
+  line, and a link to /team); and the founder card and quote, compacted,
+  under a "Founder" eyebrow. The section always renders now. The founder
+  test reads the tutors fixture (api.lms.tutors.json) since the
+  seeded Dart catalogue moved there. `LMS_LANDING_VERSION` goes to 1.36.8.
+
 ## 1.36.7
 
 * About: the founder section now follows the landing's design system

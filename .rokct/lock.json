@@ -67,10 +67,10 @@
       "git": "https://github.com/RokctAI/agent",
       "path": "../agent/lms/nextjs",
       "ref": "main",
-      "commit": "65274f452e8ca5ee255ff5df9ae350ed8a6584b7",
-      "version": "1.36.7",
+      "commit": "6468e8aa480b63dcf55355656f3e90511c0e4448",
+      "version": "1.36.8",
       "install_py_sha256": "65a891707fd3c741b55681a8cb05ad4dd2d0833ee5643f490928267891144741",
-      "content_sha256": "00c721e34383e451b676c666af7248d162cc04856fee4fbd8fc6e0284ac6e758"
+      "content_sha256": "9de34c0f902b16caa0dedfb89d9b6154136675e8417b820d763ec3f2a9100d89"
     }
   ]
 }

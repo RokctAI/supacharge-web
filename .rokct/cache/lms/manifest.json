@@ -1,6 +1,6 @@
 {
   "name": "lms_sdk",
-  "version": "1.36.7",
+  "version": "1.36.8",
   "installs": [
     {
       "from": "templates/app/handson/all/lms",
