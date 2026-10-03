@@ -2838,11 +2838,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.5")
+        self.assertEqual(manifest["version"], "1.36.6")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.5"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.6"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -2921,7 +2921,8 @@ class TestGradeFilters(unittest.TestCase):
                 json.dumps(self.tutors["assistants"]),
             )
         )
-        self.assertEqual(rows[0], ["All Grades", "Senior Phase", "FET Phase"])
+        # 1.36.6: Kavitha, the kids mode tutor, brings the R to 3 tab.
+        self.assertEqual(rows[0], ["All Grades", "Foundation Phase", "Senior Phase", "FET Phase"])
         self.assertEqual(
             rows[1],
             ["All Grades", "Foundation Phase", "Intermediate Phase", "Senior Phase", "FET Phase"],
@@ -2951,8 +2952,17 @@ class TestGradeFilters(unittest.TestCase):
         for duo in senior["subjects"].values():
             for d in duo.get("grade_duos", {"": duo}).values():
                 cast_senior.update((d["expert"], d["simplifier"]))
+        foundation = roster.get("foundation_phase", {})
         for tutor in self.tutors["tutors"]:
             with self.subTest(tutor=tutor["name"]):
+                if tutor["slug"].startswith("assistant_"):
+                    # 1.36.6: the kids mode tutor is a host persona, cast by
+                    # the assistants roster's foundation_phase.tutor.
+                    with open(ASSISTANTS_ROSTER, encoding="utf-8") as f:
+                        fp = json.load(f)["foundation_phase"]
+                    self.assertEqual(tutor["slug"], fp["tutor"])
+                    self.assertEqual(tutor["grades"], [0 if g == "R" else g for g in fp["grades"]])
+                    continue
                 expected = (senior["grades"] if tutor["slug"] in cast_senior else []) + roster[
                     "fet_grades"
                 ]
@@ -2960,12 +2970,15 @@ class TestGradeFilters(unittest.TestCase):
 
     def test_tutors_show_under_the_phases_their_grades_meet(self):
         members = self.members(self.tutors["tutors"], lambda t: t.get("grades"))
-        everyone = [t["name"] for t in self.tutors["tutors"]]
+        # 1.36.6: Kavitha, the kids mode tutor, is the R to 3 tab alone.
+        self.assertEqual(members["Foundation Phase"], ["Kavitha"])
+        self.assertEqual(members["Intermediate Phase"], [])
+        everyone = [t["name"] for t in self.tutors["tutors"] if t["name"] != "Kavitha"]
+        self.assertEqual(members["All Grades"], everyone + ["Kavitha"])
         maths_lit = [
             t["name"] for t in self.tutors["tutors"] if t["subject"] == "Mathematical Literacy"
         ]
         self.assertEqual(maths_lit, ["Priya Pillay", "Joe September"])
-        self.assertEqual(members["All Grades"], everyone)
         self.assertEqual(members["FET Phase"], everyone)
         self.assertEqual(members["Senior Phase"], [n for n in everyone if n not in maths_lit])
         self.assertEqual(len(members["Senior Phase"]), 10)

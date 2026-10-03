@@ -998,6 +998,21 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         subject: "Mathematical Literacy",
         bio: "Mr September teaches on the documents you already handle - till slips, fares, tuck-shop change - and shows every answer in the context the exam requires.",
       },
+      // Owner, 2026-10-03 (lms/team/assistants/CAPS/roster.json
+      // foundation_phase.tutor): Kavitha (assistant_005), the Grade 9 host,
+      // is the kids mode tutor, Grades R to 3 (Grade R as 0), so the tutors
+      // row gains its Grades R to 3 tab. Her existing assistant_005 renders
+      // are the portrait. The Grade 4 to 6 duos (tutor_013 to tutor_018)
+      // have no renders yet and are not cast here.
+      {
+        slug: "assistant_005",
+        name: "Kavitha",
+        style: "pre-recorded, game-style rounds",
+        grades: [0, 1, 2, 3],
+        title: "Grade R-3 tutor",
+        subject: "Mathematics and English Home Language",
+        bio: "Kavitha is the tutor of kids mode, Grades R to 3: one pre-recorded voice through game-style rounds in Mathematics and English Home Language. She also hosts the Grade 9 room.",
+      },
     ],
     assistantsHeading: "And in your corner, every session",
     assistants: [
@@ -1098,7 +1113,8 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     // also the kids mode tutor, "the tutor cards gain a new filter") every
     // phase is a filter, Grades R to 3 (Grade R as 0) and 4 to 6 included;
     // a row draws only the tabs someone in it falls under, so the tutors
-    // row (nobody cast below Grade 7 on the landing yet) has no empty tab.
+    // row (Kavitha under R to 3 since 1.36.6; nobody under 4 to 6 yet) has
+    // no empty tab.
     // A tutor shows under a phase when the grades they teach meet it (the
     // Mathematical Literacy duo teaches Grades 10 to 12 only, the rest
     // Grades 8 to 12); an assistant under the phase of their grade and of

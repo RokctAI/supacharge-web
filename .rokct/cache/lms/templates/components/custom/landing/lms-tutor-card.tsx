@@ -77,8 +77,9 @@ export function initials(name: string): string {
 function gradeLabel(labels: CardLabels, grades?: number[]): string | null {
   if (!grades || grades.length === 0) return null;
   const sorted = [...grades].sort((a, b) => a - b);
-  const first = sorted[0];
-  const last = sorted[sorted.length - 1];
+  // Grade R is 0 (the grade filters' convention): "Grade R-3", never "Grade 0-3".
+  const first = sorted[0] === 0 ? "R" : sorted[0];
+  const last = sorted[sorted.length - 1] === 0 ? "R" : sorted[sorted.length - 1];
   return first === last ? `${labels.grade} ${first}` : `${labels.grade} ${first}-${last}`;
 }
 
