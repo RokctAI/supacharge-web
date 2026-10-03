@@ -41,22 +41,73 @@ import {
   founderIntroVideo,
   type Founder,
 } from "@/components/custom/landing/lms-founders";
+import { LMS_COPYRIGHT_HOLDER } from "@/components/custom/landing/lms-footer-chrome";
+import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
+import LMS_SITE_METADATA from "@/components/custom/landing/lms-site-metadata";
 import { LMS_ROOT_CLASS } from "@/components/custom/landing/lms-theme-classes";
 import { LmsTutorCard } from "@/components/custom/landing/lms-tutor-card";
-import { RiDoubleQuotesL, RiUserStarLine } from "@remixicon/react";
+import {
+  RiArrowRightLine,
+  RiBuilding2Line,
+  RiDoorClosedLine,
+  RiDoubleQuotesL,
+  RiGroupLine,
+  RiUserHeartLine,
+  RiUserStarLine,
+  RiVoiceprintLine,
+} from "@remixicon/react";
 
-// The landing's section container and heading copy (1.36.7; Ray,
-// 2026-10-03: the about page read "like a junior designer did it"): the
-// founder sits under the landing's eyebrow / h2 / blurb header, in the
-// landing's max-w-6xl container, with the bio in a landing sc-card beside
-// the flip card instead of a lone card pinned to the left.
+// 1.36.8 (Ray, 2026-10-03: "about is not about the founder. i wanted a
+// founder to be there but the page is about the platform or the company
+// behind"): the page is about Supacharge and ROKCT Intelligence, in the
+// landing's container and section header style (1.36.7), with the founder
+// as one compact section lower down. Every claim is read off the landing
+// config, the site metadata or the footer - the phases and their "soon"
+// badges, the session facts, the partners' boundary, the copyright holder
+// - so the about page can never say more than the landing does. The only
+// words written here are ABOUT_COPY's labels and the company line.
 const CONTAINER = "container mx-auto px-4 xl:px-0 max-w-6xl";
+const H2 =
+  "text-[28px] md:text-[40px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance";
+const BLURB = "text-lg font-medium text-[var(--sc-ink-2)] max-w-2xl";
 const ABOUT_COPY = {
   eyebrow: "About Supacharge",
   heading: "Access, not capability.",
   blurb: "Supacharge exists for the student with the marks and the drive, and no one to ask.",
+  platform: { eyebrow: "The platform", heading: "Live tutoring that fits around school." },
+  how: { eyebrow: "How it works" },
+  company: {
+    eyebrow: "The company",
+    text: "Supacharge is built by ROKCT Intelligence (Pty) Ltd, the company behind the app, the lessons and this site.",
+    teamLabel: "Meet the team",
+    teamHref: "/team",
+  },
+  founder: { eyebrow: "Founder" },
   roleLine: "Founder",
 } as const;
+
+const { sessions, subjects, tutors, partners } = LMS_LANDING_CONFIG;
+const fact = (title: string) => sessions?.facts.find((f) => f.title === title);
+
+/** The "how it works" row: four landing claims, each with its own landing words. */
+const HOW_CARDS = [
+  { icon: RiGroupLine, title: tutors?.heading, text: tutors?.blurb },
+  { icon: RiDoorClosedLine, ...fact("Doors open, doors close") },
+  { icon: RiVoiceprintLine, ...fact("Audio and whiteboard, not video") },
+  { icon: RiUserHeartLine, title: partners?.heading, text: partners?.boundary },
+].filter((card): card is { icon: typeof RiGroupLine; title: string; text: string } =>
+  Boolean(card.title && card.text),
+);
+
+function SectionHeader({ eyebrow, heading, blurb }: { eyebrow: string; heading?: string; blurb?: string }) {
+  return (
+    <div className="flex flex-col items-center gap-4 text-center">
+      <p className="sc-eyebrow">{eyebrow}</p>
+      {heading && <h2 className={H2}>{heading}</h2>}
+      {blurb && <p className={BLURB}>{blurb}</p>}
+    </div>
+  );
+}
 
 export function LmsFounderSection({
   id,
@@ -68,13 +119,12 @@ export function LmsFounderSection({
   founders?: readonly Founder[];
 }) {
   const [playing, setPlaying] = useState<string | null>(null);
-  if (founders.length === 0) return null;
 
   return (
     <section
       id={id}
       className={`${LMS_ROOT_CLASS} w-full py-4 md:py-12`}
-      data-lms-founders=""
+      data-lms-about=""
     >
       <div className={`${CONTAINER} flex flex-col items-center gap-5 text-center`}>
         <p className="sc-eyebrow">{ABOUT_COPY.eyebrow}</p>
@@ -86,49 +136,119 @@ export function LmsFounderSection({
         </p>
       </div>
 
-      <div className={`${CONTAINER} mt-12 flex flex-col gap-12`}>
-        {founders.map((founder) => {
-          const video = founderIntroVideo(founder);
-          return (
-            <div
-              key={founder.id}
-              className="grid grid-cols-1 items-center gap-8 md:grid-cols-[minmax(0,22rem)_1fr] md:gap-12"
-            >
-              <LmsTutorCard
-                persona={founder}
-                role="founder"
-                founderCount={founders.length}
-                signupUrl={signupUrl}
-                priority
-                className="mx-auto w-full max-w-sm"
-                onHearMore={video ? () => setPlaying(founder.id) : undefined}
-                introVideo={
-                  video && playing === founder.id
-                    ? { src: video, onEnded: () => setPlaying(null) }
-                    : undefined
-                }
-              />
-              <article className="sc-card flex flex-col gap-5 p-6 md:p-10 text-left">
-                <RiDoubleQuotesL className="size-8 text-[var(--sc-primary)]" aria-hidden="true" />
-                <p className="text-lg md:text-xl font-medium leading-relaxed text-[var(--sc-ink)]">
-                  {founder.bio}
-                </p>
-                <div className="mt-2 flex items-center gap-3 border-t border-[var(--sc-stroke-subtle)] pt-5">
-                  <span className="flex size-10 items-center justify-center rounded-full bg-[var(--sc-primary-tint)]">
-                    <RiUserStarLine className="size-5 text-[var(--sc-primary)]" aria-hidden="true" />
+      {/* What Supacharge is: the site's own description, the curriculum line and the phases as the landing tabs them. */}
+      {subjects && (
+      <div className={`${CONTAINER} mt-16 md:mt-24 flex flex-col gap-8`} data-about="platform">
+        <SectionHeader
+          eyebrow={ABOUT_COPY.platform.eyebrow}
+          heading={ABOUT_COPY.platform.heading}
+          blurb={LMS_SITE_METADATA.description}
+        />
+        <p className="mx-auto max-w-2xl text-center text-[var(--sc-ink-2)]">{subjects.blurb}</p>
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {subjects.phases.map((phase) => (
+            <li key={phase.name} className="sc-card flex flex-col gap-2 p-5 text-left">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-bold text-[var(--sc-ink)]">{phase.name}</span>
+                {phase.badge && <span className="sc-badge-primary">{phase.badge}</span>}
+              </div>
+              <span className="text-sm font-semibold text-[var(--sc-primary)]">
+                {phase.grades}
+                {phase.pending && (
+                  <span className="ml-2 text-[var(--sc-ink-3)]">
+                    {phase.pending.grades} {phase.pending.badge}
                   </span>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-[var(--sc-ink)]">{founder.name}</span>
-                    <span className="text-sm text-[var(--sc-ink-2)]">
-                      {ABOUT_COPY.roleLine} · {founder.subject}
-                    </span>
-                  </div>
-                </div>
-              </article>
-            </div>
-          );
-        })}
+                )}
+              </span>
+              <span className="text-sm text-[var(--sc-ink-2)]">
+                {phase.subjects.map((s) => s.name).filter((n, i, all) => all.indexOf(n) === i).join(" · ")}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
+      )}
+
+      {/* How it works: one lesson, two styles - and the four things that make it different. */}
+      {sessions && (
+      <div className={`${CONTAINER} mt-16 md:mt-24 flex flex-col gap-8`} data-about="how">
+        <SectionHeader eyebrow={ABOUT_COPY.how.eyebrow} heading={sessions.heading} blurb={sessions.blurb} />
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {HOW_CARDS.map(({ icon: Icon, title, text }) => (
+            <li key={title} className="sc-card flex flex-col gap-3 p-5 text-left">
+              <span className="flex size-10 items-center justify-center rounded-full bg-[var(--sc-primary-tint)]">
+                <Icon className="size-5 text-[var(--sc-primary)]" aria-hidden="true" />
+              </span>
+              <span className="font-bold text-[var(--sc-ink)]">{title}</span>
+              <span className="text-sm text-[var(--sc-ink-2)]">{text}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      )}
+
+      {/* The company: the footer's copyright holder, and the team page. */}
+      <div className={`${CONTAINER} mt-16 md:mt-24`} data-about="company">
+        <article className="sc-card mx-auto flex max-w-3xl flex-col items-center gap-4 p-6 md:p-10 text-center">
+          <span className="flex size-12 items-center justify-center rounded-full bg-[var(--sc-primary-tint)]">
+            <RiBuilding2Line className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
+          </span>
+          <p className="sc-eyebrow">{ABOUT_COPY.company.eyebrow}</p>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--sc-ink)]">{LMS_COPYRIGHT_HOLDER}</h2>
+          <p className={BLURB}>{ABOUT_COPY.company.text}</p>
+          <a href={ABOUT_COPY.company.teamHref} className="sc-btn sc-btn-outline inline-flex items-center gap-2">
+            {ABOUT_COPY.company.teamLabel}
+            <RiArrowRightLine className="size-4" aria-hidden="true" />
+          </a>
+        </article>
+      </div>
+
+      {/* Founder: the 1.36.7 card and quote, compacted, as one section of the page. */}
+      {founders.length > 0 && (
+        <div className={`${CONTAINER} mt-16 md:mt-24 flex flex-col gap-8`} data-lms-founders="">
+          <SectionHeader eyebrow={ABOUT_COPY.founder.eyebrow} />
+          {founders.map((founder) => {
+            const video = founderIntroVideo(founder);
+            return (
+              <div
+                key={founder.id}
+                className="mx-auto grid w-full max-w-4xl grid-cols-1 items-center gap-6 md:grid-cols-[minmax(0,16rem)_1fr] md:gap-8"
+              >
+                <LmsTutorCard
+                  persona={founder}
+                  role="founder"
+                  founderCount={founders.length}
+                  signupUrl={signupUrl}
+                  className="mx-auto w-full max-w-[16rem]"
+                  onHearMore={video ? () => setPlaying(founder.id) : undefined}
+                  introVideo={
+                    video && playing === founder.id
+                      ? { src: video, onEnded: () => setPlaying(null) }
+                      : undefined
+                  }
+                />
+                <article className="sc-card flex flex-col gap-4 p-6 md:p-8 text-left">
+                  <RiDoubleQuotesL className="size-7 text-[var(--sc-primary)]" aria-hidden="true" />
+                  <p className="text-base md:text-lg font-medium leading-relaxed text-[var(--sc-ink)]">
+                    {founder.bio}
+                  </p>
+                  <div className="flex items-center gap-3 border-t border-[var(--sc-stroke-subtle)] pt-4">
+                    <span className="flex size-10 items-center justify-center rounded-full bg-[var(--sc-primary-tint)]">
+                      <RiUserStarLine className="size-5 text-[var(--sc-primary)]" aria-hidden="true" />
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-[var(--sc-ink)]">{founder.name}</span>
+                      <span className="text-sm text-[var(--sc-ink-2)]">
+                        {ABOUT_COPY.roleLine} · {founder.subject}
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

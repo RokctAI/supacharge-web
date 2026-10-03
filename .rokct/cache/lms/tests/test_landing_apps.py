@@ -83,16 +83,10 @@ FOUNDERS = os.path.join(LANDING, "lms-founders.ts")
 FOUNDER_SECTION = os.path.join(CUSTOM, "lms-founder-section.tsx")
 FOUNDER_CLIENT = os.path.join(CUSTOM, "lms-founder-section.client.tsx")
 TEAM_ASSETS = os.path.join(LANDING, "team-assets.ts")
+# The seeded catalogue moved into the demo fixture (f88df44b): the founder
+# is the `founder_ray_thompson` row of the lms demo's tutors JSON.
 DART_CATALOG = os.path.join(
-    SDK_ROOT,
-    os.pardir,
-    "dart",
-    "lib",
-    "src",
-    "common",
-    "infrastructure",
-    "repositories",
-    "seeded_tutor_catalog.dart",
+    SDK_ROOT, os.pardir, "dart", "templates", "assets", "demo", "lms", "api.lms.tutors.json"
 )
 DART_TUTOR_CARD = os.path.join(
     SDK_ROOT,
@@ -1671,18 +1665,30 @@ class TestVersion(unittest.TestCase):
 
 
 def dart_founder():
-    """The `founder_ray_thompson` TutorProfile as seeded_tutor_catalog.dart
-    writes it: each named string argument, adjacent single-quoted literals
-    joined the way Dart joins them, comments dropped."""
-    source = read(DART_CATALOG)
-    start = source.index("id: 'founder_ray_thompson'")
-    block = source[start : source.index("),", start)]
-    block = re.sub(r"//[^\n]*", "", block)
-    fields = {}
-    for match in re.finditer(r"(\w+):\s*((?:'(?:[^'\\]|\\.)*'\s*)+)", block):
-        literals = re.findall(r"'((?:[^'\\]|\\.)*)'", match.group(2))
-        fields[match.group(1)] = "".join(literals)
-    return fields
+    """The `founder_ray_thompson` tutor as the lms demo fixture
+    (api.lms.tutors.json) carries it, keyed the way the TS entry is."""
+    import json
+
+    def rows(node):
+        if isinstance(node, dict):
+            if node.get("id") == "founder_ray_thompson":
+                yield node
+            for v in node.values():
+                yield from rows(v)
+        elif isinstance(node, list):
+            for v in node:
+                yield from rows(v)
+
+    row = next(rows(json.loads(read(DART_CATALOG))))
+    return {
+        "id": row["id"],
+        "name": row["display_name"],
+        "title": row["title"],
+        "subject": row["subject"],
+        "bio": row["bio"],
+        "photo": row["photo"],
+        "introVideoRef": row["intro_video_ref"],
+    }
 
 
 def ts_founder():
@@ -1824,7 +1830,7 @@ class TestFounderCard(unittest.TestCase):
         self.assertIn("export const meta: PageSectionMeta = {", entry)
         self.assertIn('  page: "about",', entry)
         self.assertIn("  nav: [],", entry)
-        self.assertIn("  renders: () => LMS_FOUNDERS.length > 0,", entry)
+        self.assertIn("  renders: () => true,", entry)
         self.assertIn('from "@/components/custom/lms-founder-section.client"', entry)
         client = code_of(FOUNDER_CLIENT)
         self.assertRegex(client.lstrip(), r'^"use client";')
@@ -2838,11 +2844,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.7")
+        self.assertEqual(manifest["version"], "1.36.8")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.7"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.8"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -3741,3 +3747,49 @@ class TestAboutFounderLayout(unittest.TestCase):
         self.assertIn('from "@remixicon/react"', client)
         self.assertNotIn("lucide-react", client)
         self.assertIn("{founder.bio}", client)
+
+
+class TestAboutIsThePlatform(unittest.TestCase):
+    """1.36.8 (Ray, 2026-10-03: "about is not about the founder"): the
+    about page is the platform, how it works and the company, with the
+    founder as one section last - and every claim is the landing's."""
+
+    def setUp(self):
+        self.client = code_of(FOUNDER_CLIENT)
+
+    def test_sections_in_order_founder_last(self):
+        order = [
+            self.client.index('data-about="platform"'),
+            self.client.index('data-about="how"'),
+            self.client.index('data-about="company"'),
+            self.client.index('data-lms-founders=""'),
+        ]
+        self.assertEqual(order, sorted(order))
+        self.assertIn('founder: { eyebrow: "Founder" }', self.client)
+
+    def test_claims_are_read_off_the_landing_not_written(self):
+        for ref in (
+            "LMS_SITE_METADATA.description",
+            "{subjects.blurb}",
+            "subjects.phases.map",
+            "{phase.badge}",
+            "sessions.heading",
+            "sessions.blurb",
+            'fact("Doors open, doors close")',
+            'fact("Audio and whiteboard, not video")',
+            "partners?.boundary",
+            "tutors?.blurb",
+            "{LMS_COPYRIGHT_HOLDER}",
+        ):
+            self.assertIn(ref, self.client, ref)
+        config = code_of(CONFIG)
+        for title in ("Doors open, doors close", "Audio and whiteboard, not video"):
+            self.assertIn(f'title: "{title}"', config)
+        # No numbers, users or awards: no digit in the authored copy.
+        copy = self.client[self.client.index("const ABOUT_COPY") : self.client.index("} as const;")]
+        self.assertIsNone(re.search(r"\d", copy), copy)
+        self.assertIn('teamHref: "/team"', copy)
+
+    def test_remixicon_only(self):
+        self.assertIn('from "@remixicon/react"', self.client)
+        self.assertNotIn("lucide", self.client)

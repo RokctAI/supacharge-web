@@ -15,7 +15,9 @@
  */
 
 
-// The founder card on the company's ABOUT page (lms_sdk 1.27.0; Ray,
+// The company's ABOUT page (since 1.36.8 the page is about Supacharge and
+// ROKCT Intelligence, with the founder as one section of it; first the
+// founder card alone, lms_sdk 1.27.0; Ray,
 // 2026-09-10: corporate_sdk owns /about and /team as renderers, and
 // Supacharge's about page reuses this SDK's founder card). Registered in
 // base_sdk's one section registry (components/custom/landing/page-sections.ts)
@@ -33,7 +35,6 @@
 import React from "react";
 
 import { LmsFounderSection } from "@/components/custom/lms-founder-section.client";
-import { LMS_FOUNDERS } from "@/components/custom/landing/lms-founders";
 import type {
   PageSectionMeta,
   PageSectionProps,
@@ -41,14 +42,15 @@ import type {
 
 /**
  * What this section adds when registered: the about page, first in its
- * flow, no floating-nav entry (a company page has no floating nav), and
- * only when there is a founder to draw.
+ * flow, no floating-nav entry (a company page has no floating nav). It
+ * always renders: the platform and the company are there with or without
+ * a founder to draw (1.36.8).
  */
 export const meta: PageSectionMeta = {
   page: "about",
   order: 10,
   nav: [],
-  renders: () => LMS_FOUNDERS.length > 0,
+  renders: () => true,
 };
 
 /** The registered form: the page's sign-up URL is what the card contract takes, though a founder card never links to it. */
