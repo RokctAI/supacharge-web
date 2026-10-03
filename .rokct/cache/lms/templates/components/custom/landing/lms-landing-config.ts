@@ -373,6 +373,13 @@ export interface Assistant {
    * card would draw as a corner badge an assistant card has never worn.
    */
   grade?: number;
+  /**
+   * Grades they voice pre-recorded rather than host live (1.36.5; owner,
+   * 2026-10-03): Kavitha, the Grade 9 host, is also the kids mode tutor,
+   * Grades R to 3 (Grade R as 0). The grade filter shows them under these
+   * too; the card and `role` still name the grade they host.
+   */
+  recordedGrades?: number[];
 }
 
 /** The words on the flip cards (lms-tutor-card.tsx, lms-plan-card.tsx). */
@@ -994,6 +1001,30 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     ],
     assistantsHeading: "And in your corner, every session",
     assistants: [
+      // PROVISIONAL (2026-10-03): the Intermediate Phase hosts, one per
+      // grade (lms/team/assistants/CAPS/roster.json by_grade 4 to 6); names
+      // and personas await owner review, no portrait yet (initials).
+      {
+        slug: "assistant_006",
+        name: "Naledi",
+        role: "Grade 4 session assistant",
+        grade: 4,
+        bio: "Naledi opens every Grade 4 session, keeps time, and holds the break so your questions get read out and answered.",
+      },
+      {
+        slug: "assistant_007",
+        name: "Chloe",
+        role: "Grade 5 session assistant",
+        grade: 5,
+        bio: "Chloe runs the Grade 5 room from the intro to the sign-off, and in the break reads out what did not land so your tutor can clear it up.",
+      },
+      {
+        slug: "assistant_008",
+        name: "Asanda",
+        role: "Grade 6 session assistant",
+        grade: 6,
+        bio: "Asanda takes Grade 6 from the intro to the sign-off, calls the halfway mark, and holds the break for your questions.",
+      },
       // PROVISIONAL (2026-10-02): the Grade 8 and 9 hosts' names and personas
       // await owner review, and they have no portrait yet (initials until
       // team-assets.ts lists their renders).
@@ -1009,7 +1040,9 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         name: "Kavitha",
         role: "Grade 9 session assistant",
         grade: 9,
-        bio: "Kavitha runs the Grade 9 room from the intro to the sign-off, calls the halfway mark, and in the break reads out what did not land so your tutor can clear it up.",
+        // Owner, 2026-10-03: also the kids mode tutor, pre-recorded.
+        recordedGrades: [0, 1, 2, 3],
+        bio: "Kavitha runs the Grade 9 room from the intro to the sign-off, calls the halfway mark, and in the break reads out what did not land so your tutor can clear it up. She is also the voice of kids mode, Grades R to 3.",
       },
       {
         slug: "assistant_001",
@@ -1061,15 +1094,20 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     },
     // Ray, 2026-10-02, approving the tutor and host grade tabs: the same
     // tabs as the subjects section, as filters - All Grades first and
-    // selected, then the phases a tutor teaches in. No Grades R to 3 (kids
-    // mode has no tutor persona) and no Grades 4 to 6 (nobody is cast for
-    // them). A tutor shows under a phase when the grades they teach meet
-    // it (the Mathematical Literacy duo teaches Grades 10 to 12 only, the
-    // rest Grades 8 to 12); an assistant under the phase of their grade.
-    // A phase filter is named for its `subjects.phases` entry, whose
-    // `grades` its tab reads: "Grades 7 to 9", "Grades 10 to 12".
+    // selected, then the phases. Since 1.36.5 (Ray, 2026-10-03: Kavitha is
+    // also the kids mode tutor, "the tutor cards gain a new filter") every
+    // phase is a filter, Grades R to 3 (Grade R as 0) and 4 to 6 included;
+    // a row draws only the tabs someone in it falls under, so the tutors
+    // row (nobody cast below Grade 7 on the landing yet) has no empty tab.
+    // A tutor shows under a phase when the grades they teach meet it (the
+    // Mathematical Literacy duo teaches Grades 10 to 12 only, the rest
+    // Grades 8 to 12); an assistant under the phase of their grade and of
+    // their `recordedGrades`. A phase filter is named for its
+    // `subjects.phases` entry, whose `grades` its tab reads.
     gradeFilters: [
       { name: "All Grades", grades: "All Grades" },
+      { name: "Foundation Phase", range: [0, 3] },
+      { name: "Intermediate Phase", range: [4, 6] },
       { name: "Senior Phase", range: [7, 9] },
       { name: "FET Phase", range: [10, 12] },
     ],
