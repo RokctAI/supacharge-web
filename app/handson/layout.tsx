@@ -13,7 +13,7 @@
  * session), not here.
  */
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { RiMenuLine } from "@remixicon/react";
 
 import { PLATFORM_NAME } from "@/app/config/platform";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,7 @@ export default function HandsOnLayout({
           <Sheet>
             <SheetTrigger asChild>
               <Button size="icon" variant="outline">
-                <Menu className="h-5 w-5" />
+                <RiMenuLine className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
