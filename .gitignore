@@ -197,6 +197,7 @@ components/custom/theme-provider.tsx
 /components/custom/company/company-sections.tsx
 /components/custom/company/markdown-parser.ts
 /components/custom/company/markdown.tsx
+/components/custom/company/team-count.tsx
 /components/custom/company/team-grid.tsx
 /components/custom/download-buttons.tsx
 /components/custom/footer-chrome.tsx
@@ -273,6 +274,8 @@ components/custom/theme-provider.tsx
 /components/custom/lms-sessions-section.tsx
 /components/custom/lms-subjects-section.client.tsx
 /components/custom/lms-subjects-section.tsx
+/components/custom/lms-team-section.client.tsx
+/components/custom/lms-team-section.tsx
 /components/custom/lms-testimonials-section.tsx
 /components/custom/lms-theme-section.tsx
 /components/custom/lms-tutors-section.client.tsx
