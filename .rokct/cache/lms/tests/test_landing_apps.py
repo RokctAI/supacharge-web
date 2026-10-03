@@ -2838,11 +2838,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.6")
+        self.assertEqual(manifest["version"], "1.36.7")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.6"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.7"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -2925,7 +2925,9 @@ class TestGradeFilters(unittest.TestCase):
         self.assertEqual(rows[0], ["All Grades", "Foundation Phase", "Senior Phase", "FET Phase"])
         self.assertEqual(
             rows[1],
-            ["All Grades", "Foundation Phase", "Intermediate Phase", "Senior Phase", "FET Phase"],
+            # Owner, 2026-10-03: in R-3 Kavitha is the tutor, not a host, so
+            # the hosts row has no R-3 tab.
+            ["All Grades", "Intermediate Phase", "Senior Phase", "FET Phase"],
         )
 
     def test_all_grades_is_selected_on_first_paint(self):
@@ -2999,8 +3001,7 @@ class TestGradeFilters(unittest.TestCase):
                 "All Grades": [
                     "Naledi", "Chloe", "Asanda", "Lerato", "Kavitha", "Thandi", "Bianca", "Mandy",
                 ],
-                # Owner, 2026-10-03: Kavitha is also the kids mode tutor.
-                "Foundation Phase": ["Kavitha"],
+                "Foundation Phase": [],
                 "Intermediate Phase": ["Naledi", "Chloe", "Asanda"],
                 "Senior Phase": ["Lerato", "Kavitha"],
                 "FET Phase": ["Thandi", "Bianca", "Mandy"],
@@ -3008,7 +3009,8 @@ class TestGradeFilters(unittest.TestCase):
         )
         kavitha = next(a for a in assistants if a["name"] == "Kavitha")
         self.assertEqual(kavitha["slug"], "assistant_005")
-        self.assertEqual(kavitha["recordedGrades"], [0, 1, 2, 3])
+        # Owner, 2026-10-03: in R-3 Kavitha is the tutor, not a host.
+        self.assertNotIn("recordedGrades", kavitha)
         with open(ASSISTANTS_ROSTER, encoding="utf-8") as f:
             roster = json.load(f)
         self.assertEqual(roster["foundation_phase"]["tutor"], "assistant_005")
@@ -3725,3 +3727,17 @@ class TestSiteFrameAndHeroLogo(unittest.TestCase):
         self.assertIn(
             f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
         )
+
+
+class TestAboutFounderLayout(unittest.TestCase):
+    """1.36.7: the about page's founder section wears the landing's design system."""
+
+    def test_section_uses_landing_header_container_and_card(self):
+        client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-founder-section.client.tsx"))
+        self.assertIn('"container mx-auto px-4 xl:px-0 max-w-6xl"', client)
+        self.assertIn('className="sc-eyebrow"', client)
+        self.assertIn("text-[32px] md:text-[48px] font-extrabold", client)
+        self.assertIn("sc-card", client)
+        self.assertIn('from "@remixicon/react"', client)
+        self.assertNotIn("lucide-react", client)
+        self.assertIn("{founder.bio}", client)
