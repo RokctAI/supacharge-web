@@ -41,7 +41,7 @@ import type { CourseLesson } from "@/app/actions/handson/all/lms/courses/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { CheckCircle, Circle } from "lucide-react";
+import { RiCheckboxCircleLine, RiCircleLine } from "@remixicon/react";
 
 // Dynamically import EditorJS related stuff to avoid SSR issues
 import dynamic from "next/dynamic";
@@ -242,11 +242,11 @@ export default function LessonPlayback() {
         >
           {lesson.is_complete ? (
             <>
-              <CheckCircle className="h-4 w-4" /> Completed
+              <RiCheckboxCircleLine className="h-4 w-4" /> Completed
             </>
           ) : (
             <>
-              <Circle className="h-4 w-4" /> Mark Complete
+              <RiCircleLine className="h-4 w-4" /> Mark Complete
             </>
           )}
         </Button>

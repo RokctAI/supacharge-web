@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Users } from "lucide-react";
+import { RiCalendarLine, RiGroupLine } from "@remixicon/react";
 import { toast } from "sonner";
 import { formatDate } from "@/app/lib/format";
 
@@ -65,7 +65,7 @@ export default function BatchesPage() {
 
       {batches.length === 0 ? (
         <div className="text-center py-20 bg-muted/30 rounded-lg">
-          <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <RiGroupLine className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-xl font-medium">No Batches Found</h3>
           <p className="text-muted-foreground">
             You are not enrolled in any batches yet.
@@ -89,7 +89,7 @@ export default function BatchesPage() {
               <CardContent>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
+                    <RiCalendarLine className="h-4 w-4" />
                     <span>
                       Since: {formatDate(batch.joined_on || batch.start_date)}
                     </span>
@@ -98,7 +98,7 @@ export default function BatchesPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
+                    <RiGroupLine className="h-4 w-4" />
                     <span>
                       {batch.learners ?? 0} learners
                       {batch.my_progress != null &&

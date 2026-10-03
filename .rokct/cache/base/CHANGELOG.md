@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.51.0
+
+* feat: the 25 shadcn primitives every host carried as an identical copy now
+  ship as templates (`templates/components/ui/` -> `components/ui/`): alert,
+  avatar, badge, breadcrumb, button, calendar, card, collapsible, dialog,
+  dropdown-menu, input, label, popover, progress, radio-group, scroll-area,
+  select, separator, sheet, sidebar, skeleton, switch, table, tabs, tooltip.
+  The ones listed under `requires` leave it. `textarea.tsx` and
+  `components/custom/theme-toggle.tsx` stay host-owned because hosts customise
+  them. Hosts can drop their own copies after a compose refresh.
+
 ## 1.50.1
 
 * fix(icons): every `lucide-react` icon moves to its `@remixicon/react`

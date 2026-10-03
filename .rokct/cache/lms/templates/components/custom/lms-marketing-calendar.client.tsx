@@ -20,7 +20,7 @@
 // the browser, the copy-link button for the feed URL (the clipboard is a
 // browser API). Everything else on the page is server-rendered.
 
-import { Check, Copy } from "lucide-react";
+import { RiCheckLine, RiFileCopyLine } from "@remixicon/react";
 import React, { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,7 @@ export function LmsCopyLinkButton({
 
   return (
     <Button type="button" variant="outline" size="sm" onClick={copy} aria-live="polite">
-      {copied ? <Check className="mr-2 size-4" /> : <Copy className="mr-2 size-4" />}
+      {copied ? <RiCheckLine className="mr-2 size-4" /> : <RiFileCopyLine className="mr-2 size-4" />}
       {copied ? copiedLabel : label}
     </Button>
   );

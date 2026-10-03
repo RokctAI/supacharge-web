@@ -15,7 +15,7 @@
  */
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { RiArrowRightLine } from "@remixicon/react";
 import {
   Card,
   CardContent,
@@ -40,7 +40,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
           href="/handson/all/lms/courses"
           className="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1"
         >
-          See all <ArrowRight className="w-3 h-3" />
+          See all <RiArrowRightLine className="w-3 h-3" />
         </Link>
       </div>
       {courses.length > 0 ? (

@@ -2525,6 +2525,14 @@ class TestPhaseTabs(unittest.TestCase):
             [s["name"] for s in r3["subjects"]], ["Mathematics", "English Home Language"]
         )
         self.assertIn("Kids mode", r3["text"])
+        # 1.36.4: the Primer wording under the CAPS names, R to 3 only.
+        self.assertEqual(
+            [s.get("skills") for s in r3["subjects"]],
+            ["Arithmetic, patterns, shapes, measuring", "Reading, writing, phonics"],
+        )
+        for phase in self.by_grades.values():
+            if phase is not r3:
+                self.assertTrue(all("skills" not in s for s in phase["subjects"]))
         self.assertIn("one app a parent and child share", r3["text"])
         g46 = self.by_grades["Grades 4 to 6"]
         self.assertEqual(g46["name"], "Intermediate Phase")
@@ -2820,6 +2828,20 @@ class TestPhaseTabs(unittest.TestCase):
         self.assertIn(
             f'LMS_LANDING_VERSION = "{manifest["version"]}"', read(FOOTER_CHROME)
         )
+
+
+class TestFoundationSkills(unittest.TestCase):
+    """1.36.4: the Grades R to 3 subjects carry a short skills line."""
+
+    def test_card_draws_skills_and_versions_move(self):
+        client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
+        self.assertIn("{subject.skills}", client)
+        manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
+        self.assertEqual(manifest["version"], "1.36.4")
+        head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
+        self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
+        self.assertIn('"Reading, writing, phonics"', head)
+        self.assertIn('LMS_LANDING_VERSION = "1.36.4"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):

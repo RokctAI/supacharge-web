@@ -14,7 +14,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Calendar, Clock, Video, GraduationCap } from "lucide-react";
+import { RiCalendarLine, RiTimeLine, RiVideoLine, RiGraduationCapLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 
 interface UpcomingEventsProps {
@@ -43,11 +43,11 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
                 </p>
                 <div className="space-y-2 text-xs text-gray-600">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
+                    <RiCalendarLine className="w-4 h-4" />
                     {cls.date}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
+                    <RiTimeLine className="w-4 h-4" />
                     {cls.time} - {cls.duration} min
                   </div>
                 </div>
@@ -64,7 +64,7 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Video className="w-4 h-4 mr-2" /> Join
+                        <RiVideoLine className="w-4 h-4 mr-2" /> Join
                       </a>
                     </Button>
                   )}
@@ -96,17 +96,17 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
                 </h3>
                 <div className="space-y-2 text-xs text-gray-600">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
+                    <RiCalendarLine className="w-4 h-4" />
                     {ev.date}
                   </div>
                   {ev.start_time && (
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
+                      <RiTimeLine className="w-4 h-4" />
                       {ev.start_time}
                     </div>
                   )}
                   <div className="flex items-center gap-2">
-                    <GraduationCap className="w-4 h-4" />
+                    <RiGraduationCapLine className="w-4 h-4" />
                     {ev.evaluator_name
                       ? `Evaluator: ${ev.evaluator_name}`
                       : ev.status}

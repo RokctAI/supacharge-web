@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { MessageSquare, Plus } from "lucide-react";
+import { RiMessage2Line, RiAddLine } from "@remixicon/react";
 import { formatDate } from "@/app/lib/format";
 import {
   Dialog,
@@ -111,12 +111,12 @@ export function Discussions({
     <div className="space-y-4 mt-8 pt-8 border-t">
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" /> {title}
+          <RiMessage2Line className="h-5 w-5" /> {title}
         </h3>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="outline" className="gap-2">
-              <Plus className="h-4 w-4" /> New Topic
+              <RiAddLine className="h-4 w-4" /> New Topic
             </Button>
           </DialogTrigger>
           <DialogContent>

@@ -32,7 +32,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { RiArrowRightLine } from "@remixicon/react";
 
 import {
   LMS_LANDING_CONFIG,
@@ -109,7 +109,7 @@ export function LmsSessionsSection({
             className="group sc-btn sc-btn-primary"
           >
             {LMS_SIGNUP_LABEL}
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            <RiArrowRightLine className="size-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>

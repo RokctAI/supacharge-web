@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, MessageSquare } from "lucide-react";
+import { RiStarLine, RiMessage2Line } from "@remixicon/react";
 import {
   Dialog,
   DialogContent,
@@ -120,7 +120,7 @@ export function Reviews({ courseName, currentUser }: ReviewsProps) {
                         onClick={() => setRating(star)}
                         className={`transition-colors ${star <= rating ? "text-yellow-400" : "text-gray-200"}`}
                       >
-                        <Star className="w-8 h-8 fill-current" />
+                        <RiStarLine className="w-8 h-8 fill-current" />
                       </button>
                     ))}
                   </div>
@@ -172,7 +172,7 @@ export function Reviews({ courseName, currentUser }: ReviewsProps) {
                 </div>
                 <div className="flex text-yellow-400 w-fit">
                   {[...Array(5)].map((_, i) => (
-                    <Star
+                    <RiStarLine
                       key={i}
                       className={`w-3 h-3 ${i < Math.floor(review.rating) ? "fill-current" : "text-gray-200"}`}
                     />

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.36.4
+
+* Landing: the Subjects section's Grades R to 3 tab shows a short line of
+  skills under each CAPS subject name: Mathematics reads "Arithmetic,
+  patterns, shapes, measuring", English Home Language "Reading, writing,
+  phonics". `Subject.skills` is new and optional; other phases are
+  unchanged. `LMS_LANDING_VERSION` in `lms-footer-chrome.ts` goes to 1.36.4.
+
+## 1.36.3
+
+* Icons move to Remixicon (`.rokct/decision_log.md`, "Icon package
+  standard"): every `lucide-react` icon is now the matching
+  `@remixicon/react` component and the manifest's deps carry
+  `"@remixicon/react": "^4.6.0"` in place of `lucide-react`. Icons only.
+
 ## 1.36.2
 
 * Landing: the Subjects card in "Your day, sorted." merges its "Grades 7

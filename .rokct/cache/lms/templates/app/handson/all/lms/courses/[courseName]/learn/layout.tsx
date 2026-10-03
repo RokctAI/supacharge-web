@@ -19,7 +19,7 @@ import { notFound } from "next/navigation";
 import { LearningSidebar } from "./sidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { RiMenuLine } from "@remixicon/react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -55,7 +55,7 @@ export default async function LearningLayout({
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
+                <RiMenuLine className="h-5 w-5" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-80">

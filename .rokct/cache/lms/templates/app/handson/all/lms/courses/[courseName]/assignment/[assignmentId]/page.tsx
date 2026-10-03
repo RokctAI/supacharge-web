@@ -36,12 +36,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import {
-  AlertCircle,
-  CheckCircle,
-  FileText,
-  Link as LinkIcon,
-} from "lucide-react";
+import { RiErrorWarningLine, RiCheckboxCircleLine, RiFileTextLine, RiLinksLine as LinkIcon } from "@remixicon/react";
 
 export default function AssignmentPage() {
   const params = useParams();
@@ -167,10 +162,10 @@ export default function AssignmentPage() {
                   <div className="font-semibold flex items-center gap-2">
                     Status: {submission.status}
                     {submission.status === "Pass" && (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <RiCheckboxCircleLine className="h-4 w-4 text-green-500" />
                     )}
                     {submission.status === "Fail" && (
-                      <AlertCircle className="h-4 w-4 text-red-500" />
+                      <RiErrorWarningLine className="h-4 w-4 text-red-500" />
                     )}
                   </div>
                   {submission.grade && (
@@ -229,7 +224,7 @@ export default function AssignmentPage() {
                         link to your file.
                       </div>
                       <div className="relative">
-                        <FileText className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <RiFileTextLine className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                           className="pl-9"
                           placeholder="https://.../file.pdf"

@@ -14,7 +14,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Flame } from "lucide-react";
+import { RiFireLine } from "@remixicon/react";
 
 interface DashboardHeaderProps {
   fullName?: string;
@@ -36,7 +36,7 @@ export function DashboardHeader({ fullName, streak }: DashboardHeaderProps) {
       </div>
       {streak && (
         <div className="bg-orange-100 flex items-center gap-2 px-3 py-1.5 rounded-full text-orange-700 font-medium">
-          <Flame className="w-4 h-4" />
+          <RiFireLine className="w-4 h-4" />
           {streak.current_streak || 0} Day Streak
         </div>
       )}
