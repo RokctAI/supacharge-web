@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.36.7
+
+* About: the founder section now follows the landing's design system
+  (Ray, 2026-10-03: the about page was "off, like a junior designer did
+  it"). It opens with the landing's section header (sc-eyebrow, the
+  32/48px extrabold heading, the ink-2 blurb) in the landing's max-w-6xl
+  container, and sets the founder flip card beside an sc-card holding the
+  full bio with a Remixicon quote mark and a name line, instead of one
+  card pinned to the left of an empty page. The bio stays the Dart
+  catalogue's. `LMS_LANDING_VERSION` goes to 1.36.7.
+
 ## 1.36.6
 
 * Landing: the tutors row gains its Grades R to 3 tab with a Kavitha card

@@ -1055,8 +1055,8 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         name: "Kavitha",
         role: "Grade 9 session assistant",
         grade: 9,
-        // Owner, 2026-10-03: also the kids mode tutor, pre-recorded.
-        recordedGrades: [0, 1, 2, 3],
+        // Owner, 2026-10-03: in R-3 she is the tutor (the tutors row), not
+        // a host, so no `recordedGrades` here: the hosts row has no R-3 tab.
         bio: "Kavitha runs the Grade 9 room from the intro to the sign-off, calls the halfway mark, and in the break reads out what did not land so your tutor can clear it up. She is also the voice of kids mode, Grades R to 3.",
       },
       {
