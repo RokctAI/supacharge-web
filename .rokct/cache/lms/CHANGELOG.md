@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.36.6
+
+* Landing: the tutors row gains its Grades R to 3 tab with a Kavitha card
+  (Ray, 2026-10-03: the tab showed no tutor). Kavitha (assistant_005), the
+  Grade 9 host, is the kids mode tutor (lms/team/assistants/CAPS/
+  roster.json `foundation_phase.tutor`), so she joins `tutors` labelled
+  "Grade R-3 tutor", grades 0 to 3, on her existing assistant_005 renders.
+  The card's grade badge reads Grade R as "R" ("Grade R-3"). The Grade 4
+  to 6 duos (tutor_013 to tutor_018) have no renders yet and are not cast.
+  `LMS_LANDING_VERSION` goes to 1.36.6.
+
+## 1.36.5
+
+* Landing: the tutor and session assistant grade filters gain Grades R to
+  3 and Grades 4 to 6 (Ray, 2026-10-03: Kavitha, the Grade 9 host, is also
+  the kids mode tutor, so "the tutor cards gain a new filter"). Grade R is
+  0. `Assistant.recordedGrades` (new, optional) lists grades a host voices
+  pre-recorded: Kavitha carries 0 to 3 and shows under Grades R to 3 and 7
+  to 9. The PROVISIONAL Grade 4 to 6 hosts (Naledi, Chloe, Asanda) join the
+  assistants row. A row draws only the tabs someone in it falls under
+  (`rowFilters`), so the tutors row keeps All Grades, 7 to 9 and 10 to 12.
+  `LMS_LANDING_VERSION` goes to 1.36.5.
+
 ## 1.36.4
 
 * Landing: the Subjects section's Grades R to 3 tab shows a short line of

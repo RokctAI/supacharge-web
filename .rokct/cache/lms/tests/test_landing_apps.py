@@ -2373,6 +2373,7 @@ class TestCambridgeOutline(unittest.TestCase):
 
 TEAM = os.path.join(SDK_ROOT, os.pardir, "team")
 ROSTER = os.path.join(TEAM, "tutors", "CAPS", "roster.json")
+ASSISTANTS_ROSTER = os.path.join(TEAM, "assistants", "CAPS", "roster.json")
 WEEKLY_GRID = os.path.join(TEAM, "schedule", "CAPS", "weekly_grid.json")
 
 
@@ -2837,24 +2838,31 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.4")
+        self.assertEqual(manifest["version"], "1.36.6")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.4"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.6"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
     """1.36.1 (Ray, 2026-10-02, approving the tutor and host grade tabs):
     the tutors section's two rosters - the tutors and the session
     assistants - each wear the subjects section's grade tabs as a filter:
-    All Grades (selected on first paint), Grades 7 to 9, Grades 10 to 12;
-    no Grades R to 3 (kids mode has no tutor persona) and no Grades 4 to 6.
+    All Grades (selected on first paint), Grades 7 to 9, Grades 10 to 12.
+    1.36.5 (Ray, 2026-10-03): Grades R to 3 (Kavitha, the kids mode tutor)
+    and Grades 4 to 6 join; a row draws only the tabs someone in it meets.
     A tutor shows under a phase when the grades they teach meet it, an
     assistant under the phase of their own grade, a persona without grades
     under All Grades only."""
 
-    FILTER_FNS = ["inGradeFilter", "defaultGradeFilterOf", "gradeFilterTabs"]
+    FILTER_FNS = [
+        "inGradeFilter",
+        "defaultGradeFilterOf",
+        "gradeFilterTabs",
+        "rowFilters",
+        "assistantGrades",
+    ]
 
     def setUp(self):
         self.tutors = lift_config_block("tutors")
@@ -2874,32 +2882,51 @@ class TestGradeFilters(unittest.TestCase):
             % (json.dumps(self.filters), json.dumps(rows))
         )
 
-    def test_the_tab_set_is_all_grades_then_the_live_phases(self):
+    def test_the_tab_set_is_all_grades_then_every_phase(self):
+        # 1.36.5 (Ray, 2026-10-03): Grades R to 3 and 4 to 6 joined.
         tabs = self.run_filters(
             "console.log(JSON.stringify(gradeFilterTabs(%s, %s)));"
             % (json.dumps(self.filters), json.dumps(self.phases))
         )
         self.assertEqual(
-            [t["grades"] for t in tabs], ["All Grades", "Grades 7 to 9", "Grades 10 to 12"]
+            [t["grades"] for t in tabs],
+            ["All Grades", "Grades R to 3", "Grades 4 to 6", "Grades 7 to 9", "Grades 10 to 12"],
         )
         self.assertEqual(
-            [t["name"] for t in tabs], ["All Grades", "Senior Phase", "FET Phase"]
+            [t["name"] for t in tabs],
+            ["All Grades", "Foundation Phase", "Intermediate Phase", "Senior Phase", "FET Phase"],
         )
         for tab in tabs:
             self.assertNotIn("badge", tab)
-        # A phase filter is named for its subjects phase, a live one, and its
-        # range is that phase's grades; All Grades has no range.
+        # A phase filter is named for its subjects phase and its range is
+        # that phase's grades (Grade R as 0); All Grades has no range.
         by_name = {p["name"]: p for p in self.phases}
         self.assertEqual(self.filters[0], {"name": "All Grades", "grades": "All Grades"})
         for f in self.filters[1:]:
             with self.subTest(filter=f["name"]):
                 phase = by_name[f["name"]]
-                self.assertNotIn("badge", phase)
                 self.assertNotIn("grades", f)
                 first, last = f["range"]
-                self.assertEqual(phase["grades"], f"Grades {first} to {last}")
-        for absent in ("Grades R to 3", "Grades 4 to 6"):
-            self.assertNotIn(absent, [t["grades"] for t in tabs])
+                self.assertEqual(phase["grades"], f"Grades {first or 'R'} to {last}")
+
+    def test_a_row_draws_only_the_tabs_someone_in_it_falls_under(self):
+        tutor_grades = [t.get("grades") for t in self.tutors["tutors"]]
+        rows = self.run_filters(
+            "const filters = %s;\n"
+            "console.log(JSON.stringify([rowFilters(filters, %s).map((f) => f.name),"
+            "rowFilters(filters, %s.map(assistantGrades)).map((f) => f.name)]));"
+            % (
+                json.dumps(self.filters),
+                json.dumps(tutor_grades),
+                json.dumps(self.tutors["assistants"]),
+            )
+        )
+        # 1.36.6: Kavitha, the kids mode tutor, brings the R to 3 tab.
+        self.assertEqual(rows[0], ["All Grades", "Foundation Phase", "Senior Phase", "FET Phase"])
+        self.assertEqual(
+            rows[1],
+            ["All Grades", "Foundation Phase", "Intermediate Phase", "Senior Phase", "FET Phase"],
+        )
 
     def test_all_grades_is_selected_on_first_paint(self):
         self.assertEqual(self.tutors["defaultGradeFilter"], "All Grades")
@@ -2925,8 +2952,17 @@ class TestGradeFilters(unittest.TestCase):
         for duo in senior["subjects"].values():
             for d in duo.get("grade_duos", {"": duo}).values():
                 cast_senior.update((d["expert"], d["simplifier"]))
+        foundation = roster.get("foundation_phase", {})
         for tutor in self.tutors["tutors"]:
             with self.subTest(tutor=tutor["name"]):
+                if tutor["slug"].startswith("assistant_"):
+                    # 1.36.6: the kids mode tutor is a host persona, cast by
+                    # the assistants roster's foundation_phase.tutor.
+                    with open(ASSISTANTS_ROSTER, encoding="utf-8") as f:
+                        fp = json.load(f)["foundation_phase"]
+                    self.assertEqual(tutor["slug"], fp["tutor"])
+                    self.assertEqual(tutor["grades"], [0 if g == "R" else g for g in fp["grades"]])
+                    continue
                 expected = (senior["grades"] if tutor["slug"] in cast_senior else []) + roster[
                     "fet_grades"
                 ]
@@ -2934,12 +2970,15 @@ class TestGradeFilters(unittest.TestCase):
 
     def test_tutors_show_under_the_phases_their_grades_meet(self):
         members = self.members(self.tutors["tutors"], lambda t: t.get("grades"))
-        everyone = [t["name"] for t in self.tutors["tutors"]]
+        # 1.36.6: Kavitha, the kids mode tutor, is the R to 3 tab alone.
+        self.assertEqual(members["Foundation Phase"], ["Kavitha"])
+        self.assertEqual(members["Intermediate Phase"], [])
+        everyone = [t["name"] for t in self.tutors["tutors"] if t["name"] != "Kavitha"]
+        self.assertEqual(members["All Grades"], everyone + ["Kavitha"])
         maths_lit = [
             t["name"] for t in self.tutors["tutors"] if t["subject"] == "Mathematical Literacy"
         ]
         self.assertEqual(maths_lit, ["Priya Pillay", "Joe September"])
-        self.assertEqual(members["All Grades"], everyone)
         self.assertEqual(members["FET Phase"], everyone)
         self.assertEqual(members["Senior Phase"], [n for n in everyone if n not in maths_lit])
         self.assertEqual(len(members["Senior Phase"]), 10)
@@ -2952,15 +2991,30 @@ class TestGradeFilters(unittest.TestCase):
                 # `grade`, never `grades`: the card draws no grade badge on
                 # an assistant.
                 self.assertNotIn("grades", a)
-        members = self.members(assistants, lambda a: [a["grade"]] if "grade" in a else None)
+        grades = lambda a: ([a["grade"]] if "grade" in a else []) + a.get("recordedGrades", []) or None
+        members = self.members(assistants, grades)
         self.assertEqual(
             members,
             {
-                "All Grades": ["Lerato", "Kavitha", "Thandi", "Bianca", "Mandy"],
+                "All Grades": [
+                    "Naledi", "Chloe", "Asanda", "Lerato", "Kavitha", "Thandi", "Bianca", "Mandy",
+                ],
+                # Owner, 2026-10-03: Kavitha is also the kids mode tutor.
+                "Foundation Phase": ["Kavitha"],
+                "Intermediate Phase": ["Naledi", "Chloe", "Asanda"],
                 "Senior Phase": ["Lerato", "Kavitha"],
                 "FET Phase": ["Thandi", "Bianca", "Mandy"],
             },
         )
+        kavitha = next(a for a in assistants if a["name"] == "Kavitha")
+        self.assertEqual(kavitha["slug"], "assistant_005")
+        self.assertEqual(kavitha["recordedGrades"], [0, 1, 2, 3])
+        with open(ASSISTANTS_ROSTER, encoding="utf-8") as f:
+            roster = json.load(f)
+        self.assertEqual(roster["foundation_phase"]["tutor"], "assistant_005")
+        for a in assistants:
+            with self.subTest(host=a["name"]):
+                self.assertEqual(roster["by_grade"][str(a["grade"])], a["slug"])
 
     def test_a_persona_without_grades_shows_under_all_grades_only(self):
         members = self.members(
@@ -2968,7 +3022,13 @@ class TestGradeFilters(unittest.TestCase):
         )
         self.assertEqual(
             members,
-            {"All Grades": ["Ray Thompson", "No one"], "Senior Phase": [], "FET Phase": []},
+            {
+                "All Grades": ["Ray Thompson", "No one"],
+                "Foundation Phase": [],
+                "Intermediate Phase": [],
+                "Senior Phase": [],
+                "FET Phase": [],
+            },
         )
 
     def test_both_rows_wear_the_shared_tabs_as_filters(self):
@@ -2989,7 +3049,8 @@ class TestGradeFilters(unittest.TestCase):
             r'<div role="tabpanel" id=\{ids\.panel\} aria-labelledby=\{ids\.tab\}',
         )
         self.assertIn("inGradeFilter(tutor.grades, filter)", client)
-        self.assertIn("assistant.grade === undefined ? undefined : [assistant.grade]", client)
+        self.assertIn("inGradeFilter(assistantGrades(assistant), filter)", client)
+        self.assertIn("filters={rowFilters(filters, config.assistants.map(assistantGrades))}", client)
         # The roster under a tab is remounted per filter.
         self.assertIn("<React.Fragment key={selected.name}>", client)
         for word in ("onMouseEnter", "onMouseOver", "onPointerEnter", "hover:", "useSearchParams", "localStorage"):

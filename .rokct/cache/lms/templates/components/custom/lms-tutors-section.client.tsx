@@ -54,12 +54,17 @@
 // each roster - the tutors and the session assistants - has the subjects
 // section's grade tabs over it as a filter (landing/lms-grade-tabs.tsx,
 // the same buttons, keys and `.sc-phase-tab` look): All Grades, selected
-// on first paint, then Grades 7 to 9 and Grades 10 to 12
-// (LMS_LANDING_CONFIG.tutors.gradeFilters). There is no Grades R to 3 tab
-// - kids mode has no tutor persona - and no Grades 4 to 6 tab. A tutor
+// on first paint, then the phases (LMS_LANDING_CONFIG.tutors.gradeFilters):
+// Grades R to 3, 4 to 6, 7 to 9 and 10 to 12 since 1.36.5 (Ray,
+// 2026-10-03: Kavitha, the Grade 9 host, is also the kids mode tutor, so
+// "the tutor cards gain a new filter"). Grade R is the number 0. A row
+// shows only the tabs someone in it falls under (rowFilters), so the
+// tutors row, with nobody cast below Grade 7 on the landing yet, draws no
+// empty Grades R to 3 tab. A tutor
 // shows under a phase when a grade they teach (Tutor.grades, the numbers
 // the card's own grade badge reads) falls in it; an assistant under the
-// phase of their own grade (Assistant.grade). A persona without grades -
+// phase of their own grade (Assistant.grade) and of any grade they voice
+// pre-recorded (Assistant.recordedGrades: Kavitha, Grades R to 3). A persona without grades -
 // a founder, were one ever mixed into a row - shows under All Grades only.
 // Each row keeps its own selection in React state: no URL state, nothing
 // remembered between visits, nothing on hover. The roster under a tab is
@@ -73,6 +78,7 @@ import { useMediaQuery } from "@/components/custom/landing/lms-flip-card";
 import { LmsGradeTabs, gradeTabIds } from "@/components/custom/landing/lms-grade-tabs";
 import {
   LMS_LANDING_CONFIG,
+  type Assistant,
   type DeckLabels,
   type GradeFilter,
   type GradeTab,
@@ -140,6 +146,26 @@ export function inGradeFilter(grades: number[] | undefined, filter: GradeFilter)
   if (!filter.range) return true;
   const [first, last] = filter.range;
   return (grades ?? []).some((grade) => grade >= first && grade <= last);
+}
+
+/**
+ * The filters a row draws: a filter without a range (All Grades) always,
+ * a phase only when one of the row's personas (`gradesOf`, as
+ * inGradeFilter takes them) falls under it. Exported for the tests.
+ */
+export function rowFilters(filters: GradeFilter[], gradesOf: Array<number[] | undefined>): GradeFilter[] {
+  return filters.filter(
+    (filter) => !filter.range || gradesOf.some((grades) => inGradeFilter(grades, filter)),
+  );
+}
+
+/**
+ * The grades an assistant shows under: the grade they host and any they
+ * voice pre-recorded (Grade R as 0); undefined when neither is set.
+ */
+export function assistantGrades(assistant: Assistant): number[] | undefined {
+  if (assistant.grade === undefined && !assistant.recordedGrades) return undefined;
+  return [...(assistant.grade === undefined ? [] : [assistant.grade]), ...(assistant.recordedGrades ?? [])];
 }
 
 /**
@@ -240,7 +266,7 @@ export function LmsTutorsSection({
 
       <div className="mt-12 flex flex-col gap-8">
         <GradeFiltered
-          filters={filters}
+          filters={rowFilters(filters, config.tutors.map((tutor) => tutor.grades))}
           defaultFilter={config.defaultGradeFilter}
           label={config.gradeFiltersLabel}
           prefix={`${prefix}-tutors`}
@@ -270,7 +296,7 @@ export function LmsTutorsSection({
             </h3>
           </div>
           <GradeFiltered
-            filters={filters}
+            filters={rowFilters(filters, config.assistants.map(assistantGrades))}
             defaultFilter={config.defaultGradeFilter}
             label={config.assistantsGradeFiltersLabel}
             prefix={`${prefix}-assistants`}
@@ -286,10 +312,7 @@ export function LmsTutorsSection({
                   .filter(
                     (assistant) =>
                       !filter ||
-                      inGradeFilter(
-                        assistant.grade === undefined ? undefined : [assistant.grade],
-                        filter,
-                      ),
+                      inGradeFilter(assistantGrades(assistant), filter),
                   )
                   .map((assistant) => (
                     <LmsTutorCard
