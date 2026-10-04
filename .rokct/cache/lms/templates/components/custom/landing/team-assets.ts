@@ -49,6 +49,21 @@ export const TEAM_ASSETS: Readonly<Record<string, readonly string[]>> = {
     "/team/assistants/CAPS/assistant_005/appearance/renders/avatar_512.webp",
     "/team/assistants/CAPS/assistant_005/appearance/renders/card_1080x1440.webp",
   ],
+  "assistants/CAPS/assistant_006": [
+    "/team/assistants/CAPS/assistant_006/appearance/renders/avatar_168.webp",
+    "/team/assistants/CAPS/assistant_006/appearance/renders/avatar_512.webp",
+    "/team/assistants/CAPS/assistant_006/appearance/renders/card_1080x1440.webp",
+  ],
+  "assistants/CAPS/assistant_007": [
+    "/team/assistants/CAPS/assistant_007/appearance/renders/avatar_168.webp",
+    "/team/assistants/CAPS/assistant_007/appearance/renders/avatar_512.webp",
+    "/team/assistants/CAPS/assistant_007/appearance/renders/card_1080x1440.webp",
+  ],
+  "assistants/CAPS/assistant_008": [
+    "/team/assistants/CAPS/assistant_008/appearance/renders/avatar_168.webp",
+    "/team/assistants/CAPS/assistant_008/appearance/renders/avatar_512.webp",
+    "/team/assistants/CAPS/assistant_008/appearance/renders/card_1080x1440.webp",
+  ],
   "founders/Ray_Thompson": [
     "/team/founders/Ray_Thompson/appearance/renders/avatar_168.webp",
     "/team/founders/Ray_Thompson/appearance/renders/avatar_512.webp",

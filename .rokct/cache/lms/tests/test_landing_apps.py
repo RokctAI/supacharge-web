@@ -1889,6 +1889,18 @@ class TestFounderCard(unittest.TestCase):
                 self.assertRegex(line, r"^## \d+\.\d+\.\d+$", line)
 
 
+
+class TestIntermediateHostPortraits(unittest.TestCase):
+    """1.36.10: the Grades 4-6 hosts (Naledi, Chloe, Asanda) resolve portraits."""
+
+    def test_hosts_have_renders(self):
+        assets = read(TEAM_ASSETS)
+        for slug in ("assistant_006", "assistant_007", "assistant_008"):
+            for name in ("avatar_168.webp", "avatar_512.webp", "card_1080x1440.webp"):
+                url = "/team/assistants/CAPS/%s/appearance/renders/%s" % (slug, name)
+                self.assertIn('"%s"' % url, assets)
+                self.assertTrue(os.path.isfile(os.path.join(SDK_ROOT, "templates/public" + url)), url)
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -2604,8 +2616,13 @@ class TestPhaseTabs(unittest.TestCase):
             with self.subTest(grade=grade):
                 self.assertEqual(grid["student_live_sessions_per_week"][grade], 4)
                 self.assertEqual(grid["free_weekday"][grade], ["Thu"])
-        # Grade 7 is in the phase, not on the timetable: nothing taught.
-        self.assertNotIn("7", grid["student_live_sessions_per_week"])
+        # Grade 7 (reused duos, 2026-10-04) adds Technology (1.36.13): five
+        # evenings, no free weekday. The "Thursday free" copy names Grades 8
+        # and 9, the live ones; Grade 7 is still listed as on its way, with
+        # Technology coming soon.
+        self.assertEqual(grid["student_live_sessions_per_week"]["7"], 5)
+        self.assertNotIn("7", grid["free_weekday"])
+        self.assertIn("Technology still to come", phase["text"])
         self.assertIn("four subjects", phase["text"].lower())
         self.assertIn("Thursday free", phase["text"])
         # The tab is live; inside it, plain words for which grades are, and
@@ -2847,11 +2864,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.9")
+        self.assertEqual(manifest["version"], "1.36.13")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.9"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.13"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -2930,8 +2947,12 @@ class TestGradeFilters(unittest.TestCase):
                 json.dumps(self.tutors["assistants"]),
             )
         )
-        # 1.36.6: Kavitha, the kids mode tutor, brings the R to 3 tab.
-        self.assertEqual(rows[0], ["All Grades", "Foundation Phase", "Senior Phase", "FET Phase"])
+        # 1.36.6: Kavitha, the kids mode tutor, brings the R to 3 tab;
+        # 1.36.11: the Grade 4 to 6 duos bring the 4 to 6 tab.
+        self.assertEqual(
+            rows[0],
+            ["All Grades", "Foundation Phase", "Intermediate Phase", "Senior Phase", "FET Phase"],
+        )
         self.assertEqual(
             rows[1],
             # Owner, 2026-10-03: in R-3 Kavitha is the tutor, not a host, so
@@ -2958,12 +2979,18 @@ class TestGradeFilters(unittest.TestCase):
     def test_tutor_grades_are_the_rosters(self):
         with open(ROSTER, encoding="utf-8") as f:
             roster = json.load(f)
-        senior = roster["senior_phase"]
-        cast_senior = set()
-        for duo in senior["subjects"].values():
-            for d in duo.get("grade_duos", {"": duo}).values():
-                cast_senior.update((d["expert"], d["simplifier"]))
-        foundation = roster.get("foundation_phase", {})
+        # Every grade block (senior_phase, intermediate_phase and, since the
+        # Grade 7 reuse, grade_7) adds its grades to its duos; the FET map
+        # adds Grades 10 to 12. A tutor's grades are the union.
+        expected = {}
+        for duo in roster["subjects"].values():
+            for slug in (duo["expert"], duo["simplifier"]):
+                expected.setdefault(slug, set()).update(roster["fet_grades"])
+        for key in ("senior_phase", "intermediate_phase", "grade_7"):
+            for entry in roster[key]["subjects"].values():
+                for d in entry.get("grade_duos", {"": entry}).values():
+                    for slug in (d["expert"], d["simplifier"]):
+                        expected.setdefault(slug, set()).update(roster[key]["grades"])
         for tutor in self.tutors["tutors"]:
             with self.subTest(tutor=tutor["name"]):
                 if tutor["slug"].startswith("assistant_"):
@@ -2974,25 +3001,49 @@ class TestGradeFilters(unittest.TestCase):
                     self.assertEqual(tutor["slug"], fp["tutor"])
                     self.assertEqual(tutor["grades"], [0 if g == "R" else g for g in fp["grades"]])
                     continue
-                expected = (senior["grades"] if tutor["slug"] in cast_senior else []) + roster[
-                    "fet_grades"
-                ]
-                self.assertEqual(tutor["grades"], expected)
+                self.assertEqual(tutor["grades"], sorted(expected[tutor["slug"]]))
+        # Grade 7 reuses existing tutors (Ray, 2026-10-04): every roster
+        # tutor is cast, and no tutor_019 to tutor_026 remains.
+        cast = {t["slug"] for t in self.tutors["tutors"]}
+        self.assertEqual(set(expected), cast - {"assistant_005"})
+        self.assertFalse({f"tutor_{n:03d}" for n in range(19, 27)} & cast)
 
     def test_tutors_show_under_the_phases_their_grades_meet(self):
         members = self.members(self.tutors["tutors"], lambda t: t.get("grades"))
         # 1.36.6: Kavitha, the kids mode tutor, is the R to 3 tab alone.
         self.assertEqual(members["Foundation Phase"], ["Kavitha"])
-        self.assertEqual(members["Intermediate Phase"], [])
-        everyone = [t["name"] for t in self.tutors["tutors"] if t["name"] != "Kavitha"]
-        self.assertEqual(members["All Grades"], everyone + ["Kavitha"])
+        # 1.36.11: every tutor is cast. Grade 7 reuses the Grade 4 to 6 duos
+        # (maths, NS, SS) and the Economics duo (EMS), so those show under
+        # Senior Phase too.
+        g = lambda t: t.get("grades") or []
+        # 1.36.13: the maths duo is Grades 4 to 6 only; Grade 7 maths is the
+        # Maths Literacy duo's.
+        inter = [t["name"] for t in self.tutors["tutors"] if g(t) == [4, 5, 6, 7]]
+        self.assertEqual(len(inter), 4)
+        self.assertEqual(
+            len([t for t in self.tutors["tutors"] if g(t) == [4, 5, 6]]), 2)
+        self.assertEqual(
+            len([t for t in self.tutors["tutors"] if g(t) == [7, 10, 11, 12]]), 2)
+        self.assertFalse([t for t in self.tutors["tutors"] if g(t) == [7]])
+        primary = [t["name"] for t in self.tutors["tutors"] if g(t) in ([4, 5, 6], [4, 5, 6, 7])]
+        self.assertEqual(members["Intermediate Phase"], primary)
+        self.assertEqual(members["All Grades"], [t["name"] for t in self.tutors["tutors"]])
+        everyone = [
+            t["name"] for t in self.tutors["tutors"]
+            if t["name"] != "Kavitha" and t["name"] not in primary
+        ]
         maths_lit = [
             t["name"] for t in self.tutors["tutors"] if t["subject"] == "Mathematical Literacy"
         ]
         self.assertEqual(maths_lit, ["Priya Pillay", "Joe September"])
         self.assertEqual(members["FET Phase"], everyone)
-        self.assertEqual(members["Senior Phase"], [n for n in everyone if n not in maths_lit])
-        self.assertEqual(len(members["Senior Phase"]), 10)
+        # 1.36.13: the Maths Literacy duo teaches Grade 7 maths, so it shows
+        # under Senior Phase; the Grade 4 to 6 maths duo no longer does.
+        self.assertEqual(
+            members["Senior Phase"], [t["name"] for t in self.tutors["tutors"]
+                                      if set(g(t)) & {7, 8, 9}]
+        )
+        self.assertEqual(len(members["Senior Phase"]), 16)
 
     def test_hosts_show_under_the_phase_of_their_grade(self):
         assistants = self.tutors["assistants"]
@@ -3008,11 +3059,11 @@ class TestGradeFilters(unittest.TestCase):
             members,
             {
                 "All Grades": [
-                    "Naledi", "Chloe", "Asanda", "Lerato", "Kavitha", "Thandi", "Bianca", "Mandy",
+                    "Naledi", "Chloe", "Asanda", "Yusra", "Lerato", "Kavitha", "Thandi", "Bianca", "Mandy",
                 ],
                 "Foundation Phase": [],
                 "Intermediate Phase": ["Naledi", "Chloe", "Asanda"],
-                "Senior Phase": ["Lerato", "Kavitha"],
+                "Senior Phase": ["Yusra", "Lerato", "Kavitha"],
                 "FET Phase": ["Thandi", "Bianca", "Mandy"],
             },
         )
