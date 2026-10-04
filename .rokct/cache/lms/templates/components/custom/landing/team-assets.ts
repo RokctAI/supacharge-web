@@ -64,6 +64,11 @@ export const TEAM_ASSETS: Readonly<Record<string, readonly string[]>> = {
     "/team/assistants/CAPS/assistant_008/appearance/renders/avatar_512.webp",
     "/team/assistants/CAPS/assistant_008/appearance/renders/card_1080x1440.webp",
   ],
+  "assistants/CAPS/assistant_009": [
+    "/team/assistants/CAPS/assistant_009/appearance/renders/avatar_168.webp",
+    "/team/assistants/CAPS/assistant_009/appearance/renders/avatar_512.webp",
+    "/team/assistants/CAPS/assistant_009/appearance/renders/card_1080x1440.webp",
+  ],
   "founders/Ray_Thompson": [
     "/team/founders/Ray_Thompson/appearance/renders/avatar_168.webp",
     "/team/founders/Ray_Thompson/appearance/renders/avatar_512.webp",
@@ -160,6 +165,36 @@ export const TEAM_ASSETS: Readonly<Record<string, readonly string[]>> = {
     "/team/tutors/CAPS/tutor_012/appearance/renders/avatar_168.webp",
     "/team/tutors/CAPS/tutor_012/appearance/renders/avatar_512.webp",
     "/team/tutors/CAPS/tutor_012/appearance/renders/card_1080x1440.webp",
+  ],
+  "tutors/CAPS/tutor_013": [
+    "/team/tutors/CAPS/tutor_013/appearance/renders/avatar_168.webp",
+    "/team/tutors/CAPS/tutor_013/appearance/renders/avatar_512.webp",
+    "/team/tutors/CAPS/tutor_013/appearance/renders/card_1080x1440.webp",
+  ],
+  "tutors/CAPS/tutor_014": [
+    "/team/tutors/CAPS/tutor_014/appearance/renders/avatar_168.webp",
+    "/team/tutors/CAPS/tutor_014/appearance/renders/avatar_512.webp",
+    "/team/tutors/CAPS/tutor_014/appearance/renders/card_1080x1440.webp",
+  ],
+  "tutors/CAPS/tutor_015": [
+    "/team/tutors/CAPS/tutor_015/appearance/renders/avatar_168.webp",
+    "/team/tutors/CAPS/tutor_015/appearance/renders/avatar_512.webp",
+    "/team/tutors/CAPS/tutor_015/appearance/renders/card_1080x1440.webp",
+  ],
+  "tutors/CAPS/tutor_016": [
+    "/team/tutors/CAPS/tutor_016/appearance/renders/avatar_168.webp",
+    "/team/tutors/CAPS/tutor_016/appearance/renders/avatar_512.webp",
+    "/team/tutors/CAPS/tutor_016/appearance/renders/card_1080x1440.webp",
+  ],
+  "tutors/CAPS/tutor_017": [
+    "/team/tutors/CAPS/tutor_017/appearance/renders/avatar_168.webp",
+    "/team/tutors/CAPS/tutor_017/appearance/renders/avatar_512.webp",
+    "/team/tutors/CAPS/tutor_017/appearance/renders/card_1080x1440.webp",
+  ],
+  "tutors/CAPS/tutor_018": [
+    "/team/tutors/CAPS/tutor_018/appearance/renders/avatar_168.webp",
+    "/team/tutors/CAPS/tutor_018/appearance/renders/avatar_512.webp",
+    "/team/tutors/CAPS/tutor_018/appearance/renders/card_1080x1440.webp",
   ],
 };
 

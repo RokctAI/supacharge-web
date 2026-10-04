@@ -343,6 +343,9 @@ components/custom/theme-provider.tsx
 /public/team/assistants/CAPS/assistant_008/appearance/renders/avatar_168.webp
 /public/team/assistants/CAPS/assistant_008/appearance/renders/avatar_512.webp
 /public/team/assistants/CAPS/assistant_008/appearance/renders/card_1080x1440.webp
+/public/team/assistants/CAPS/assistant_009/appearance/renders/avatar_168.webp
+/public/team/assistants/CAPS/assistant_009/appearance/renders/avatar_512.webp
+/public/team/assistants/CAPS/assistant_009/appearance/renders/card_1080x1440.webp
 /public/team/founders/Ray_Thompson/appearance/renders/avatar_168.webp
 /public/team/founders/Ray_Thompson/appearance/renders/avatar_512.webp
 /public/team/founders/Ray_Thompson/appearance/renders/card_1080x1440.webp
@@ -398,5 +401,23 @@ components/custom/theme-provider.tsx
 /public/team/tutors/CAPS/tutor_012/appearance/renders/avatar_168.webp
 /public/team/tutors/CAPS/tutor_012/appearance/renders/avatar_512.webp
 /public/team/tutors/CAPS/tutor_012/appearance/renders/card_1080x1440.webp
+/public/team/tutors/CAPS/tutor_013/appearance/renders/avatar_168.webp
+/public/team/tutors/CAPS/tutor_013/appearance/renders/avatar_512.webp
+/public/team/tutors/CAPS/tutor_013/appearance/renders/card_1080x1440.webp
+/public/team/tutors/CAPS/tutor_014/appearance/renders/avatar_168.webp
+/public/team/tutors/CAPS/tutor_014/appearance/renders/avatar_512.webp
+/public/team/tutors/CAPS/tutor_014/appearance/renders/card_1080x1440.webp
+/public/team/tutors/CAPS/tutor_015/appearance/renders/avatar_168.webp
+/public/team/tutors/CAPS/tutor_015/appearance/renders/avatar_512.webp
+/public/team/tutors/CAPS/tutor_015/appearance/renders/card_1080x1440.webp
+/public/team/tutors/CAPS/tutor_016/appearance/renders/avatar_168.webp
+/public/team/tutors/CAPS/tutor_016/appearance/renders/avatar_512.webp
+/public/team/tutors/CAPS/tutor_016/appearance/renders/card_1080x1440.webp
+/public/team/tutors/CAPS/tutor_017/appearance/renders/avatar_168.webp
+/public/team/tutors/CAPS/tutor_017/appearance/renders/avatar_512.webp
+/public/team/tutors/CAPS/tutor_017/appearance/renders/card_1080x1440.webp
+/public/team/tutors/CAPS/tutor_018/appearance/renders/avatar_168.webp
+/public/team/tutors/CAPS/tutor_018/appearance/renders/avatar_512.webp
+/public/team/tutors/CAPS/tutor_018/appearance/renders/card_1080x1440.webp
 /types/next-auth.d.ts
 # @rokct-composed-end
