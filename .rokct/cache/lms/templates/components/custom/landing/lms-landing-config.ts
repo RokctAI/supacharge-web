@@ -842,7 +842,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         // is the phase's first year and on its way - the `pending` chip.
         name: "Senior Phase",
         grades: "Grades 7 to 9",
-        text: "Grades 8 and 9 are live: four subjects, each a live lesson on its own weekday evening - four evenings a week, Thursday free - with the same tutor duos who take you through to matric. Grade 7 is on the way.",
+        text: "Grades 8 and 9 are live: four subjects, each a live lesson on its own weekday evening - four evenings a week, Thursday free - with the same tutor duos who take you through to matric. Grade 7 is on the way: five subjects, one every weekday evening, with Technology still to come.",
         pending: { grades: "Grade 7", badge: "soon" },
         subjects: [
           { name: "Mathematics", tutors: ["Sifiso Zulu", "John Petersen"] },
@@ -948,19 +948,19 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         slug: "tutor_007",
         name: "Nomsa Mahlangu",
         style: "formal",
-        grades: [8, 9, 10, 11, 12],
+        grades: [7, 8, 9, 10, 11, 12],
         title: "The Market Queen",
         subject: "Economics",
-        bio: "Ms Mahlangu teaches Economics the way markets actually move - precise graphs, sharp mechanisms, exam-ready answers. In Grade 8 she also teaches EMS, where the economy first makes sense.",
+        bio: "Ms Mahlangu teaches Economics the way markets actually move - precise graphs, sharp mechanisms, exam-ready answers. In Grades 7 and 8 she also teaches EMS, where the economy first makes sense.",
       },
       {
         slug: "tutor_008",
         name: "Rhulani Chauke",
         style: "plain-language, intuition-first",
-        grades: [8, 9, 10, 11, 12],
+        grades: [7, 8, 9, 10, 11, 12],
         title: "The Taxi Rank Economist",
         subject: "Economics",
-        bio: "Mr Chauke teaches Economics from the fare board up - petrol, queues, month-end prices - and lands on the answers the memorandum expects. In Grade 8 he also teaches EMS, starting from the tuck shop and the taxi rank.",
+        bio: "Mr Chauke teaches Economics from the fare board up - petrol, queues, month-end prices - and lands on the answers the memorandum expects. In Grades 7 and 8 he also teaches EMS, starting from the tuck shop and the taxi rank.",
       },
       {
         slug: "tutor_009",
@@ -984,7 +984,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         slug: "tutor_011",
         name: "Priya Pillay",
         style: "formal",
-        grades: [10, 11, 12],
+        grades: [7, 10, 11, 12],
         title: "The Money Coach",
         subject: "Mathematical Literacy",
         bio: "Mrs Pillay turns bills, bank statements and building plans into marks - real-world maths, exam-ready answers.",
@@ -993,17 +993,81 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         slug: "tutor_012",
         name: "Joe September",
         style: "plain-language, intuition-first",
-        grades: [10, 11, 12],
+        grades: [7, 10, 11, 12],
         title: "The Till Slip Teacher",
         subject: "Mathematical Literacy",
         bio: "Mr September teaches on the documents you already handle - till slips, fares, tuck-shop change - and shows every answer in the context the exam requires.",
+      },
+      // The Intermediate Phase duos, Grades 4 to 6 (roster.json
+      // intermediate_phase). Grade 7 has no duos of its own (Ray,
+      // 2026-10-04: reuse existing tutors, none in two classes at once):
+      // roster.json grade_7 gives the NST duo Grade 7 Natural Sciences and
+      // Technology (Technology still to come) and the SS duo Grade 7 Social
+      // Sciences; the Maths Literacy duo takes Grade 7 maths (1.36.13) and
+      // the Economics duo Grade 7 EMS. The maths duo is Grades 4 to 6 only.
+      // PROVISIONAL personas awaiting owner review; cast since 1.36.12 (Ray,
+      // 2026-10-04: every tutor on the row, so the missing portraits show)
+      // with no renders yet - their cards fall back to initials. Bios are
+      // the personas' own (tutor.md).
+      {
+        slug: "tutor_013",
+        name: "Zanele Khumalo",
+        style: "formal",
+        grades: [4, 5, 6],
+        title: "The Number Detective",
+        subject: "Mathematics",
+        bio: "Ms Khumalo treats every sum like a mystery: find the clues, write the steps, check the answer. Place value, fractions and patterns, solved properly.",
+      },
+      {
+        slug: "tutor_014",
+        name: "Ryan Abrahams",
+        style: "plain-language, intuition-first",
+        grades: [4, 5, 6],
+        title: "The Tuck Shop Maths Man",
+        subject: "Mathematics",
+        bio: "Mr Abrahams teaches maths with the things in your lunchbox and your pocket - sharing sweets, counting change, cutting pizza - until fractions and times tables just make sense.",
+      },
+      {
+        slug: "tutor_015",
+        name: "Sipho Ndlovu",
+        style: "formal",
+        grades: [4, 5, 6, 7],
+        title: "The Lab Captain",
+        subject: "Natural Sciences and Technology",
+        bio: "Mr Ndlovu runs every lesson like an experiment: ask a question, predict, test it fairly, then explain what happened in proper science words.",
+      },
+      {
+        slug: "tutor_016",
+        name: "Annelie Botha",
+        style: "plain-language, intuition-first",
+        grades: [4, 5, 6, 7],
+        title: "The Kitchen Scientist",
+        subject: "Natural Sciences and Technology",
+        bio: "Mrs Botha teaches science with what's already in your kitchen and backyard - kettles, torches, mud and sunshine - and then gives it its proper name.",
+      },
+      {
+        slug: "tutor_017",
+        name: "Fatima Ebrahim",
+        style: "formal",
+        grades: [4, 5, 6, 7],
+        title: "The Globe Keeper",
+        subject: "Social Sciences",
+        bio: "Ms Ebrahim teaches Geography map-first: read the key, find the compass, check the scale, and South Africa opens up province by province.",
+      },
+      {
+        slug: "tutor_018",
+        name: "Tshepo Mabaso",
+        style: "plain-language, intuition-first",
+        grades: [4, 5, 6, 7],
+        title: "The Street Map Explorer",
+        subject: "Social Sciences",
+        bio: "Mr Mabaso starts Geography on your own street - the walk to school, the taxi route, where the sun rises - and turns it into a map you can read anywhere.",
       },
       // Owner, 2026-10-03 (lms/team/assistants/CAPS/roster.json
       // foundation_phase.tutor): Kavitha (assistant_005), the Grade 9 host,
       // is the kids mode tutor, Grades R to 3 (Grade R as 0), so the tutors
       // row gains its Grades R to 3 tab. Her existing assistant_005 renders
-      // are the portrait. The Grade 4 to 6 duos (tutor_013 to tutor_018)
-      // have no renders yet and are not cast here.
+      // are the portrait.
       {
         slug: "assistant_005",
         name: "Kavitha",
@@ -1018,7 +1082,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     assistants: [
       // PROVISIONAL (2026-10-03): the Intermediate Phase hosts, one per
       // grade (lms/team/assistants/CAPS/roster.json by_grade 4 to 6); names
-      // and personas await owner review, no portrait yet (initials).
+      // and personas await owner review, portraits rendered in 1.36.10.
       {
         slug: "assistant_006",
         name: "Naledi",
@@ -1039,6 +1103,16 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         role: "Grade 6 session assistant",
         grade: 6,
         bio: "Asanda takes Grade 6 from the intro to the sign-off, calls the halfway mark, and holds the break for your questions.",
+      },
+      // PROVISIONAL (2026-10-04): the Grade 7 host (roster by_grade 7). Name
+      // and persona await owner review; no portrait yet, so initials until
+      // team-assets.ts lists her renders.
+      {
+        slug: "assistant_009",
+        name: "Yusra",
+        role: "Grade 7 session assistant",
+        grade: 7,
+        bio: "Yusra runs the Grade 7 room from the intro to the sign-off, keeps time, and in the break reads out the questions you would rather not ask out loud.",
       },
       // PROVISIONAL (2026-10-02): the Grade 8 and 9 hosts' names and personas
       // await owner review, and they have no portrait yet (initials until
@@ -1113,8 +1187,9 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     // also the kids mode tutor, "the tutor cards gain a new filter") every
     // phase is a filter, Grades R to 3 (Grade R as 0) and 4 to 6 included;
     // a row draws only the tabs someone in it falls under, so the tutors
-    // row (Kavitha under R to 3 since 1.36.6; nobody under 4 to 6 yet) has
-    // no empty tab.
+    // row (Kavitha under R to 3 since 1.36.6; the Grade 4 to 6 duos under
+    // 4 to 6 and, teaching Grade 7 too, under 7 to 9 since 1.36.11) has no empty
+    // tab.
     // A tutor shows under a phase when the grades they teach meet it (the
     // Mathematical Literacy duo teaches Grades 10 to 12 only, the rest
     // Grades 8 to 12); an assistant under the phase of their grade and of

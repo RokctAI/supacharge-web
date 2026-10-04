@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.36.13
+
+* Landing: Grade 7 adds Technology and loses its free day (Ray, 2026-10-04).
+  Week: Mon Natural Sciences, Tue Social Sciences, Wed Maths, Thu EMS, Fri
+  Technology - 0 double-bookings in the generated grid. Grade 7 maths moves
+  to the Maths Literacy duo (tutor_011/012, now Grades 7 and 10 to 12); the
+  Intermediate maths duo (tutor_013/014) is Grades 4 to 6 only. The Senior
+  Phase text marks Technology as still to come. `LMS_LANDING_VERSION` goes to
+  1.36.13.
+
+## 1.36.12
+
+* Landing: Grade 7 gets its own host, Yusra (assistant_009), in the hosts
+  row under the Senior Phase tab (Ray: each grade has one host). Grade 7
+  reuses existing tutor duos, but the host stays one per grade. PROVISIONAL,
+  owner review; no portrait yet, so her card shows initials.
+  `LMS_LANDING_VERSION` goes to 1.36.12.
+
+## 1.36.11
+
+* Landing: the tutors row casts every tutor (Ray: show them all so the
+  missing portraits are visible). Added the Grades 4-6 duos (tutor_013
+  to tutor_018) from lms/team/tutors/CAPS/roster.json, with their
+  personas' own bios. None has renders yet, so their cards show
+  initials. `LMS_LANDING_VERSION` goes to 1.36.11.
+* Grade 7 reuses existing tutors (Ray, 2026-10-04: no tutor in two
+  classes at once) instead of the eight new tutor_019 to tutor_026, which
+  are removed (roster, persona folders, catalog, landing). Grade 7 maths,
+  Natural Sciences and Social Sciences go to the Grades 4-6 duos
+  (tutor_013/014, 015/016, 017/018) and EMS to the Economics duo
+  (tutor_007/008), so those cards now list Grade 7 and show under the
+  Senior Phase tab. Grade 7's week moves to Mon NS, Tue SS, Thu EMS,
+  Fri Maths (Wednesday free): the Grade 8-12 maths, NS and SS duos are
+  on air every weekday. broadcast_schedule.py proves 0 double-bookings,
+  pinned by lms/team/scripts/tests/test_broadcast_schedule.py.
+
+## 1.36.10
+
+* Team: the Grades 4-6 session hosts (assistant_006 Naledi,
+  assistant_007 Chloe, assistant_008 Asanda) now show their portraits.
+  Their source images were rendered locally with the same steps the
+  team-asset workflows run (tutor_images.py, then
+  sync_team_assets.dart), producing avatar_168, avatar_512 and
+  card_1080x1440 webp renders and regenerating team-assets.ts.
+  `LMS_LANDING_VERSION` goes to 1.36.10.
+
 ## 1.36.9
 
 * Team: /team shows the Supacharge team (Ray, 2026-10-03: the About
