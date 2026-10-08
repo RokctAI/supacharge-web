@@ -43,15 +43,18 @@ import {
 } from "@/components/custom/landing/lms-founders";
 import { LMS_COPYRIGHT_HOLDER } from "@/components/custom/landing/lms-footer-chrome";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
+import { LMS_MILESTONE } from "@/components/custom/landing/lms-milestone";
 import LMS_SITE_METADATA from "@/components/custom/landing/lms-site-metadata";
 import { LMS_ROOT_CLASS } from "@/components/custom/landing/lms-theme-classes";
 import { LmsTutorCard } from "@/components/custom/landing/lms-tutor-card";
 import {
   RiArrowRightLine,
+  RiArrowRightUpLine,
   RiBuilding2Line,
   RiDoorClosedLine,
   RiDoubleQuotesL,
   RiGroupLine,
+  RiRocket2Line,
   RiUserHeartLine,
   RiUserStarLine,
   RiVoiceprintLine,
@@ -201,6 +204,32 @@ export function LmsFounderSection({
             <RiArrowRightLine className="size-4" aria-hidden="true" />
           </a>
         </article>
+      </div>
+
+      {/* Programmes (1.36.16): the programmes Supacharge has been selected
+          for, as one quiet strip - a badge and the announcement link, no
+          programme logo, never in a "trusted by" row. Copy:
+          landing/lms-milestone.ts. */}
+      <div className={`${CONTAINER} mt-10 md:mt-12`} data-about="programmes">
+        <div className="sc-card mx-auto flex max-w-3xl flex-col items-center gap-3 px-5 py-4 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-3">
+            <p className="sc-eyebrow">{LMS_MILESTONE.about.eyebrow}</p>
+            <span className="sc-badge-primary inline-flex items-center gap-1.5">
+              <RiRocket2Line className="size-4" aria-hidden="true" />
+              {LMS_MILESTONE.about.badge}
+            </span>
+          </div>
+          <a
+            href={LMS_MILESTONE.announcement.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--sc-primary)] hover:underline"
+          >
+            {LMS_MILESTONE.announcement.label}
+            <RiArrowRightUpLine className="size-4" aria-hidden="true" />
+            <span className="sr-only">(opens in a new tab)</span>
+          </a>
+        </div>
       </div>
 
       {/* Founder: the 1.36.7 card and quote, compacted, as one section of the page. */}

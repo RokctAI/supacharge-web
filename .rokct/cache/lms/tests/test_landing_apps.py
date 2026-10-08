@@ -1956,6 +1956,8 @@ class TestServerSafeSections(unittest.TestCase):
                 # 1.36.9: the team page's section, drawn on /team only
                 # (meta.page "team"), never on the landing.
                 "lms-team-section",
+                # 1.36.16: the GSE milestone band, before the hero (order -0.5).
+                "lms-milestone-section",
                 # 1.27.0: the founder card, registered here and drawn on /about
                 # only (meta.page "about"), never on the landing.
                 "lms-founder-section",
@@ -2607,15 +2609,18 @@ class TestPhaseTabs(unittest.TestCase):
                 "Social Sciences",
                 "Economic and Management Sciences",
                 "Economic and Management Sciences",
+                "Technology",
+                "Technology",
             ],
         )
-        # The text counts the weekly grid's evenings: four, Thursday free.
+        # The text counts the weekly grid's evenings: five since Technology
+        # took Thursday (2026-10-04), no free weekday.
         with open(WEEKLY_GRID, encoding="utf-8") as f:
             grid = json.load(f)
         for grade in ("8", "9"):
             with self.subTest(grade=grade):
-                self.assertEqual(grid["student_live_sessions_per_week"][grade], 4)
-                self.assertEqual(grid["free_weekday"][grade], ["Thu"])
+                self.assertEqual(grid["student_live_sessions_per_week"][grade], 5)
+                self.assertNotIn(grade, grid["free_weekday"])
         # Grade 7 (reused duos, 2026-10-04) adds Technology (1.36.13): five
         # evenings, no free weekday. The "Thursday free" copy names Grades 8
         # and 9, the live ones; Grade 7 is still listed as on its way, with
@@ -2623,20 +2628,21 @@ class TestPhaseTabs(unittest.TestCase):
         self.assertEqual(grid["student_live_sessions_per_week"]["7"], 5)
         self.assertNotIn("7", grid["free_weekday"])
         self.assertIn("Technology still to come", phase["text"])
-        self.assertIn("four subjects", phase["text"].lower())
-        self.assertIn("Thursday free", phase["text"])
+        self.assertIn("every weekday evening", phase["text"])
+        self.assertIn("Technology on Thursday still to come", phase["text"])
         # The tab is live; inside it, plain words for which grades are, and
         # the one still on its way as a chip with the pill, not the tab.
         self.assertIn("Grades 8 and 9 are live", phase["text"])
         self.assertIn("Grade 7 is on the way", phase["text"])
         self.assertEqual(phase["pending"], {"grades": "Grade 7", "badge": "soon"})
         # The subjects are the roster's, by its own names, and nothing
-        # outside it - no Technology, no Life Orientation - anywhere.
+        # outside it - no Life Orientation anywhere (Technology is a roster
+        # subject since 2026-10-04).
         self.assertEqual(
             {s["name"] for s in phase["subjects"]}, set(senior["subject_names"].values())
         )
         for p in self.phases:
-            for gone in ("Technology", "Life Orientation"):
+            for gone in ("Life Orientation",):
                 with self.subTest(phase=p["name"], gone=gone):
                     self.assertNotIn(gone, [s["name"] for s in p["subjects"]])
         client = code_of(SUBJECTS_CLIENT)
@@ -2864,11 +2870,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.13")
+        self.assertEqual(manifest["version"], "1.36.16")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.13"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.16"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -3020,12 +3026,14 @@ class TestGradeFilters(unittest.TestCase):
         # Maths Literacy duo's.
         inter = [t["name"] for t in self.tutors["tutors"] if g(t) == [4, 5, 6, 7]]
         self.assertEqual(len(inter), 4)
+        # Grade 8-9 Technology (2026-10-04) is the maths duo's too.
+        self.assertFalse([t for t in self.tutors["tutors"] if g(t) == [4, 5, 6]])
         self.assertEqual(
-            len([t for t in self.tutors["tutors"] if g(t) == [4, 5, 6]]), 2)
+            len([t for t in self.tutors["tutors"] if g(t) == [4, 5, 6, 8, 9]]), 2)
         self.assertEqual(
             len([t for t in self.tutors["tutors"] if g(t) == [7, 10, 11, 12]]), 2)
         self.assertFalse([t for t in self.tutors["tutors"] if g(t) == [7]])
-        primary = [t["name"] for t in self.tutors["tutors"] if g(t) in ([4, 5, 6], [4, 5, 6, 7])]
+        primary = [t["name"] for t in self.tutors["tutors"] if g(t) in ([4, 5, 6, 8, 9], [4, 5, 6, 7])]
         self.assertEqual(members["Intermediate Phase"], primary)
         self.assertEqual(members["All Grades"], [t["name"] for t in self.tutors["tutors"]])
         everyone = [
@@ -3038,12 +3046,13 @@ class TestGradeFilters(unittest.TestCase):
         self.assertEqual(maths_lit, ["Priya Pillay", "Joe September"])
         self.assertEqual(members["FET Phase"], everyone)
         # 1.36.13: the Maths Literacy duo teaches Grade 7 maths, so it shows
-        # under Senior Phase; the Grade 4 to 6 maths duo no longer does.
+        # under Senior Phase; the Grade 4 to 6 maths duo is back there for
+        # Grade 8-9 Technology (2026-10-04).
         self.assertEqual(
             members["Senior Phase"], [t["name"] for t in self.tutors["tutors"]
                                       if set(g(t)) & {7, 8, 9}]
         )
-        self.assertEqual(len(members["Senior Phase"]), 16)
+        self.assertEqual(len(members["Senior Phase"]), 18)
 
     def test_hosts_show_under_the_phase_of_their_grade(self):
         assistants = self.tutors["assistants"]
@@ -3847,6 +3856,41 @@ class TestAboutIsThePlatform(unittest.TestCase):
     def test_remixicon_only(self):
         self.assertIn('from "@remixicon/react"', self.client)
         self.assertNotIn("lucide", self.client)
+
+
+class TestGseMilestone(unittest.TestCase):
+    """1.36.16 (Ray, 2026-10-08): the GSE selection on the landing and the
+    About page - a selection, never an award or a partnership, and only the
+    announcement's own facts."""
+
+    COPY = os.path.join(CUSTOM, "landing", "lms-milestone.ts")
+    SECTION = os.path.join(CUSTOM, "lms-milestone-section.tsx")
+    URL = "https://www.linkedin.com/pulse/global-startup-ecosystem-announces-200-entrepreneurs-selected-ntim-iikme/"
+
+    def test_copy_says_selection_only(self):
+        copy = code_of(self.COPY)
+        self.assertIn(self.URL, copy)
+        for word in ("award", "partner", "endorse", "winner", "funding", "#178"):
+            self.assertNotIn(word, copy.lower(), word)
+
+    def test_band_registered_before_the_hero_with_its_anchor(self):
+        section = code_of(self.SECTION)
+        self.assertNotIn('"use client"', section)
+        self.assertIn("order: -0.5", section)
+        self.assertIn("anchor: LMS_MILESTONE.anchor", section)
+        self.assertIn('href={`#${m.anchor}`}', section)
+        self.assertIn('target="_blank"', section)
+        self.assertIn('rel="noopener noreferrer"', section)
+        self.assertIn("md:grid-cols-", section)
+        manifest = read(os.path.join(SDK_ROOT, "manifest.json"))
+        self.assertIn('import(\\"@/components/custom/lms-milestone-section\\")', manifest)
+        self.assertIn('"templates/components/custom/landing/lms-milestone.ts"', manifest)
+
+    def test_about_strip_sits_before_the_founder(self):
+        client = code_of(FOUNDER_CLIENT)
+        self.assertLess(client.index('data-about="programmes"'), client.index('data-lms-founders=""'))
+        self.assertIn("LMS_MILESTONE.about.badge", client)
+        self.assertIn('rel="noopener noreferrer"', client)
 
 
 class TestTeamCount(unittest.TestCase):
