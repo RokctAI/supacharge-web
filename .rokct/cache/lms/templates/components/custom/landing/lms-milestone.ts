@@ -16,9 +16,10 @@
 
 
 // The 2026 GSE Digital Startup Accelerator selection (Ray, 2026-10-08),
-// one place for every word of it: the landing's milestone band
-// (lms-milestone-section.tsx, right under the nav, with its pill and its
-// ticker) and the About page's Programmes strip
+// one place for every word of it: the landing's milestone pill
+// (lms-milestone-section.tsx, right under the nav), its band
+// (lms-milestone-band-section.tsx, at the bottom of the landing since
+// 1.36.17) and the About page's Programmes strip
 // (lms-founder-section.client.tsx) both read it from here.
 //
 // Every fact is the announcement's own (Global Startup Ecosystem, 7 Oct
