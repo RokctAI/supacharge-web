@@ -34,8 +34,14 @@
 // field this file gets wrong is still caught at the registry.
 //
 // `logo` is the asset base draws into the GENERATED preview image;
-// `ogImage` would be a ready-made png/jpg that replaces the generated one,
-// and Supacharge has none - the wordmark is the brand. `still` (base_sdk
+// `ogImage` is a ready-made png/jpg that replaces the generated one. Since
+// 1.36.19 (Ray, 2026-10-09: "a social image that highlight that milestone
+// when i share link on whatsapp") it is public/brand/social-milestone.png:
+// 1200x630, the band's orange, the ink wordmark, the GSE selection and the
+// dark cohort card, every word from landing/lms-milestone.ts. It was drawn
+// from HTML in headless Chromium with the landing's Inter and Montserrat;
+// redraw it when the newest milestone changes. Without it base generates
+// the wordmark-and-still card below. `still` (base_sdk
 // >= 1.16.0) is the portrait tour frame that same generated image draws in
 // a phone bezel on its right half: public/brand/social-still.png, the
 // 744px-wide copy of ONE chapter of the app's guided tour that
@@ -56,7 +62,7 @@ export interface LmsSiteMetadata {
   siteName?: string;
   url?: string;
   keywords?: string[];
-  /** A ready-made png/jpg preview; none here, base generates one. */
+  /** A ready-made png/jpg preview that replaces the generated one. */
   ogImage?: string;
   /** Asset path drawn into the generated preview image. */
   logo?: string;
@@ -86,6 +92,7 @@ const LMS_SITE_METADATA: LmsSiteMetadata = {
     "Supacharge is the tutoring app for South African learners: live CAPS-aligned sessions with real tutors, audio and whiteboard, and a plan that fits your week.",
   keywords: ["tutoring", "CAPS", "South Africa", "online tutor", "matric", "Supacharge"],
   locale: "en_ZA",
+  ogImage: "/brand/social-milestone.png",
   logo: "/brand/supacharge-wordmark.svg",
   still: "/brand/social-still.png",
   stillAnchor: "bottom",
