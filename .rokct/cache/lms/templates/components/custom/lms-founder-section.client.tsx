@@ -37,7 +37,7 @@ import React, { useState } from "react";
 import "@/components/custom/landing/lms-theme.css";
 
 import {
-  LMS_FOUNDERS,
+  LMS_SHOWN_FOUNDERS,
   founderIntroVideo,
   type Founder,
 } from "@/components/custom/landing/lms-founders";
@@ -57,7 +57,6 @@ import {
   RiRocket2Line,
   RiUserHeartLine,
   RiUserStarLine,
-  RiVoiceprintLine,
 } from "@remixicon/react";
 
 // 1.36.8 (Ray, 2026-10-03: "about is not about the founder. i wanted a
@@ -96,7 +95,6 @@ const fact = (title: string) => sessions?.facts.find((f) => f.title === title);
 const HOW_CARDS = [
   { icon: RiGroupLine, title: tutors?.heading, text: tutors?.blurb },
   { icon: RiDoorClosedLine, ...fact("Doors open, doors close") },
-  { icon: RiVoiceprintLine, ...fact("Audio and whiteboard, not video") },
   { icon: RiUserHeartLine, title: partners?.heading, text: partners?.boundary },
 ].filter((card): card is { icon: typeof RiGroupLine; title: string; text: string } =>
   Boolean(card.title && card.text),
@@ -115,7 +113,7 @@ function SectionHeader({ eyebrow, heading, blurb }: { eyebrow: string; heading?:
 export function LmsFounderSection({
   id,
   signupUrl = "/register",
-  founders = LMS_FOUNDERS,
+  founders = LMS_SHOWN_FOUNDERS,
 }: {
   id?: string;
   signupUrl?: string;
@@ -176,7 +174,7 @@ export function LmsFounderSection({
       {sessions && (
       <div className={`${CONTAINER} mt-16 md:mt-24 flex flex-col gap-8`} data-about="how">
         <SectionHeader eyebrow={ABOUT_COPY.how.eyebrow} heading={sessions.heading} blurb={sessions.blurb} />
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {HOW_CARDS.map(({ icon: Icon, title, text }) => (
             <li key={title} className="sc-card flex flex-col gap-3 p-5 text-left">
               <span className="flex size-10 items-center justify-center rounded-full bg-[var(--sc-primary-tint)]">

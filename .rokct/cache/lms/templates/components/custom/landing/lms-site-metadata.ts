@@ -89,7 +89,7 @@ const LMS_SITE_METADATA: LmsSiteMetadata = {
   title: "supacharge.school — learn faster, pass with confidence, find your tutor",
   tagline: "Learn faster. Pass with confidence. Find your tutor.",
   description:
-    "Supacharge is the tutoring app for South African learners: live CAPS-aligned sessions with real tutors, audio and whiteboard, and a plan that fits your week.",
+    "Supacharge is the tutoring app for South African learners: live CAPS-aligned sessions with real tutors and a plan that fits your week.",
   keywords: ["tutoring", "CAPS", "South Africa", "online tutor", "matric", "Supacharge"],
   locale: "en_ZA",
   ogImage: "/brand/social-milestone.png",

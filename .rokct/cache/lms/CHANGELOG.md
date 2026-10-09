@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.36.20
+
+* The site no longer says how lessons are made (Ray, 2026-10-09: "the main
+  aim is not to expose our tricks"). Removed the "Audio and whiteboard, not
+  video" session fact (landing and About), the "Is it video? What about
+  data?" FAQ, and "audio and whiteboard" from the site description that
+  link previews and search results show. The landing's fact row is two
+  columns and the About "How it works" row three.
+* Founder cards are off on /about and /team (Ray, 2026-10-09: the GSE
+  listing names the founder by his real name, and a card under another
+  name reads as a different founder). `LMS_FOUNDER_CARDS_SHOWN = false`
+  in `landing/lms-founders.ts`; both pages draw `LMS_SHOWN_FOUNDERS`, so
+  the team count drops by one. `LMS_FOUNDERS` is unchanged; set the switch
+  to true to bring the cards back.
+* `LMS_LANDING_VERSION` goes to 1.36.20.
+
 ## 1.36.19
 
 * Link previews: sharing supacharge.school (WhatsApp and anywhere else that
