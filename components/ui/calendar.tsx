@@ -23,7 +23,6 @@
 // and automatically skip overwriting it during future upgrades.
 // ==========================================
 
-
 import * as React from "react";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import { DayPicker } from "react-day-picker";
