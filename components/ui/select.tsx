@@ -23,10 +23,13 @@
 // and automatically skip overwriting it during future upgrades.
 // ==========================================
 
-
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { RiCheckLine, RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
+import {
+  RiCheckLine,
+  RiArrowDownSLine,
+  RiArrowUpSLine,
+} from "@remixicon/react";
 
 import { cn } from "@/lib/utils";
 
