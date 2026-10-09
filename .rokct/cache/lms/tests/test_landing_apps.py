@@ -2872,11 +2872,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.17")
+        self.assertEqual(manifest["version"], "1.36.20")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.17"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.20"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -3841,15 +3841,17 @@ class TestAboutIsThePlatform(unittest.TestCase):
             "sessions.heading",
             "sessions.blurb",
             'fact("Doors open, doors close")',
-            'fact("Audio and whiteboard, not video")',
             "partners?.boundary",
             "tutors?.blurb",
             "{LMS_COPYRIGHT_HOLDER}",
         ):
             self.assertIn(ref, self.client, ref)
         config = code_of(CONFIG)
-        for title in ("Doors open, doors close", "Audio and whiteboard, not video"):
-            self.assertIn(f'title: "{title}"', config)
+        self.assertIn('title: "Doors open, doors close"', config)
+        # Ray, 2026-10-09: the site does not say how lessons are made.
+        site = config + code_of(os.path.join(CUSTOM, "landing", "lms-site-metadata.ts")) + self.client
+        for word in ("whiteboard", "voice track", "not video"):
+            self.assertNotIn(word, site.lower(), word)
         # No numbers, users or awards: no digit in the authored copy.
         copy = self.client[self.client.index("const ABOUT_COPY") : self.client.index("} as const;")]
         self.assertIsNone(re.search(r"\d", copy), copy)
@@ -3893,13 +3895,42 @@ class TestGseMilestone(unittest.TestCase):
         band = code_of(self.BAND)
         self.assertNotIn('"use client"', band)
         self.assertIn("order: 92", band)
-        self.assertIn("anchor: LMS_MILESTONE.anchor", band)
         self.assertIn('target="_blank"', band)
         self.assertIn('rel="noopener noreferrer"', band)
         self.assertIn("md:grid-cols-", band)
+        self.assertIn("anchor: LMS_MILESTONE_ANCHOR", band)
         manifest = read(os.path.join(SDK_ROOT, "manifest.json"))
         self.assertIn('import(\\"@/components/custom/lms-milestone-band-section\\")', manifest)
         self.assertIn('"templates/components/custom/lms-milestone-band-section.tsx"', manifest)
+
+    def test_milestones_slide_left_once_there_are_two(self):
+        # 1.36.18 (Ray, 2026-10-09): "that milestone section will auto
+        # scroll to left when more milestones are added".
+        copy = code_of(self.COPY)
+        self.assertIn("export const LMS_MILESTONES: readonly Milestone[]", copy)
+        band = code_of(self.BAND)
+        self.assertIn("<LmsMilestoneCarousel", band)
+        self.assertIn("LMS_MILESTONES.map(", band)
+        slider = read(os.path.join(CUSTOM, "lms-milestone-carousel.client.tsx"))
+        self.assertIn('"use client"', slider)
+        self.assertIn("if (count < 2) return <>{slides}</>;", slider)
+        self.assertIn("prefers-reduced-motion: reduce", slider)
+        self.assertIn("translateX(-${index * 100}%)", slider)
+        manifest = read(os.path.join(SDK_ROOT, "manifest.json"))
+        self.assertIn('"templates/components/custom/lms-milestone-carousel.client.tsx"', manifest)
+
+    def test_share_card_is_the_milestone_image(self):
+        # 1.36.19 (Ray, 2026-10-09): the WhatsApp link preview highlights
+        # the milestone - a ready-made 1200x630 PNG base serves as og:image.
+        meta = read(os.path.join(CUSTOM, "landing", "lms-site-metadata.ts"))
+        self.assertIn('ogImage: "/brand/social-milestone.png"', meta)
+        png = os.path.join(SDK_ROOT, "templates", "public", "brand", "social-milestone.png")
+        with open(png, "rb") as f:
+            head = f.read(24)
+        self.assertEqual(head[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(int.from_bytes(head[16:20], "big"), 1200)
+        self.assertEqual(int.from_bytes(head[20:24], "big"), 630)
+        self.assertLess(os.path.getsize(png), 300 * 1024)
 
     def test_no_session_fact_ticker(self):
         # 1.36.17 (Ray, 2026-10-09): the ticker under the band is out.
@@ -3929,13 +3960,17 @@ class TestTeamCount(unittest.TestCase):
         tutors = lift_config_block("tutors")
         founders = len(re.findall(r'^    id: "founder_', read(FOUNDERS), re.M))
         self.assertGreater(founders, 0)
+        # Ray, 2026-10-09: the founder cards are off while
+        # LMS_FOUNDER_CARDS_SHOWN is false; the badge counts what is drawn.
+        if "export const LMS_FOUNDER_CARDS_SHOWN = false;" in read(FOUNDERS):
+            founders = 0
         expected = len(tutors["tutors"]) + len(tutors["assistants"]) + founders
         code = code_of(self.TEAM_CLIENT)
         fn = re.search(r"^export function teamCardCount\(.*?^\}", code, re.S | re.M)
         self.assertIsNotNone(fn, "teamCardCount not found")
         script = (
             "const LMS_LANDING_CONFIG = { tutors: %s };\n"
-            "const LMS_FOUNDERS = Array.from({ length: %d }, (_, i) => ({ id: String(i) }));\n"
+            "const LMS_SHOWN_FOUNDERS = Array.from({ length: %d }, (_, i) => ({ id: String(i) }));\n"
             "%s\nconsole.log(JSON.stringify(teamCardCount()));\n"
             % (json.dumps(tutors), founders, fn.group(0).replace("export function", "function", 1))
         )

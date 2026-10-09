@@ -40,7 +40,7 @@ import React, { useState } from "react";
 import "@/components/custom/landing/lms-theme.css";
 
 import {
-  LMS_FOUNDERS,
+  LMS_SHOWN_FOUNDERS,
   founderIntroVideo,
   type Founder,
 } from "@/components/custom/landing/lms-founders";
@@ -58,7 +58,7 @@ const TEAM_COPY = {
  * The cards this page draws: LmsTutorsSection's tutors and assistants
  * (nothing when it has no tutors - it returns null) plus the founders.
  */
-export function teamCardCount(founders: readonly Founder[] = LMS_FOUNDERS): number {
+export function teamCardCount(founders: readonly Founder[] = LMS_SHOWN_FOUNDERS): number {
   const config = LMS_LANDING_CONFIG.tutors;
   const roster = config && config.tutors.length > 0
     ? config.tutors.length + config.assistants.length
@@ -69,7 +69,7 @@ export function teamCardCount(founders: readonly Founder[] = LMS_FOUNDERS): numb
 export function LmsTeamSection({
   id,
   signupUrl = "/register",
-  founders = LMS_FOUNDERS,
+  founders = LMS_SHOWN_FOUNDERS,
 }: {
   id?: string;
   signupUrl?: string;

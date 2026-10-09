@@ -63,6 +63,18 @@ export const LMS_FOUNDERS: readonly Founder[] = [
   },
 ];
 
+// Ray, 2026-10-09: the GSE listing names the founder by his real name, so
+// a website card under another name reads as a different founder ("this
+// will make the listing not valid as founder is someone else"). He chose
+// to take the founder off the website rather than print his real name:
+// the cards on /about and /team draw LMS_SHOWN_FOUNDERS, empty while this
+// is false. LMS_FOUNDERS stays as the Dart catalogue's copy; set this to
+// true to draw the cards again.
+export const LMS_FOUNDER_CARDS_SHOWN = false;
+
+/** The founders the website draws: LMS_FOUNDERS, or none while the cards are off. */
+export const LMS_SHOWN_FOUNDERS: readonly Founder[] = LMS_FOUNDER_CARDS_SHOWN ? LMS_FOUNDERS : [];
+
 /**
  * The founder's intro video when the generated team-assets.ts lists it
  * (the sync ships `intro.mp4` beside the renders once it exists in

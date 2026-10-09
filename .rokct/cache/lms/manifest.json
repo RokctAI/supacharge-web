@@ -1,6 +1,6 @@
 {
   "name": "lms_sdk",
-  "version": "1.36.17",
+  "version": "1.36.20",
   "installs": [
     {
       "from": "templates/app/handson/all/lms",
@@ -203,6 +203,11 @@
       "from": "templates/components/custom/lms-milestone-band-section.tsx",
       "to": "components/custom/lms-milestone-band-section.tsx",
       "_comment": "1.36.17: the landing's GSE milestone band, a server ENTRY at the bottom of the landing (meta order 92: after the testimonials, before the footer; anchor gse-milestone; no nav tick): the orange band with the announcement link and the cohort card (Ray, 2026-10-09: \"Banner stay there but the big blocl moves to the bottom\")."
+    },
+    {
+      "from": "templates/components/custom/lms-milestone-carousel.client.tsx",
+      "to": "components/custom/lms-milestone-carousel.client.tsx",
+      "_comment": "1.36.18: the milestone band's slider (Ray, 2026-10-09: \"that milestone section will auto scroll to left when more milestones are added\"): one slide stands still with no controls; two or more advance to the left on their own, pause under the pointer and on focus, stay still for reduced motion, with dots to pick a slide."
     },
     {
       "from": "templates/components/custom/lms-founder-section.tsx",

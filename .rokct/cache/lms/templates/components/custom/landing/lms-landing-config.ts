@@ -778,10 +778,6 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         title: "Skip only if you can prove it",
         text: "Tap Skip and a quick check follows. Score well and you skip freely; score poorly and you see exactly why the session is worth attending.",
       },
-      {
-        title: "Audio and whiteboard, not video",
-        text: "A session is a voice track and a whiteboard animation drawn in real time, so it stays light on data.",
-      },
     ],
   },
 
@@ -1380,11 +1376,6 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         question: "What does an accountability partner see?",
         answer:
           "A weekly report every Sunday - sessions attended and skipped, performance per topic, engagement and data used - plus instant alerts. They can see everything and control nothing.",
-      },
-      {
-        question: "Is it video? What about data?",
-        answer:
-          "No. A session is a voice track and a whiteboard animation drawn in real time, which keeps it far lighter than streaming video.",
       },
       {
         question: "Where do I get it?",

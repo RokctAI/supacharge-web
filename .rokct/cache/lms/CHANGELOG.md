@@ -1,5 +1,45 @@
 # Changelog
 
+## 1.36.20
+
+* The site no longer says how lessons are made (Ray, 2026-10-09: "the main
+  aim is not to expose our tricks"). Removed the "Audio and whiteboard, not
+  video" session fact (landing and About), the "Is it video? What about
+  data?" FAQ, and "audio and whiteboard" from the site description that
+  link previews and search results show. The landing's fact row is two
+  columns and the About "How it works" row three.
+* Founder cards are off on /about and /team (Ray, 2026-10-09: the GSE
+  listing names the founder by his real name, and a card under another
+  name reads as a different founder). `LMS_FOUNDER_CARDS_SHOWN = false`
+  in `landing/lms-founders.ts`; both pages draw `LMS_SHOWN_FOUNDERS`, so
+  the team count drops by one. `LMS_FOUNDERS` is unchanged; set the switch
+  to true to bring the cards back.
+* `LMS_LANDING_VERSION` goes to 1.36.20.
+
+## 1.36.19
+
+* Link previews: sharing supacharge.school (WhatsApp and anywhere else that
+  reads Open Graph) now shows the GSE milestone (Ray, 2026-10-09: "a social
+  image that highlight that milestone when i share link on whatsapp").
+  New `public/brand/social-milestone.png`, 1200x630 and 84 KB: the band's
+  orange, the ink wordmark, "Selected for the 2026 GSE Digital Startup
+  Accelerator" and the dark 9th Annual Cohort card, all copy from
+  `landing/lms-milestone.ts`. `lms-site-metadata.ts` registers it as
+  `ogImage`, so base serves it instead of the generated card.
+* `LMS_LANDING_VERSION` goes to 1.36.19.
+
+## 1.36.18
+
+* Landing: the milestone band becomes a slider (Ray, 2026-10-09: "that
+  milestone section will auto scroll to left when more milestones are
+  added"). `landing/lms-milestone.ts` now holds `LMS_MILESTONES`, newest
+  first; `LMS_MILESTONE` is the newest, which the pill and the About strip
+  keep reading. With one milestone the band looks exactly as before. With
+  two or more, `lms-milestone-carousel.client.tsx` slides them to the left
+  every 7 seconds, always leftward, pauses under the pointer and on focus,
+  stays still for reduced motion, and shows dots to pick a slide.
+* `LMS_LANDING_VERSION` goes to 1.36.18.
+
 ## 1.36.17
 
 * Landing: the GSE milestone band moves to the bottom (Ray, 2026-10-09:

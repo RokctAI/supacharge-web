@@ -92,7 +92,7 @@ export function LmsSessionsSection({
           ))}
         </ol>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-[var(--sc-stroke-subtle)] pt-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-[var(--sc-stroke-subtle)] pt-10">
           {config.facts.map((fact) => (
             <div key={fact.title} className="flex flex-col gap-2">
               <h4 className="font-bold text-lg">{fact.title}</h4>

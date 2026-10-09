@@ -33,9 +33,29 @@
 export const LMS_MILESTONE_ANNOUNCEMENT_URL =
   "https://www.linkedin.com/pulse/global-startup-ecosystem-announces-200-entrepreneurs-selected-ntim-iikme/";
 
-export const LMS_MILESTONE = {
-  /** The band's DOM id: the pill's in-page target. */
-  anchor: "gse-milestone",
+/** One milestone: a slide in the landing's milestone band. */
+export interface Milestone {
+  /** A stable key, unique across LMS_MILESTONES. */
+  key: string;
+  /** The pill at the top of the landing (drawn for the newest only). */
+  pill: { label: string; text: string };
+  eyebrow: string;
+  heading: string;
+  line: string;
+  announcement: { label: string; href: string };
+  /** The filled white "Read our story" pill; null until there is a public page. */
+  story: { label: string; href: string } | null;
+  /** The dark card on the right of the slide. */
+  card: { top: string; big: string; bottom: string };
+  /** The About page's Programmes strip (read from the newest only). */
+  about: { eyebrow: string; badge: string };
+}
+
+/** The band's DOM id: the pill's in-page target, whichever slide shows. */
+export const LMS_MILESTONE_ANCHOR = "gse-milestone";
+
+const GSE_2026: Milestone = {
+  key: "gse-2026",
   /** The pill at the top of the landing, linking to the band. */
   pill: {
     label: "Supacharge milestone",
@@ -50,7 +70,7 @@ export const LMS_MILESTONE = {
   },
   // A slot, not a link: "Read our story" (the filled white pill) waits for
   // a public blog to point at. Give it an href here and the band draws it.
-  story: null as { label: string; href: string } | null,
+  story: null,
   card: {
     top: "GSE Digital Startup Accelerator · 2026",
     big: "9th Annual Cohort",
@@ -61,4 +81,16 @@ export const LMS_MILESTONE = {
     eyebrow: "Programmes",
     badge: "Selected: 2026 GSE Digital Startup Accelerator",
   },
-} as const;
+};
+
+// Ray, 2026-10-09: "that milestone section will auto scroll to left when
+// more milestones are added". Newest first: the band shows them as slides
+// that advance to the left on their own once there are two or more; with
+// one it stands still. Add a milestone by putting it at the front.
+export const LMS_MILESTONES: readonly Milestone[] = [GSE_2026];
+
+/**
+ * The newest milestone: what the pill at the top and the About page's
+ * Programmes strip read. The anchor is the band's, shared by every slide.
+ */
+export const LMS_MILESTONE = { ...LMS_MILESTONES[0], anchor: LMS_MILESTONE_ANCHOR } as const;

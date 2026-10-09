@@ -270,6 +270,7 @@ components/custom/theme-provider.tsx
 /components/custom/lms-marketing-calendar.client.tsx
 /components/custom/lms-marketing-calendar.tsx
 /components/custom/lms-milestone-band-section.tsx
+/components/custom/lms-milestone-carousel.client.tsx
 /components/custom/lms-milestone-section.tsx
 /components/custom/lms-partners-section.tsx
 /components/custom/lms-pricing.client.tsx
@@ -319,6 +320,7 @@ components/custom/theme-provider.tsx
 /public/brand/marks/chrome-web-store.svg
 /public/brand/marks/google-play.svg
 /public/brand/marks/windows.svg
+/public/brand/social-milestone.png
 /public/brand/social-still.png
 /public/brand/supacharge-wordmark-ink.svg
 /public/brand/supacharge-wordmark.svg
