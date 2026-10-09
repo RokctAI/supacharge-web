@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.36.22
+
+- Landing subjects: the Grades 4 to 6 cards name the tutor duos the roster
+  already casts (Mathematics, Natural Sciences and Technology, Social
+  Sciences; English Home Language and Life Skills have no duo yet), and the
+  Grades R to 3 cards name Kavitha, the kids mode tutor, on a single
+  "Tutor" row (Ray, 2026-10-09).
+
+## 1.36.21
+
+* Landing: the milestone banner at the top is a solid rectangle with no
+  border (Ray, 2026-10-09): white with black text in dark mode, the
+  primary orange with white text in light mode. New `.sc-milestone-banner`
+  in `landing/lms-theme.css`, replacing the outlined `sc-chip` on it.
+* `LMS_LANDING_VERSION` goes to 1.36.21.
+
 ## 1.36.20
 
 * The site no longer says how lessons are made (Ray, 2026-10-09: "the main
