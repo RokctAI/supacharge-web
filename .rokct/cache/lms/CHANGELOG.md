@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.36.16
+
+* Landing: a milestone band right under the nav (Ray, 2026-10-08):
+  Supacharge was selected for the 2026 GSE Digital Startup Accelerator.
+  A pill at the top ("Supacharge milestone · Selected for the 2026 GSE
+  Digital Startup Accelerator") links to the band's `#gse-milestone`
+  anchor. The band is full-width Supacharge orange (`--sc-primary`): the
+  eyebrow, the heading, one line (one of 200 founders selected for the 9th
+  annual programme, 8–29 Oct 2026) and an outline pill to the official GSE
+  announcement (new tab, `rel="noopener noreferrer"`). On the right a dark
+  card gives the cohort facts (9th Annual Cohort; 200 founders selected
+  from 30+ countries and markets, as the announcement states). Below the
+  band a ticker scrolls the landing's own session-fact titles. Columns
+  stack on phones; the band reads the same in light and dark mode. The
+  "Read our story" pill is a slot (`LMS_MILESTONE.story`) left empty until
+  there is a public blog. New: `landing/lms-milestone.ts` (all the copy)
+  and `lms-milestone-section.tsx` (order -0.5, before the hero).
+* About: a Programmes strip above the founder section with the badge
+  "Selected: 2026 GSE Digital Startup Accelerator" and the announcement
+  link. It is a selection into a programme. It is not called an award or
+  a partnership, it uses no GSE logo, and it is not in a "trusted by" row.
+* `LMS_LANDING_VERSION` goes to 1.36.16.
+
+## 1.36.15
+
+* Schedule: Grades 4 to 7 air at 15:00, 16:30 and 18:00 instead of 17:00,
+  18:30 and 20:00 (Ray, 2026-10-04: young learners are home early and sleep
+  early). Grades 8 to 12 keep the evening times. The duo clash check now
+  compares overlapping session windows, not only equal start times. The
+  Senior Phase text gives Grade 7's afternoon times. `LMS_LANDING_VERSION`
+  goes to 1.36.15.
+
+## 1.36.14
+
+* Landing: Grades 8 and 9 add Technology on Thursday, their free evening
+  (Ray, 2026-10-04), so no Senior Phase grade has a free weekday. Grade 8
+  Technology is the Intermediate maths duo (tutor_013/014, now Grades 4 to 6
+  and 8 to 9), Grade 9 the Accounting duo (tutor_005/006); 0 double-bookings
+  in the generated grid. Lessons are still to come. `LMS_LANDING_VERSION`
+  goes to 1.36.14.
+
 ## 1.36.13
 
 * Landing: Grade 7 adds Technology and loses its free day (Ray, 2026-10-04).

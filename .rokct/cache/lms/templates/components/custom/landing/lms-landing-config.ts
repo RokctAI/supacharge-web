@@ -838,11 +838,12 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         // The default tab (Ray, 2026-10-02: "default to grade 8-9"; the
         // Senior Phase tab since 1.36.1). Grades 8 and 9 are live: the
         // weekly grid gives each four subjects on four weekday evenings
-        // (Monday, Tuesday, Wednesday, Friday) and Thursday free. Grade 7
+        // (Monday, Tuesday, Wednesday, Friday) plus Technology on Thursday
+        // since 1.36.14 (lessons still to come), no free evening. Grade 7
         // is the phase's first year and on its way - the `pending` chip.
         name: "Senior Phase",
         grades: "Grades 7 to 9",
-        text: "Grades 8 and 9 are live: four subjects, each a live lesson on its own weekday evening - four evenings a week, Thursday free - with the same tutor duos who take you through to matric. Grade 7 is on the way: five subjects, one every weekday evening, with Technology still to come.",
+        text: "Grades 8 and 9 are live: a subject on every weekday evening, with Technology on Thursday still to come, and the same tutor duos who take you through to matric. Grade 7 is on the way: five subjects, one every weekday afternoon (15:00, 16:30 and 18:00), with Technology still to come.",
         pending: { grades: "Grade 7", badge: "soon" },
         subjects: [
           { name: "Mathematics", tutors: ["Sifiso Zulu", "John Petersen"] },
@@ -860,6 +861,18 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
           },
           {
             name: "Economic and Management Sciences",
+            grades: "Grade 9",
+            tutors: ["Anand Naicker", "Grace Mofokeng"],
+          },
+          // Technology (Ray, 2026-10-04) fills the Thursday free evening:
+          // a duo per grade, each free on Thursday (roster.json senior_phase).
+          {
+            name: "Technology",
+            grades: "Grade 8",
+            tutors: ["Zanele Khumalo", "Ryan Abrahams"],
+          },
+          {
+            name: "Technology",
             grades: "Grade 9",
             tutors: ["Anand Naicker", "Grace Mofokeng"],
           },
@@ -1013,7 +1026,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         slug: "tutor_013",
         name: "Zanele Khumalo",
         style: "formal",
-        grades: [4, 5, 6],
+        grades: [4, 5, 6, 8, 9],
         title: "The Number Detective",
         subject: "Mathematics",
         bio: "Ms Khumalo treats every sum like a mystery: find the clues, write the steps, check the answer. Place value, fractions and patterns, solved properly.",
@@ -1022,7 +1035,7 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         slug: "tutor_014",
         name: "Ryan Abrahams",
         style: "plain-language, intuition-first",
-        grades: [4, 5, 6],
+        grades: [4, 5, 6, 8, 9],
         title: "The Tuck Shop Maths Man",
         subject: "Mathematics",
         bio: "Mr Abrahams teaches maths with the things in your lunchbox and your pocket - sharing sweets, counting change, cutting pizza - until fractions and times tables just make sense.",

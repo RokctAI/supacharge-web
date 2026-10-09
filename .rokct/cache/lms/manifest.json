@@ -1,6 +1,6 @@
 {
   "name": "lms_sdk",
-  "version": "1.36.13",
+  "version": "1.36.16",
   "installs": [
     {
       "from": "templates/app/handson/all/lms",
@@ -127,6 +127,11 @@
       "_comment": "Since 1.27.0 the card has a founder role (the Flutter card's founder branch, tutor_card.dart): the Founder / Co-Founder badge, no grade badge, the bio alone on the back, \"Hear more\" playing the self-intro video in the card (disabled until the asset ships) and no Start button. Tutor and assistant cards are unchanged."
     },
     {
+      "from": "templates/components/custom/landing/lms-milestone.ts",
+      "to": "components/custom/landing/lms-milestone.ts",
+      "_comment": "1.36.16: the 2026 GSE Digital Startup Accelerator selection, every word of it in one place - the landing's milestone band (lms-milestone-section.tsx) and the About page's Programmes strip (lms-founder-section.client.tsx) read it. A selection, never an award or partnership; no programme logo."
+    },
+    {
       "from": "templates/components/custom/landing/lms-founders.ts",
       "to": "components/custom/landing/lms-founders.ts",
       "_comment": "1.27.0: the founders as lms/dart's seeded_tutor_catalog.dart carries them (founder_ray_thompson: name, title line, subject, bio, portrait folder, intro video ref) - every string copied from the Dart source, held equal by tests/test_landing_apps.py; founderIntroVideo answers the video only once the generated team-assets.ts lists it."
@@ -188,6 +193,11 @@
       "from": "templates/components/custom/lms-team-section.client.tsx",
       "to": "components/custom/lms-team-section.client.tsx",
       "_comment": "1.36.9: the client half of lms-team-section.tsx: the landing's own tutors section (tutors and session hosts, grade tabs, flip cards) and the About page's founder card, in the landing's token scope. No new people, copy or claims."
+    },
+    {
+      "from": "templates/components/custom/lms-milestone-section.tsx",
+      "to": "components/custom/lms-milestone-section.tsx",
+      "_comment": "1.36.16: the landing's milestone band, a server ENTRY (meta order -0.5, so base draws it before the hero, straight under the sticky header; anchor gse-milestone; no nav tick): the pill linking to the band, the orange band with the announcement link and the cohort card, and a ticker of the landing's own session-fact titles."
     },
     {
       "from": "templates/components/custom/lms-founder-section.tsx",
@@ -387,6 +397,11 @@
       "target": "components/custom/landing/page-sections.ts",
       "placeholder": "// @rokct-sdk-page-sections-start",
       "replacement": "  { id: \"lms-team-section\", load: () => import(\"@/components/custom/lms-team-section\") },"
+    },
+    {
+      "target": "components/custom/landing/page-sections.ts",
+      "placeholder": "// @rokct-sdk-page-sections-start",
+      "replacement": "  { id: \"lms-milestone-section\", load: () => import(\"@/components/custom/lms-milestone-section\") },"
     },
     {
       "target": "components/custom/landing/page-sections.ts",
