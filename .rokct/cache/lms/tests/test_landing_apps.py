@@ -2545,7 +2545,7 @@ class TestPhaseTabs(unittest.TestCase):
             r"useState<string \| undefined>\(\s*\(\) => \(config \? defaultPhaseOf\(phases, config\.defaultPhase\)\?\.name : undefined\),?\s*\)",
         )
 
-    def test_phases_on_their_way_name_subjects_and_cast_nobody(self):
+    def test_phases_on_their_way_name_subjects_and_the_rosters_cast(self):
         r3 = self.by_grades["Grades R to 3"]
         self.assertEqual(
             [s["name"] for s in r3["subjects"]], ["Mathematics", "English Home Language"]
@@ -2577,10 +2577,31 @@ class TestPhaseTabs(unittest.TestCase):
         # Neither phase on its way has a part still to come: it all is.
         for phase in (r3, g46):
             self.assertNotIn("pending", phase)
-        for phase in (r3, g46):
-            for subject in phase["subjects"]:
-                with self.subTest(phase=phase["grades"], subject=subject["name"]):
-                    self.assertNotIn("tutors", subject)
+        # 1.36.22 (Ray, 2026-10-09: "cards for grade4-6 subjects dont have
+        # tutors"): Grades 4 to 6 name the roster's intermediate_phase duos
+        # where it casts one and nobody where it does not; Grades R to 3
+        # name the one kids mode tutor (assistants roster foundation_phase).
+        with open(ROSTER, encoding="utf-8") as f:
+            inter = json.load(f)["intermediate_phase"]
+        names = self.tutor_names()
+        expected = {
+            inter["subject_names"][key]: [names[duo["expert"]], names[duo["simplifier"]]]
+            for key, duo in inter["subjects"].items()
+        }
+        self.assertEqual(
+            {s["name"]: s["tutors"] for s in g46["subjects"] if "tutors" in s}, expected
+        )
+        self.assertEqual(
+            [s["name"] for s in g46["subjects"] if "tutors" not in s],
+            ["English Home Language", "Life Skills"],
+        )
+        with open(os.path.join(TEAM, "assistants", "CAPS", "roster.json"), encoding="utf-8") as f:
+            r3_tutor = json.load(f)["foundation_phase"]["tutor"]
+        for subject in r3["subjects"]:
+            with self.subTest(subject=subject["name"]):
+                self.assertNotIn("tutors", subject)
+                self.assertEqual(subject["tutor"], names[r3_tutor])
+        self.assertIn('<dt className="text-[var(--sc-ink-2)]">Tutor</dt>', read(SUBJECTS_CLIENT))
 
     def test_grades_7_to_9_are_the_rosters_senior_phase_duos(self):
         with open(ROSTER, encoding="utf-8") as f:
@@ -2872,11 +2893,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.20")
+        self.assertEqual(manifest["version"], "1.36.22")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.20"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.22"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -3931,6 +3952,22 @@ class TestGseMilestone(unittest.TestCase):
         self.assertEqual(int.from_bytes(head[16:20], "big"), 1200)
         self.assertEqual(int.from_bytes(head[20:24], "big"), 630)
         self.assertLess(os.path.getsize(png), 300 * 1024)
+
+    def test_banner_is_a_solid_rectangle_by_scheme(self):
+        # 1.36.21 (Ray, 2026-10-09): white/black in dark mode, primary/white
+        # in light mode, no border.
+        section = code_of(self.SECTION)
+        self.assertIn('className="sc-milestone-banner', section)
+        self.assertNotIn("sc-chip", section)
+        css = read(os.path.join(CUSTOM, "landing", "lms-theme.css"))
+        rule = css[css.index(".sc-milestone-banner {"):]
+        self.assertIn("border: 0;", rule[:400])
+        self.assertIn("background: #ffffff;", rule[:400])
+        self.assertIn("color: #111111;", rule[:400])
+        self.assertIn("html.sc-landing:not(.dark) .sc-milestone-banner", css)
+        light = css[css.index("html.light .sc-landing .sc-milestone-banner {"):]
+        self.assertIn("background: var(--sc-primary);", light[:200])
+        self.assertIn("color: #ffffff;", light[:200])
 
     def test_no_session_fact_ticker(self):
         # 1.36.17 (Ray, 2026-10-09): the ticker under the band is out.

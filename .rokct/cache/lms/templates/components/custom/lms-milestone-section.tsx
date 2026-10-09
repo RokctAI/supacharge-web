@@ -30,6 +30,10 @@
 // landing-content.tsx renders straight under the sticky header - the only
 // slot above the hero a home SDK has.
 //
+// 1.36.21 (Ray, 2026-10-09): a solid rectangle with no border - white
+// with black text in dark mode, the primary with white text in light mode
+// (.sc-milestone-banner in landing/lms-theme.css).
+//
 // No "use client" here (1.24.0): base reads `meta` in the SERVER render.
 
 import React from "react";
@@ -53,7 +57,7 @@ export function LmsMilestonePill() {
     <div className="container mx-auto flex max-w-6xl justify-center px-4 pt-4 xl:px-0" data-lms-milestone="">
       <a
         href={`#${m.anchor}`}
-        className="sc-chip sc-chip-primary max-w-full text-center text-xs sm:text-sm"
+        className="sc-milestone-banner max-w-full text-center text-xs sm:text-sm"
         data-milestone-pill=""
       >
         <span className="font-extrabold uppercase tracking-wider">{m.pill.label}</span>

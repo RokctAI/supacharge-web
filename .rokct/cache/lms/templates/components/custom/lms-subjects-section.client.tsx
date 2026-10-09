@@ -52,10 +52,12 @@
 // with the pill, the same rectangle through LmsPhaseGrades) follows the
 // text. The pill is never on a live tab.
 //
-// A phase on its way names its subjects without a duo (Subject.tutors is
+// A subject the roster casts nobody for yet has no duo (Subject.tutors is
 // absent): the card shows the name and, where the subject is not taken by
 // the whole phase, its grades ("Grade 8" on an EMS row). A live phase's card shows the
-// Expert and Simplifier rows the 1.35.2 grid showed.
+// Expert and Simplifier rows the 1.35.2 grid showed. Since 1.36.22 a phase
+// on its way shows the duos the roster already casts, and a solo subject
+// (kids mode, Grades R to 3) one "Tutor" row (Subject.tutor).
 //
 // Below 640px the grid is one swipeable row (`sc-row`, landing/lms-theme.css;
 // Ray, 2026-09-09: "most cards should be one row in mobile. even subjects
@@ -104,6 +106,13 @@ function SubjectCard({ subject }: { subject: Subject }) {
           <div className="flex justify-between gap-4">
             <dt className="text-[var(--sc-ink-2)]">Simplifier</dt>
             <dd className="font-semibold text-[var(--sc-ink)]">{subject.tutors[1]}</dd>
+          </div>
+        </dl>
+      ) : subject.tutor ? (
+        <dl className="flex flex-col gap-1 text-sm">
+          <div className="flex justify-between gap-4">
+            <dt className="text-[var(--sc-ink-2)]">Tutor</dt>
+            <dd className="font-semibold text-[var(--sc-ink)]">{subject.tutor}</dd>
           </div>
         </dl>
       ) : null}

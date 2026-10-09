@@ -188,11 +188,18 @@ export interface Subject {
   name: string;
   /**
    * Tutor duo per subject: the expert and the simplifier
-   * (lms/team/tutors/CAPS/roster.json). Absent on a phase that is on its
-   * way (1.36.0): its subjects are named, nobody is cast yet, and the card
-   * draws no duo rather than an invented one.
+   * (lms/team/tutors/CAPS/roster.json). Absent where the roster casts
+   * nobody yet: the card draws no duo rather than an invented one. Since
+   * 1.36.22 a phase on its way names the duos the roster already casts
+   * (Ray, 2026-10-09: "cards for grade4-6 subjects dont have tutors").
    */
   tutors?: [string, string];
+  /**
+   * The one tutor of a subject taught solo (1.36.22): kids mode, Grades R
+   * to 3, where one tutor takes every round (assistants roster
+   * foundation_phase.tutor). The card shows a single "Tutor" row.
+   */
+  tutor?: string;
   /**
    * The grades of the phase this subject is taught in, when it is not all
    * of them (1.36.0): "Grade 8" and "Grade 9" on the two EMS rows, which
@@ -811,8 +818,8 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         badge: "soon",
         // Named, not cast: no duo until the phase exists.
         subjects: [
-          { name: "Mathematics", skills: "Arithmetic, patterns, shapes, measuring" },
-          { name: "English Home Language", skills: "Reading, writing, phonics" },
+          { name: "Mathematics", skills: "Arithmetic, patterns, shapes, measuring", tutor: "Kavitha" },
+          { name: "English Home Language", skills: "Reading, writing, phonics", tutor: "Kavitha" },
         ],
       },
       {
@@ -823,10 +830,10 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         text: "On the way after Foundation Phase: the Intermediate Phase as CAPS lays it out, the five subjects every Grade 4 to 6 learner takes.",
         badge: "soon",
         subjects: [
-          { name: "Mathematics" },
+          { name: "Mathematics", tutors: ["Zanele Khumalo", "Ryan Abrahams"] },
           { name: "English Home Language" },
-          { name: "Natural Sciences and Technology" },
-          { name: "Social Sciences" },
+          { name: "Natural Sciences and Technology", tutors: ["Sipho Ndlovu", "Annelie Botha"] },
+          { name: "Social Sciences", tutors: ["Fatima Ebrahim", "Tshepo Mabaso"] },
           { name: "Life Skills" },
         ],
       },

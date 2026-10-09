@@ -216,6 +216,31 @@ html.light .sc-landing {
   color: var(--sc-ink-2);
 }
 /*
+ * The milestone banner at the top of the landing (1.36.21; Ray, 2026-10-09:
+ * "that banner on top can be in white solid rectangle without borderline
+ * and black text when in dark mode and then in light mode it will be
+ * primary color and white text"). A solid rectangle with no edge: white on
+ * near-black ink in the dark set (Supacharge's default), the primary with
+ * white ink in the light set, keyed on the same signal as the light
+ * tokens above.
+ */
+.sc-milestone-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  background: #ffffff;
+  color: #111111;
+}
+html.sc-landing:not(.dark) .sc-milestone-banner,
+html.light .sc-landing .sc-milestone-banner {
+  background: var(--sc-primary);
+  color: #ffffff;
+}
+/*
  * The badged curriculum and its pill in ONE border-only rectangle (Ray,
  * 2026-09-10: "i think cambridge and its label should be in a border only
  * rectangle to give it distiction."; 2026-09-11: "give the border primary
