@@ -269,6 +269,7 @@ components/custom/theme-provider.tsx
 /components/custom/lms-founder-section.tsx
 /components/custom/lms-marketing-calendar.client.tsx
 /components/custom/lms-marketing-calendar.tsx
+/components/custom/lms-milestone-band-section.tsx
 /components/custom/lms-milestone-section.tsx
 /components/custom/lms-partners-section.tsx
 /components/custom/lms-pricing.client.tsx

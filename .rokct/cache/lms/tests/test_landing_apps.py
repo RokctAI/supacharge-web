@@ -1956,8 +1956,10 @@ class TestServerSafeSections(unittest.TestCase):
                 # 1.36.9: the team page's section, drawn on /team only
                 # (meta.page "team"), never on the landing.
                 "lms-team-section",
-                # 1.36.16: the GSE milestone band, before the hero (order -0.5).
+                # 1.36.16: the GSE milestone pill, before the hero (order -0.5).
                 "lms-milestone-section",
+                # 1.36.17: the GSE milestone band, before the footer (order 92).
+                "lms-milestone-band-section",
                 # 1.27.0: the founder card, registered here and drawn on /about
                 # only (meta.page "about"), never on the landing.
                 "lms-founder-section",
@@ -2870,11 +2872,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.16")
+        self.assertEqual(manifest["version"], "1.36.17")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.16"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.36.17"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -3873,18 +3875,38 @@ class TestGseMilestone(unittest.TestCase):
         for word in ("award", "partner", "endorse", "winner", "funding", "#178"):
             self.assertNotIn(word, copy.lower(), word)
 
-    def test_band_registered_before_the_hero_with_its_anchor(self):
+    BAND = os.path.join(CUSTOM, "lms-milestone-band-section.tsx")
+
+    def test_pill_registered_before_the_hero_linking_to_the_band(self):
         section = code_of(self.SECTION)
         self.assertNotIn('"use client"', section)
         self.assertIn("order: -0.5", section)
-        self.assertIn("anchor: LMS_MILESTONE.anchor", section)
+        self.assertNotIn("anchor: LMS_MILESTONE.anchor", section)
         self.assertIn('href={`#${m.anchor}`}', section)
-        self.assertIn('target="_blank"', section)
-        self.assertIn('rel="noopener noreferrer"', section)
-        self.assertIn("md:grid-cols-", section)
         manifest = read(os.path.join(SDK_ROOT, "manifest.json"))
         self.assertIn('import(\\"@/components/custom/lms-milestone-section\\")', manifest)
         self.assertIn('"templates/components/custom/landing/lms-milestone.ts"', manifest)
+
+    def test_band_sits_at_the_bottom_with_its_anchor(self):
+        # 1.36.17 (Ray, 2026-10-09): the big block moves to the bottom,
+        # after the testimonials (90) and before the footer (95).
+        band = code_of(self.BAND)
+        self.assertNotIn('"use client"', band)
+        self.assertIn("order: 92", band)
+        self.assertIn("anchor: LMS_MILESTONE.anchor", band)
+        self.assertIn('target="_blank"', band)
+        self.assertIn('rel="noopener noreferrer"', band)
+        self.assertIn("md:grid-cols-", band)
+        manifest = read(os.path.join(SDK_ROOT, "manifest.json"))
+        self.assertIn('import(\\"@/components/custom/lms-milestone-band-section\\")', manifest)
+        self.assertIn('"templates/components/custom/lms-milestone-band-section.tsx"', manifest)
+
+    def test_no_session_fact_ticker(self):
+        # 1.36.17 (Ray, 2026-10-09): the ticker under the band is out.
+        for path in (self.SECTION, self.BAND):
+            code = code_of(path)
+            self.assertNotIn("LmsMarquee", code)
+            self.assertNotIn("sessions?.facts", code)
 
     def test_about_strip_sits_before_the_founder(self):
         client = code_of(FOUNDER_CLIENT)

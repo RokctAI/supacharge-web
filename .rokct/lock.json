@@ -4,7 +4,7 @@
   "app_type": "supacharge",
   "protocol": {
     "git": "https://github.com/RokctAI/The-Rokct-Protocol",
-    "ref": "e9edf8bfa5c800be071aef5671af96a1e3ee9454",
+    "ref": "adbb66e242d069a0e140fc742a57c878ff48d42b",
     "vendored": ".rokct/cache/_composer",
     "files": {
       "sdk_composer.py": "5fafad102ac00047506783d4fdf53f0c2a09c48aa56c57aba5f0ecc59d523178",
@@ -19,7 +19,7 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/telemetry/nextjs",
       "ref": "main",
-      "commit": "237020613be158d655aef86a6738bf312d9d1cb9",
+      "commit": "50ccff1a0ab89d76c27e1ba8b3c80c6725d939fd",
       "version": "1.2.2",
       "install_py_sha256": "318d20eb7123ffaa549618d06b4530dfce5df9ba0b07df2328c0c6e1738e36c4",
       "content_sha256": "97652d52df5b1f4fada6bfb41793a47df1b90cc5343aaf317139683cd75db1c1"
@@ -31,7 +31,7 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/base/nextjs",
       "ref": "main",
-      "commit": "237020613be158d655aef86a6738bf312d9d1cb9",
+      "commit": "50ccff1a0ab89d76c27e1ba8b3c80c6725d939fd",
       "version": "1.51.0",
       "install_py_sha256": "b6c434a1c05611d29f1018f68b9423383f7ecfbf9cc1efe74825ba6c4df98fff",
       "content_sha256": "5d5b6f5f6506d0b985266ef8fd2cbecdf4a3922030508fad041ba77541244ec0"
@@ -43,7 +43,7 @@
       "git": "https://github.com/RokctAI/Users",
       "path": "../Users/auth/nextjs",
       "ref": "main",
-      "commit": "6d54d0856a4095b0929533a52094143f2ef97a1b",
+      "commit": "bba398c666c24584ad9f73c19755a5a1bed7a891",
       "version": "1.9.0",
       "install_py_sha256": "b9b0d4156a68d46f528be2b885eed17cc7dba21f6b4b48b2991ba2c3274ae21b",
       "content_sha256": "39ec614c39662d5e8f1ef02211c31f5840fee63dc839b80120fc30683ad091b6"
@@ -67,10 +67,10 @@
       "git": "https://github.com/RokctAI/agent",
       "path": "../agent/lms/nextjs",
       "ref": "main",
-      "commit": "c3e96163f5bd9205fce4288a989c5dfeb85d77e0",
-      "version": "1.36.16",
+      "commit": "951922119b5f9906509c47b5b8920f9de5c1d1c6",
+      "version": "1.36.17",
       "install_py_sha256": "65a891707fd3c741b55681a8cb05ad4dd2d0833ee5643f490928267891144741",
-      "content_sha256": "f04acdb652d755ff58fe2f392e5b4d91feef7b2ab97b2c14b6898f25e69abf11"
+      "content_sha256": "d6b2b87ef9804e925996e73dd734da164d6d8d857718d04ad5c4a11c2f4e4223"
     }
   ]
 }

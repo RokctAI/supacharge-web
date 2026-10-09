@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.36.17
+
+* Landing: the GSE milestone band moves to the bottom (Ray, 2026-10-09:
+  "Banner stay there but the big blocl moves to the bottom"). The pill
+  stays right under the nav (`lms-milestone-section.tsx`, order -0.5) and
+  now scrolls down to the band. The orange band with the cohort card is
+  its own section, `lms-milestone-band-section.tsx` (order 92, after the
+  testimonials and before the footer, anchor `#gse-milestone`).
+* Landing: the ticker of session-fact titles under the band is removed
+  (Ray, 2026-10-09: it "should be out"). He never asked for it, and the
+  landing should not spell out how lessons are made.
+* `LMS_LANDING_VERSION` goes to 1.36.17.
+
 ## 1.36.16
 
 * Landing: a milestone band right under the nav (Ray, 2026-10-08):
