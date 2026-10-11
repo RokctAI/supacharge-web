@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.52.0
+
+* fix(seo): `buildSiteMetadata()` no longer sets `canonical: "/"` and
+  `og:url` "/" on every page. A layout's `alternates` is inherited by every
+  page below it, so /about, /login and the rest all declared themselves
+  copies of `/`, which in an lms or agent shell is itself a redirect to
+  /landing. A new `path` option (and a second `buildPageMetadata()`
+  argument) sets the canonical and `og:url`; the landing page passes
+  `/landing`. Pages that pass no path carry no canonical. Existing callers
+  keep compiling unchanged.
+
 ## 1.51.0
 
 * feat: the 25 shadcn primitives every host carried as an identical copy now

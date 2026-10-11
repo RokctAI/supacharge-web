@@ -5,7 +5,8 @@ import "./globals.css";
 
 import type { Viewport } from "next";
 import { buildSiteMetadata } from "@/app/lib/site-metadata";
-import { SITE_URL } from "@/app/site";
+import { SITE_NAME, SITE_URL } from "@/app/site";
+import { loadSiteMetadata } from "@/components/custom/landing/site-metadata";
 import { SessionProvider } from "@/components/custom/session-provider";
 import { ThemeProvider } from "@/components/custom/theme-provider";
 
@@ -30,11 +31,42 @@ export const viewport: Viewport = {
   colorScheme: "dark light",
 };
 
-export default function RootLayout({
+// Structured data for search engines: who runs the site and what it is.
+// The description is the home SDK's registered copy, not words of our own.
+async function structuredData(): Promise<string> {
+  const copy = await loadSiteMetadata();
+  const graph = [
+    {
+      "@type": "EducationalOrganization",
+      "@id": `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/brand-icon?s=192`,
+      ...(copy.description ? { description: copy.description } : {}),
+      areaServed: "ZA",
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      inLanguage: "en-ZA",
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+  ];
+  // `<` is escaped so no copy can close the script tag early.
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": graph,
+  }).replace(/</g, "\\u003c");
+}
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const jsonLd = await structuredData();
   return (
     // suppressHydrationWarning: next-themes writes the theme class onto <html>
     // in a blocking script before hydration, so the server markup and the
@@ -64,6 +96,10 @@ export default function RootLayout({
         >
           <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd }}
+        />
       </body>
     </html>
   );
