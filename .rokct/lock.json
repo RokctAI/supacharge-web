@@ -4,7 +4,7 @@
   "app_type": "supacharge",
   "protocol": {
     "git": "https://github.com/RokctAI/The-Rokct-Protocol",
-    "ref": "adbb66e242d069a0e140fc742a57c878ff48d42b",
+    "ref": "df643d7ccbb4dc7f97814b6a5b42054fbbea8ad4",
     "vendored": ".rokct/cache/_composer",
     "files": {
       "sdk_composer.py": "5fafad102ac00047506783d4fdf53f0c2a09c48aa56c57aba5f0ecc59d523178",
@@ -19,7 +19,7 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/telemetry/nextjs",
       "ref": "main",
-      "commit": "50ccff1a0ab89d76c27e1ba8b3c80c6725d939fd",
+      "commit": "503c7a3d39d94963334c551cc84d100a1600b5bc",
       "version": "1.2.2",
       "install_py_sha256": "318d20eb7123ffaa549618d06b4530dfce5df9ba0b07df2328c0c6e1738e36c4",
       "content_sha256": "97652d52df5b1f4fada6bfb41793a47df1b90cc5343aaf317139683cd75db1c1"
@@ -31,10 +31,10 @@
       "git": "https://github.com/RokctAI/core",
       "path": "../core/base/nextjs",
       "ref": "main",
-      "commit": "50ccff1a0ab89d76c27e1ba8b3c80c6725d939fd",
-      "version": "1.51.0",
+      "commit": "503c7a3d39d94963334c551cc84d100a1600b5bc",
+      "version": "1.52.0",
       "install_py_sha256": "b6c434a1c05611d29f1018f68b9423383f7ecfbf9cc1efe74825ba6c4df98fff",
-      "content_sha256": "5d5b6f5f6506d0b985266ef8fd2cbecdf4a3922030508fad041ba77541244ec0"
+      "content_sha256": "4d1054ae259c984cf9d8b3493f1a9078b2a33d16fae2e07a5dd4a5c77199133b"
     },
     {
       "name": "auth_sdk",
@@ -43,7 +43,7 @@
       "git": "https://github.com/RokctAI/Users",
       "path": "../Users/auth/nextjs",
       "ref": "main",
-      "commit": "bba398c666c24584ad9f73c19755a5a1bed7a891",
+      "commit": "3e6802d9e34b7c8a2d0f20110fdda25246609281",
       "version": "1.9.0",
       "install_py_sha256": "b9b0d4156a68d46f528be2b885eed17cc7dba21f6b4b48b2991ba2c3274ae21b",
       "content_sha256": "39ec614c39662d5e8f1ef02211c31f5840fee63dc839b80120fc30683ad091b6"
@@ -67,7 +67,7 @@
       "git": "https://github.com/RokctAI/agent",
       "path": "../agent/lms/nextjs",
       "ref": "main",
-      "commit": "6cb214f98d210ee564d1a77f4bcfb010f2f1c66b",
+      "commit": "de2c2e67a92cb04477be33d29eee04e78552aab9",
       "version": "1.36.22",
       "install_py_sha256": "65a891707fd3c741b55681a8cb05ad4dd2d0833ee5643f490928267891144741",
       "content_sha256": "e1e1117e77ac00c3a99f17f1f6d629ffe27746bb1c0b5c861dbf043491f8223c"

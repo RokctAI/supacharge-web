@@ -1,6 +1,7 @@
 {
   "name": "base_sdk",
-  "version": "1.51.0",
+  "version": "1.52.0",
+  "_comment_version_1_52_0": "1.51.0 -> 1.52.0: buildSiteMetadata() stops stamping canonical \"/\" on every page; a path option sets the canonical, and the landing page passes /landing.",
   "_comment_version_1_51_0": "1.50.1 -> 1.51.0: the 25 shadcn primitives every host carried verbatim (components/ui/alert ... tooltip) ship as templates and leave requires; textarea and theme-toggle stay host-owned.",
   "_comment_version_1_50_1": "1.50.0 -> 1.50.1: icons move from lucide-react to @remixicon/react (one icon set); lucide-react dropped from dependencies.",
   "_comment_version_1_50_0": "1.49.1 -> 1.50.0: admin nav gains Finance > Customer Subscriptions (/admin/finance/customer-subscriptions, page from the loyalty SDK).",
