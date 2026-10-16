@@ -179,17 +179,27 @@ export function LmsPartnersSection({
           </div>
         </div>
 
-        {config.join ? <LmsSponsorCard join={config.join} /> : null}
-
-        <div className="flex flex-col items-center gap-2 text-center">
-          <Link
-            href={signupUrl}
-            className="sc-btn sc-btn-primary"
-          >
-            {config.cta.label}
-          </Link>
-          <p className="text-sm text-[var(--sc-ink-2)]">{config.cta.sub}</p>
-        </div>
+        {/* 1.37.6 (Ray, 2026-10-16: "partners section has become partner
+            button ... and then link a student with .../register it dont
+            make sense", "i think one button is needed"): with the sponsor
+            card drawn, its partner signup button is the section's only
+            button. The old "Link a student" CTA went to the student
+            signup (/register); a partner links a student with the pairing
+            code inside the partner flow after signing up. A config with no
+            `join` card keeps the CTA. */}
+        {config.join ? (
+          <LmsSponsorCard join={config.join} />
+        ) : (
+          <div className="flex flex-col items-center gap-2 text-center">
+            <Link
+              href={signupUrl}
+              className="sc-btn sc-btn-primary"
+            >
+              {config.cta.label}
+            </Link>
+            <p className="text-sm text-[var(--sc-ink-2)]">{config.cta.sub}</p>
+          </div>
+        )}
       </div>
     </section>
   );

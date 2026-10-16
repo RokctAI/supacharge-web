@@ -704,6 +704,15 @@ html.light .sc-landing .sc-sponsor-card {
   color: var(--sc-kids-ink);
   border-color: var(--sc-kids-ink);
 }
+/* 1.37.6 (Ray, 2026-10-16: "also at Your day, sorted. grade r-3 rectangle
+ * loses soon and gain kids mode colors"): the Subjects feature card's
+ * Grades R to 3 rectangle wears the same kids palette as its tab - cream
+ * fill, ink text, a yellow tile edge. */
+.sc-feature-phase-kids > span {
+  background: var(--sc-kids-bg);
+  color: var(--sc-kids-ink);
+  border: 2px solid var(--sc-kids-tile-1);
+}
 .sc-phase-tab:focus-visible {
   outline: 2px solid var(--sc-primary);
   outline-offset: 2px;

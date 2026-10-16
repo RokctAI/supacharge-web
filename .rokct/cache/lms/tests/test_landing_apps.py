@@ -2782,7 +2782,7 @@ class TestPhaseTabs(unittest.TestCase):
         # asked for on every tab so a live one gets it too.
         self.assertRegex(
             tabs,
-            r'onKeyDown=\{\(event\) => onKeyDown\(event, index\)\}\s*>\s*<LmsPhaseGrades phase=\{tab\} outlined />\s*</button>',
+            r'onKeyDown=\{\(event\) => onKeyDown\(event, index\)\}\s*>\s*(?:\{\s*\}\s*)?<LmsPhaseGrades phase=\{tab\.kidsMode \? \{ \.\.\.tab, badge: undefined \} : tab\} outlined />\s*</button>',
         )
         self.assertEqual(tabs.count("<LmsPhaseGrades"), 1)
         self.assertNotIn("useState", tabs)
@@ -2955,11 +2955,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.5")
+        self.assertEqual(manifest["version"], "1.37.6")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.5"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.6"', read(FOOTER_CHROME))
 
 
 class TestKidsModeCards(unittest.TestCase):
@@ -3049,11 +3049,11 @@ class TestKidsModeCards(unittest.TestCase):
 
     def test_version_and_changelog(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.5")
+        self.assertEqual(manifest["version"], "1.37.6")
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.0")[0]
         self.assertIn("## 1.37.1", head)
         self.assertIn("kids mode", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.5"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.6"', read(FOOTER_CHROME))
 
 
 R3_AVAILABILITY = os.path.join(LANDING, "lms-r3-availability.ts")
@@ -3179,7 +3179,7 @@ class TestR3Availability(unittest.TestCase):
 
     def test_installed_versioned_and_logged(self):
         manifest = load_manifest()
-        self.assertEqual(manifest["version"], "1.37.5")
+        self.assertEqual(manifest["version"], "1.37.6")
         self.assertIn("_comment_version_1_37_3", manifest)
         pairs = {i["from"]: i["to"] for i in manifest["installs"]}
         self.assertEqual(
@@ -3189,7 +3189,7 @@ class TestR3Availability(unittest.TestCase):
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.2")[0]
         self.assertIn("## 1.37.3", head)
         self.assertIn("gen_r3_availability.py", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.5"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.6"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -4489,3 +4489,57 @@ class TestKidsDay(unittest.TestCase):
         gated = css.split("@media (prefers-reduced-motion: no-preference) {")[1].split("\n}\n")[0]
         self.assertIn(".sc-kids-card .sc-kids-step {", gated)
         self.assertNotIn("animation", css.split(".sc-kids-step {")[1].split("}")[0])
+
+
+class TestKidsTabNoSoon(unittest.TestCase):
+    """1.37.6 (Ray, 2026-10-16: "in landing tab for grade R-3 need to loose
+    soon", "that tab is the only change", "cards will have soon")."""
+
+    def test_the_kids_tab_draws_no_badge_and_nothing_else_moves(self):
+        tabs = code_of(os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-grade-tabs.tsx"))
+        self.assertIn("<LmsPhaseGrades phase={tab.kidsMode ? { ...tab, badge: undefined } : tab} outlined />", tabs)
+        config = code_of(os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-landing-config.ts"))
+        # The phase keeps its badge (features card, default-tab fallback) ...
+        self.assertIn('badge: "soon",\n        kidsMode: {', config)
+        # ... and the cards keep their pill.
+        self.assertIn('soonLabel: "Coming soon"', config)
+
+    def test_the_features_card_r3_rectangle_drops_soon_and_wears_kids_colours(self):
+        # Ray, 2026-10-16: "also at Your day, sorted. grade r-3 rectangle
+        # loses soon and gain kids mode colors".
+        features = code_of(os.path.join(SDK_ROOT, "templates/components/custom/lms-features-section.tsx"))
+        self.assertRegex(
+            features,
+            r'phase\.kidsMode \? \(\s*<span className="sc-feature-phase-kids">\s*'
+            r'<LmsPhaseGrades phase=\{\{ \.\.\.phase, badge: undefined \}\} outlined />',
+        )
+        # The other badged phase keeps its pill.
+        self.assertIn("<LmsPhaseGrades phase={phase} />", features)
+        theme = code_of(os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-theme.css"))
+        rule = re.search(r"\.sc-feature-phase-kids > span \{([^}]*)\}", theme)
+        self.assertIsNotNone(rule)
+        self.assertIn("background: var(--sc-kids-bg);", rule.group(1))
+        self.assertIn("color: var(--sc-kids-ink);", rule.group(1))
+        self.assertIn("border: 2px solid var(--sc-kids-tile-1);", rule.group(1))
+
+    def test_the_partners_section_draws_one_button(self):
+        # Ray, 2026-10-16: "i think one button is needed".
+        section = code_of(os.path.join(SDK_ROOT, "templates/components/custom/lms-partners-section.tsx"))
+        self.assertRegex(
+            section,
+            r"\{config\.join \? \(\s*<LmsSponsorCard join=\{config\.join\} />\s*\) : \(",
+        )
+        self.assertEqual(section.count("{config.cta.label}"), 1)
+        self.assertEqual(section.count('className="sc-btn sc-btn-primary"'), 2)
+        config = code_of(os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-landing-config.ts"))
+        self.assertIn('button: { label: "Become a partner", href: "/partner/signup" }', config)
+
+    def test_versioned_and_logged(self):
+        manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
+        self.assertEqual(manifest["version"], "1.37.6")
+        self.assertIn("_comment_version_1_37_6", manifest)
+        head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.5")[0]
+        self.assertIn("## 1.37.6", head)
+        self.assertIn("need to loose soon", head)
+        self.assertIn("gain kids mode colors", head)
+        self.assertIn("i think one button is", head)
