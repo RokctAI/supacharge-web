@@ -23,7 +23,6 @@
 // and automatically skip overwriting it during future upgrades.
 // ==========================================
 
-
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
 
 const Collapsible = CollapsiblePrimitive.Root;
