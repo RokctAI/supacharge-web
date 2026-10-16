@@ -95,6 +95,8 @@ components/custom/theme-provider.tsx
 /app/actions/handson/all/lms/events/types.ts
 /app/actions/handson/all/lms/jobs/actions.ts
 /app/actions/handson/all/lms/jobs/types.ts
+/app/actions/handson/all/lms/partner/actions.ts
+/app/actions/handson/all/lms/partner/types.ts
 /app/actions/handson/all/lms/quiz/actions.ts
 /app/actions/handson/all/lms/quiz/types.ts
 /app/actions/handson/all/lms/reviews/actions.ts
@@ -162,6 +164,8 @@ components/custom/theme-provider.tsx
 /app/manager/reports/page.tsx
 /app/opengraph-image.tsx
 /app/page.tsx
+/app/partner/signup/page.tsx
+/app/partner/signup/partner-signup-form.tsx
 /app/services/all/lms/ad-performance.ts
 /app/services/all/lms/assignments.ts
 /app/services/all/lms/batches.ts
@@ -171,6 +175,7 @@ components/custom/theme-provider.tsx
 /app/services/all/lms/events.ts
 /app/services/all/lms/jobs.ts
 /app/services/all/lms/marketing-calendar.ts
+/app/services/all/lms/partner.ts
 /app/services/all/lms/quiz.ts
 /app/services/all/lms/reviews.ts
 /app/services/all/lms/user.ts

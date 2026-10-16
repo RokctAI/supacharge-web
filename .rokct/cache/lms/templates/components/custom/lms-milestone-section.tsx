@@ -34,16 +34,32 @@
 // with black text in dark mode, the primary with white text in light mode
 // (.sc-milestone-banner in landing/lms-theme.css).
 //
+// 1.37.2 (Ray, 2026-10-16: "the milestone rectable need to come close to
+// the brandname and it needs to collapse to a pilll or a circle with a
+// lightning icon. this collapse and expand need to keep animating but
+// taking longer"): a lightning bolt leads the text, and the banner loops
+// on its own - the full rectangle held for 6s, folding over 1.2s into a
+// circle that shows only the bolt, held for 3s, opening again over 1.2s
+// (`sc-milestone-cycle` in landing/lms-theme.css, pure CSS, so this stays
+// a server component). The words never leave the DOM: they are clipped,
+// never display:none, so the link's accessible name is the whole text in
+// either state. Reduced motion, a pointer over it or keyboard focus on it
+// hold it open. The hero's top padding and the brand row's top margin
+// are cut in the same file so the banner sits just above the wordmark.
+//
 // No "use client" here (1.24.0): base reads `meta` in the SERVER render.
 
 import React from "react";
+import { RiFlashlightFill } from "@remixicon/react";
 
 import { LMS_MILESTONE } from "@/components/custom/landing/lms-milestone";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
 
 /**
  * Before the hero (negative order) and after the theme (-2) and the
- * floating nav (-1); no floating-nav tick. No anchor of its own: the
+ * floating nav (-1); no floating-nav tick of its own: it sits in the
+ * hero's tick, and the band at the bottom carries the "Milestone" tick
+ * (lms-milestone-band-section.tsx, 1.37.2). No anchor of its own: the
  * band's anchor (LMS_MILESTONE.anchor) belongs to the band at the bottom.
  */
 export const meta: PageSectionMeta = {
@@ -54,15 +70,22 @@ export const meta: PageSectionMeta = {
 export function LmsMilestonePill() {
   const m = LMS_MILESTONE;
   return (
-    <div className="container mx-auto flex max-w-6xl justify-center px-4 pt-4 xl:px-0" data-lms-milestone="">
+    <div className="sc-milestone-slot container mx-auto flex max-w-6xl justify-center px-4 xl:px-0" data-lms-milestone="">
       <a
         href={`#${m.anchor}`}
-        className="sc-milestone-banner max-w-full text-center text-xs sm:text-sm"
+        className="sc-milestone-banner max-w-full"
         data-milestone-pill=""
       >
-        <span className="font-extrabold uppercase tracking-wider">{m.pill.label}</span>
-        <span aria-hidden="true">·</span>
-        <span className="font-semibold">{m.pill.text}</span>
+        <RiFlashlightFill className="sc-milestone-icon" aria-hidden="true" />
+        <span className="sc-milestone-text" data-milestone-text="">
+          <span className="sc-milestone-words">
+            <span className="sc-milestone-label font-extrabold uppercase tracking-wider">
+              {m.pill.label}
+              <span aria-hidden="true"> · </span>
+            </span>
+            <span className="font-semibold">{m.pill.text}</span>
+          </span>
+        </span>
       </a>
     </div>
   );

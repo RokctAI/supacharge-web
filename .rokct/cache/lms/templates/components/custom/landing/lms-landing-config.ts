@@ -271,6 +271,24 @@ export interface Phase {
    * only.
    */
   subjects: Subject[];
+  /**
+   * Kids mode (1.37.1; Ray, 2026-10-16: "make the card for grade r-3 in
+   * nextjs landing page be kids mode"): the phase's subject cards wear the
+   * app's kids mode look - the fixed cream palette of the Grades R-3
+   * library (lms/dart r3_session_page.dart kR3Background, r3_picture.dart
+   * kR3TileColors and kR3Ink), light in both site themes - with `badge` on
+   * each card and `tutorLabel` naming the solo tutor row. Absent, the
+   * cards are the site's plain `sc-card`.
+   */
+  kidsMode?: KidsModeLabels;
+}
+
+/** The words a kids mode subject card adds (Phase.kidsMode, 1.37.1). */
+export interface KidsModeLabels {
+  /** The pill on each card: "Kids mode". */
+  badge: string;
+  /** The label of the solo tutor row: "AI tutor". */
+  tutorLabel: string;
 }
 
 /**
@@ -517,7 +535,30 @@ export interface PartnersConfig {
   alerts: string[];
   boundary: string;
   sponsors: { heading: string; text: string };
+  /**
+   * The dark "Become a Sponsor or Partner" card under the three partner
+   * cards (1.37.0). Its button opens this site's own partner signup page
+   * (app/partner/signup, api.lms.partner_signup) - never a phone number,
+   * a chat app or any other off-site contact link.
+   */
+  join?: PartnersJoinConfig;
   cta: { label: string; sub: string };
+}
+
+/** One "way to give" line on the sponsor/partner card. */
+export interface PartnersJoinWay {
+  title: string;
+  text: string;
+}
+
+export interface PartnersJoinConfig {
+  eyebrow: string;
+  heading: string;
+  text: string;
+  /** Three short ways to give, drawn as a row of small items. */
+  ways: PartnersJoinWay[];
+  /** The primary button: a same-site path to the partner signup page. */
+  button: { label: string; href: string };
 }
 
 export interface PricingConfig {
@@ -814,12 +855,29 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
       {
         name: "Foundation Phase",
         grades: "Grades R to 3",
-        text: "Kids mode, where the tutor is the lesson: one live tutor, game-style rounds in Mathematics and English Home Language, and one app a parent and child share, with a profile for each child.",
+        // 1.37.1 (Ray, 2026-10-16: kids mode card): the text says what the
+        // app does today - an AI tutor (Kavitha, lms/dart lesson_models.dart
+        // kR3TutorPersona; pre-recorded, never live) and a profile a parent
+        // sets up per child (the app's ChildProfileFormRoute and
+        // WhoIsLearningRoute) - and each skills line names only what the
+        // bundled packs teach (lms/dart/templates/assets/r3_packs/index.json:
+        // the 20 Grade R Term 1 packs, 10 per subject). Grades 1 to 3 have
+        // no packs yet, so nothing past Grade R Term 1 is named.
+        text: "Kids mode: an AI tutor, Kavitha, takes your child through short game-style rounds in Mathematics and English Home Language - picture tiles to tap, count, match and trace - in one app a parent and child share, where a parent sets up a profile for each child.",
         badge: "soon",
+        kidsMode: { badge: "Kids mode", tutorLabel: "AI tutor" },
         // Named, not cast: no duo until the phase exists.
         subjects: [
-          { name: "Mathematics", skills: "Arithmetic, patterns, shapes, measuring", tutor: "Kavitha" },
-          { name: "English Home Language", skills: "Reading, writing, phonics", tutor: "Kavitha" },
+          {
+            name: "Mathematics",
+            skills: "Grade R, Term 1: the numbers 1 to 4, and circles, squares, triangles, rectangles and hearts",
+            tutor: "Kavitha",
+          },
+          {
+            name: "English Home Language",
+            skills: "Grade R, Term 1: the sounds a, v, g, m, j, k and i, and writing each letter",
+            tutor: "Kavitha",
+          },
         ],
       },
       {
@@ -1322,6 +1380,17 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
     sponsors: {
       heading: "Reports built for sponsors",
       text: "Sponsors get cohort-level outcomes - attendance, progress and impact in one report.",
+    },
+    join: {
+      eyebrow: "Sponsors and partners",
+      heading: "Become a Sponsor or Partner",
+      text: "Fund a learner, sponsor a school programme, or partner with us to expand reach. Every contribution opens a seat for a child who needs it.",
+      ways: [
+        { title: "Fund a learner", text: "Cover one child's lessons for a term or a year." },
+        { title: "Sponsor a school programme", text: "Bring live lessons to a whole class or school." },
+        { title: "Partner with us", text: "Take Supacharge to more learners through your network." },
+      ],
+      button: { label: "Become a partner", href: "/partner/signup" },
     },
     cta: {
       label: "Link a student in seconds",

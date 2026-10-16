@@ -54,6 +54,13 @@ export interface Milestone {
 /** The band's DOM id: the pill's in-page target, whichever slide shows. */
 export const LMS_MILESTONE_ANCHOR = "gse-milestone";
 
+/**
+ * The band's floating-nav label (1.37.2; Ray, 2026-10-16: "the floating
+ * nav on the side has no milestone section"): the tick between
+ * Testimonials and Footer, and its tooltip and aria-label.
+ */
+export const LMS_MILESTONE_NAV_LABEL = "Milestone";
+
 const GSE_2026: Milestone = {
   key: "gse-2026",
   /** The pill at the top of the landing, linking to the band. */

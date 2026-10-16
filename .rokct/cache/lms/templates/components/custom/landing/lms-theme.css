@@ -227,18 +227,309 @@ html.light .sc-landing {
 .sc-milestone-banner {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
   border: 0;
   border-radius: 10px;
-  padding: 0.45rem 0.9rem;
+  padding: 0.45rem var(--sc-milestone-pad, 0.9rem);
   font-weight: 600;
   background: #ffffff;
   color: #111111;
+  /* 1.37.2: one height in both states, so the folded banner is a circle. */
+  box-sizing: border-box;
+  height: 2.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: sc-milestone-cycle-box 11.4s ease-in-out infinite;
 }
 html.sc-landing:not(.dark) .sc-milestone-banner,
 html.light .sc-landing .sc-milestone-banner {
   background: var(--sc-primary);
   color: #ffffff;
+}
+/*
+ * The collapse loop (1.37.2; Ray, 2026-10-16: "it needs to collapse to a
+ * pilll or a circle with a lightning icon. this collapse and expand need to
+ * keep animating but taking longer"). One 11.4s cycle: open 0-6s, folding
+ * 6-7.2s, a circle 7.2-10.2s, opening 10.2-11.4s. The box animates its side
+ * padding (to the circle's 0.625rem: (2.25rem - 1rem icon) / 2) and its
+ * corners (to half its height); the words' one-column grid animates its
+ * track from 1fr to 0fr - the column's own width, never a guessed
+ * max-width - with the words' opacity and the gap after the bolt. Both
+ * keyframes share the duration and start together, so they stay in step.
+ * The words are clipped, never display:none or visibility:hidden, so the
+ * link's accessible name is the full text in both states.
+ */
+.sc-milestone-icon {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--sc-primary);
+}
+html.sc-landing:not(.dark) .sc-milestone-icon,
+html.light .sc-landing .sc-milestone-icon {
+  color: #ffffff;
+}
+.sc-milestone-text {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  margin-left: 0.5rem;
+  animation: sc-milestone-cycle-text 11.4s ease-in-out infinite;
+}
+.sc-milestone-words {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@keyframes sc-milestone-cycle-box {
+  0%,
+  52.63% {
+    padding-left: var(--sc-milestone-pad, 0.9rem);
+    padding-right: var(--sc-milestone-pad, 0.9rem);
+    border-radius: 10px;
+  }
+  63.16%,
+  89.47% {
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+    border-radius: 1.125rem;
+  }
+  100% {
+    padding-left: var(--sc-milestone-pad, 0.9rem);
+    padding-right: var(--sc-milestone-pad, 0.9rem);
+    border-radius: 10px;
+  }
+}
+@keyframes sc-milestone-cycle-text {
+  0%,
+  52.63% {
+    grid-template-columns: minmax(0, 1fr);
+    margin-left: 0.5rem;
+    opacity: 1;
+  }
+  63.16%,
+  89.47% {
+    grid-template-columns: minmax(0, 0fr);
+    margin-left: 0;
+    opacity: 0;
+  }
+  100% {
+    grid-template-columns: minmax(0, 1fr);
+    margin-left: 0.5rem;
+    opacity: 1;
+  }
+}
+/* Held open: for reduced motion, under the pointer and with keyboard focus. */
+.sc-milestone-banner:hover,
+.sc-milestone-banner:focus-visible,
+.sc-milestone-banner:hover .sc-milestone-text,
+.sc-milestone-banner:focus-visible .sc-milestone-text {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-milestone-banner,
+  .sc-milestone-text {
+    animation: none;
+  }
+}
+/*
+ * Below 768px the label ("Supacharge milestone ·") is read, not drawn, and
+ * below 640px the line is set at 11px (10.5px with the circle's own 0.625rem
+ * sides under 375px), so the selection line fits a 360px phone on one line;
+ * an ellipsis takes over only on narrower screens, where the link's name is
+ * still the full text.
+ */
+@media (max-width: 767.98px) {
+  .sc-milestone-banner {
+    font-size: 0.8125rem;
+  }
+  .sc-milestone-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+@media (max-width: 639.98px) {
+  .sc-milestone-banner {
+    --sc-milestone-pad: 0.75rem;
+    font-size: 11px;
+  }
+}
+@media (max-width: 374.98px) {
+  .sc-milestone-banner {
+    --sc-milestone-pad: 0.625rem;
+    font-size: 10.5px;
+  }
+}
+/*
+ * The hero's spacing (1.37.2; Ray, 2026-10-16: "too much space gaps. the
+ * milestone rectable need to come close to the brandname"). base_sdk's
+ * frame (hero-view.tsx) spaces its column with `pt-16` on the section,
+ * `mt-16 md:mt-24 mb-[6.7rem]` on the brand row, `mb-12` under the
+ * headline and `mt-10` over the trust line and badges, with no prop to
+ * change them. The banner renders straight before the hero (order -0.5),
+ * so cutting the section's top padding and the brand row's top margin
+ * brings it down onto the wordmark; the rest close the column up.
+ * Reached through the same element order as the hero rules below:
+ * hero > column > [brand row, headline, (form), badges].
+ */
+.sc-milestone-slot {
+  padding-top: 1.5rem;
+}
+.sc-landing #hero {
+  padding-top: 0.75rem !important;
+  padding-bottom: 2.5rem !important;
+}
+.sc-landing #hero > div > div:first-child {
+  margin-top: 0 !important;
+  margin-bottom: 0.75rem !important;
+}
+.sc-landing #hero > div > div:first-child + div {
+  margin-bottom: 0 !important;
+}
+.sc-landing #hero > div > div:first-child ~ div:last-child:not(:nth-child(2)) {
+  margin-top: 1.75rem !important;
+}
+@media (min-width: 768px) {
+  .sc-milestone-slot {
+    padding-top: 2.5rem;
+  }
+  .sc-landing #hero {
+    padding-top: 1rem !important;
+    padding-bottom: 3.5rem !important;
+  }
+  .sc-landing #hero > div > div:first-child {
+    margin-bottom: 1.25rem !important;
+  }
+  .sc-landing #hero > div > div:first-child ~ div:last-child:not(:nth-child(2)) {
+    margin-top: 2.25rem !important;
+  }
+}
+/*
+ * The "Become a Sponsor or Partner" card (1.37.0, lms-partners-section.tsx).
+ * Dark in both modes, after the reference's dark card: near-black with a
+ * primary glow on the dark set, the light set's own ink (#1b1b20) on the
+ * light set so it still reads as one dark panel on a light page. Its ink
+ * is fixed light on that dark ground; the button stays .sc-btn-primary.
+ */
+.sc-sponsor-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--sc-radius-panel);
+  border: 1px solid var(--sc-stroke);
+  background:
+    radial-gradient(70% 90% at 100% 0%, rgba(255, 102, 0, 0.22) 0%, rgba(255, 102, 0, 0) 60%),
+    #0a0a0a;
+  color: #ffffff;
+}
+.sc-sponsor-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sc-primary);
+}
+.sc-sponsor-text {
+  color: rgba(255, 255, 255, 0.72);
+}
+.sc-sponsor-way {
+  border-radius: var(--sc-radius-card);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+html.sc-landing:not(.dark) .sc-sponsor-card,
+html.light .sc-landing .sc-sponsor-card {
+  border-color: transparent;
+  background:
+    radial-gradient(70% 90% at 100% 0%, rgba(255, 102, 0, 0.3) 0%, rgba(255, 102, 0, 0) 60%),
+    #1b1b20;
+}
+/*
+ * Kids mode subject cards (1.37.1; Ray, 2026-10-16: "make the card for
+ * grade r-3 in nextjs landing page be kids mode"). The app's kids mode
+ * look, colour for colour: the Grades R-3 library's cream background
+ * (lms/dart pages/r3/r3_session_page.dart kR3Background), its dark ink
+ * (r3/widgets/r3_picture.dart kR3Ink) and its six bright tile colours
+ * (r3_picture.dart kR3TileColors). The palette is FIXED - no `.dark` or
+ * `.light` rule touches it - so the card stays light on the site's dark
+ * theme, as the library is light in the app. Secondary text is the ink at
+ * 78% (about 6.8:1 on the cream; the ink itself 13.5:1); the pill is ink on the yellow tile (about
+ * 11:1), so every word clears WCAG AA. lms-subjects-section.client.tsx
+ * (KidsSubjectCard) draws it.
+ */
+.sc-landing,
+:root {
+  --sc-kids-bg: #fff8e7;
+  --sc-kids-ink: #1f2a44;
+  --sc-kids-ink-2: rgba(31, 42, 68, 0.78);
+  --sc-kids-tile-1: #ffe08a;
+  --sc-kids-tile-2: #b8e6ff;
+  --sc-kids-tile-3: #c8f2c2;
+  --sc-kids-tile-4: #ffc9de;
+  --sc-kids-tile-5: #e2d4ff;
+  --sc-kids-tile-6: #ffd2b0;
+  --sc-kids-blue: #4c8df6;
+}
+.sc-kids-card {
+  background: var(--sc-kids-bg);
+  color: var(--sc-kids-ink);
+  border: 3px solid var(--sc-kids-accent, var(--sc-kids-tile-1));
+  border-radius: 1.5rem;
+  box-shadow: 0 6px 0 var(--sc-kids-accent, var(--sc-kids-tile-1));
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+.sc-kids-card:hover {
+  border-color: var(--sc-kids-blue);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-kids-card,
+  .sc-kids-card:hover {
+    transition: none;
+    transform: none;
+  }
+}
+.sc-kids-accent-1 { --sc-kids-accent: var(--sc-kids-tile-1); }
+.sc-kids-accent-2 { --sc-kids-accent: var(--sc-kids-tile-2); }
+.sc-kids-accent-3 { --sc-kids-accent: var(--sc-kids-tile-3); }
+.sc-kids-accent-4 { --sc-kids-accent: var(--sc-kids-tile-4); }
+.sc-kids-accent-5 { --sc-kids-accent: var(--sc-kids-tile-5); }
+.sc-kids-accent-6 { --sc-kids-accent: var(--sc-kids-tile-6); }
+.sc-kids-ink {
+  color: var(--sc-kids-ink);
+}
+.sc-kids-ink-2 {
+  color: var(--sc-kids-ink-2);
+}
+.sc-kids-tile {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 0.25rem;
+}
+.sc-kids-tile-1 { background: var(--sc-kids-tile-1); }
+.sc-kids-tile-2 { background: var(--sc-kids-tile-2); }
+.sc-kids-tile-3 { background: var(--sc-kids-tile-3); }
+.sc-kids-tile-4 { background: var(--sc-kids-tile-4); }
+.sc-kids-tile-5 { background: var(--sc-kids-tile-5); }
+.sc-kids-tile-6 { background: var(--sc-kids-tile-6); }
+.sc-kids-badge {
+  border-radius: 9999px;
+  background: var(--sc-kids-tile-1);
+  color: var(--sc-kids-ink);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 /*
  * The badged curriculum and its pill in ONE border-only rectangle (Ray,

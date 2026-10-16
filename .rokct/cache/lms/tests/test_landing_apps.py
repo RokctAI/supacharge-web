@@ -1966,6 +1966,48 @@ class TestServerSafeSections(unittest.TestCase):
             ],
         )
 
+    def test_every_landing_section_has_a_floating_nav_stop(self):
+        """1.37.2 (Ray, 2026-10-16: "the floating nav on the side has no
+        milestone section which make me think it is missing other
+        sections"): every section drawn in the landing's flow (order >= 0,
+        no `page`) lists a floating-nav entry, in page order, so each has a
+        tick, a tooltip and an aria-label. The one exception is the footer
+        section, which base's own "Footer" entry already ends the nav with.
+        Overlays (a negative order) sit in the hero's tick."""
+        flow = []
+        for section_id, path in registered_sections():
+            meta = re.search(
+                r"export const meta: PageSectionMeta = \{(.*?)\n?\};", code_of(path), re.S
+            )
+            self.assertIsNotNone(meta, section_id)
+            body = meta.group(1)
+            if "page:" in body:
+                continue
+            order = float(re.search(r"order: (-?[\d.]+)", body).group(1))
+            if order < 0:
+                continue
+            labels = re.findall(r"label: ([^,}\s]+)", body)
+            flow.append((order, section_id, labels))
+        flow.sort()
+        self.assertEqual(
+            [(section_id, labels) for _, section_id, labels in flow],
+            [
+                ("lms-sessions-section", ['"Sessions"']),
+                ("lms-subjects-section", ['"Subjects"']),
+                ("lms-tutors-section", ['"Tutors"']),
+                ("lms-features-section", ['"Features"']),
+                ("lms-partners-section", ['"Partners"']),
+                ("lms-pricing", ['"Pricing"']),
+                ("lms-faq-section", ['"FAQ"']),
+                ("lms-testimonials-section", ['"Testimonials"']),
+                ("lms-milestone-band-section", ["LMS_MILESTONE_NAV_LABEL"]),
+                ("lms-footer-section", []),
+            ],
+        )
+        # Every tick is a button with a name: "Scroll to <label>".
+        nav = code_of(os.path.join(CUSTOM, "lms-floating-nav.client.tsx"))
+        self.assertIn("aria-label={`Scroll to ${item.label}", nav)
+
     def test_every_entry_is_installed_has_no_directive_and_exports_meta(self):
         installed = {i["to"] for i in load_manifest()["installs"]}
         for section_id, path in registered_sections():
@@ -2552,9 +2594,14 @@ class TestPhaseTabs(unittest.TestCase):
         )
         self.assertIn("Kids mode", r3["text"])
         # 1.36.4: the Primer wording under the CAPS names, R to 3 only.
+        # 1.37.1: the lines name only what the bundled Grade R Term 1 packs
+        # teach (TestKidsModeCards checks them against the packs).
         self.assertEqual(
             [s.get("skills") for s in r3["subjects"]],
-            ["Arithmetic, patterns, shapes, measuring", "Reading, writing, phonics"],
+            [
+                "Grade R, Term 1: the numbers 1 to 4, and circles, squares, triangles, rectangles and hearts",
+                "Grade R, Term 1: the sounds a, v, g, m, j, k and i, and writing each letter",
+            ],
         )
         for phase in self.by_grades.values():
             if phase is not r3:
@@ -2743,7 +2790,8 @@ class TestPhaseTabs(unittest.TestCase):
         self.assertIn("id={ids.panel}", client)
         self.assertIn("aria-labelledby={ids.tab}", client)
         self.assertIn("const ids = gradeTabIds(prefix, selected.name);", client)
-        self.assertIn("{selected.subjects.map((subject) => (", client)
+        # 1.37.1: the map picks KidsSubjectCard for a kidsMode phase.
+        self.assertIn("{selected.subjects.map((subject, index) => {", client)
         self.assertIn("sc-row", client)
         for source, hovers in ((client, 1), (tabs, 0)):
             for word in ("onMouseEnter", "onMouseOver", "onPointerEnter", "hover:"):
@@ -2893,11 +2941,97 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.36.22")
+        self.assertEqual(manifest["version"], "1.37.2")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.36.22"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.2"', read(FOOTER_CHROME))
+
+
+class TestKidsModeCards(unittest.TestCase):
+    """1.37.1 (Ray, 2026-10-16: "make the card for grade r-3 in nextjs
+    landing page be kids mode"): the Grades R to 3 subject cards wear the
+    app's kids mode look, the R-3 library's fixed cream palette, and say
+    only what the app ships for R-3 today."""
+
+    DART = os.path.join(SDK_ROOT, os.pardir, "dart")
+    R3_PAGES = os.path.join(DART, "lib", "src", "common", "presentation", "pages", "r3")
+    PACKS = os.path.join(DART, "templates", "assets", "r3_packs")
+
+    def setUp(self):
+        self.phases = lift_subjects()["phases"]
+        self.r3 = next(p for p in self.phases if p["grades"] == "Grades R to 3")
+
+    def dart_colors(self):
+        session = read(os.path.join(self.R3_PAGES, "r3_session_page.dart"))
+        picture = read(os.path.join(self.R3_PAGES, "widgets", "r3_picture.dart"))
+        bg = re.search(r"kR3Background = Color\(0xFF([0-9A-F]{6})\)", session).group(1)
+        ink = re.search(r"kR3Ink = Color\(0xFF([0-9A-F]{6})\)", picture).group(1)
+        block = re.search(r"kR3TileColors = \[(.*?)\];", picture, re.S).group(1)
+        tiles = re.findall(r"Color\(0xFF([0-9A-F]{6})\)", block)
+        return bg, ink, tiles
+
+    def test_only_the_r3_phase_is_kids_mode(self):
+        self.assertEqual(
+            self.r3["kidsMode"], {"badge": "Kids mode", "tutorLabel": "AI tutor"}
+        )
+        for phase in self.phases:
+            if phase is not self.r3:
+                self.assertNotIn("kidsMode", phase)
+
+    def test_text_is_honest_ai_tutor_and_a_profile_per_child(self):
+        text = self.r3["text"]
+        self.assertIn("AI tutor", text)
+        self.assertIn("a parent sets up a profile for each child", text)
+        # R-3 is pre-recorded, never live (lesson_models.dart kR3TutorPersona).
+        self.assertNotIn("live", text)
+
+    def test_skills_name_only_what_the_bundled_packs_teach(self):
+        with open(os.path.join(self.PACKS, "index.json"), encoding="utf-8") as f:
+            packs = json.load(f)["packs"]
+        # Grade R Term 1 is all the app bundles; nothing past it is named.
+        self.assertTrue(all("/gradeR/term1/" in p for p in packs))
+        for subject in self.r3["subjects"]:
+            self.assertTrue(subject["skills"].startswith("Grade R, Term 1: "))
+        maths = [p for p in packs if p.startswith("maths/")]
+        for word in ("one", "two", "three", "four", "circle", "square", "triangle", "rectangle", "heart"):
+            self.assertTrue(any(word in p for p in maths), word)
+        english = [p for p in packs if p.startswith("english_home_language/")]
+        for letter in ("a", "v", "g", "m_j", "k_i"):
+            self.assertTrue(any(p.endswith(f"_sound_{letter}.json") for p in english), letter)
+            self.assertTrue(any(p.endswith(f"_write_{letter}.json") for p in english), letter)
+
+    def test_css_is_the_r3_librarys_palette_and_fixed(self):
+        bg, ink, tiles = self.dart_colors()
+        css = read(THEME_CSS)
+        self.assertIn(f"--sc-kids-bg: #{bg.lower()};", css)
+        self.assertIn(f"--sc-kids-ink: #{ink.lower()};", css)
+        for i, tile in enumerate(tiles, start=1):
+            self.assertIn(f"--sc-kids-tile-{i}: #{tile.lower()};", css)
+        # Fixed: no theme rule restyles a kids class.
+        for line in css.splitlines():
+            if "sc-kids" in line and line.rstrip().endswith("{"):
+                self.assertNotIn(".dark", line)
+                self.assertNotIn(".light", line)
+
+    def test_client_mirrors_the_tiles_and_draws_the_kids_card(self):
+        _, _, tiles = self.dart_colors()
+        client = code_of(SUBJECTS_CLIENT)
+        block = re.search(r"KIDS_TILE_COLORS = \[(.*?)\] as const", client, re.S).group(1)
+        self.assertEqual(re.findall(r'"#([0-9A-F]{6})"', block), tiles)
+        self.assertIn("selected.kidsMode ?", client)
+        self.assertIn("<KidsSubjectCard", client)
+        self.assertIn("{labels.badge}", client)
+        self.assertIn("{labels.tutorLabel}", client)
+        self.assertIn('data-kids-card=""', client)
+
+    def test_version_and_changelog(self):
+        manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
+        self.assertEqual(manifest["version"], "1.37.2")
+        head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.0")[0]
+        self.assertIn("## 1.37.1", head)
+        self.assertIn("kids mode", head)
+        self.assertIn('LMS_LANDING_VERSION = "1.37.2"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -3968,6 +4102,87 @@ class TestGseMilestone(unittest.TestCase):
         light = css[css.index("html.light .sc-landing .sc-milestone-banner {"):]
         self.assertIn("background: var(--sc-primary);", light[:200])
         self.assertIn("color: #ffffff;", light[:200])
+
+    def test_banner_loops_between_rectangle_and_bolt_circle(self):
+        # 1.37.2 (Ray, 2026-10-16): "it needs to collapse to a pilll or a
+        # circle with a lightning icon. this collapse and expand need to
+        # keep animating but taking longer".
+        section = code_of(self.SECTION)
+        self.assertNotIn('"use client"', section)
+        self.assertIn("RiFlashlightFill", section)
+        self.assertIn('<RiFlashlightFill className="sc-milestone-icon" aria-hidden="true" />', section)
+        # The words stay in the DOM in both states: the link's name.
+        self.assertIn('className="sc-milestone-text"', section)
+        self.assertIn("{m.pill.label}", section)
+        self.assertIn("{m.pill.text}", section)
+        css = read(THEME_CSS)
+        banner = css[css.index(".sc-milestone-banner {"):]
+        banner = banner[: banner.index("}")]
+        self.assertIn("height: 2.25rem;", banner)
+        self.assertIn("animation: sc-milestone-cycle-box 11.4s ease-in-out infinite;", banner)
+        text = css[css.index(".sc-milestone-text {"):]
+        text = text[: text.index("}")]
+        self.assertIn("display: inline-grid;", text)
+        self.assertIn("animation: sc-milestone-cycle-text 11.4s ease-in-out infinite;", text)
+        # 6s open, 1.2s folding, 3s a circle, 1.2s opening: 11.4s.
+        for name in ("sc-milestone-cycle-box", "sc-milestone-cycle-text"):
+            frames = css[css.index("@keyframes %s {" % name):]
+            frames = frames[: frames.index("\n}\n")]
+            for stop in ("0%,\n  52.63% {", "63.16%,\n  89.47% {", "100% {"):
+                self.assertIn(stop, frames, (name, stop))
+        self.assertAlmostEqual(6 / 11.4 * 100, 52.63, places=2)
+        self.assertAlmostEqual(7.2 / 11.4 * 100, 63.16, places=2)
+        self.assertAlmostEqual(10.2 / 11.4 * 100, 89.47, places=2)
+        box = css[css.index("@keyframes sc-milestone-cycle-box {"):]
+        collapsed = box[box.index("63.16%"): box.index("100%")]
+        # The circle: sides (2.25rem - 1rem icon) / 2, corners half the height.
+        self.assertIn("padding-left: 0.625rem;", collapsed)
+        self.assertIn("border-radius: 1.125rem;", collapsed)
+        words = css[css.index("@keyframes sc-milestone-cycle-text {"):]
+        folded = words[words.index("63.16%"): words.index("100%")]
+        self.assertIn("grid-template-columns: minmax(0, 0fr);", folded)
+        self.assertIn("opacity: 0;", folded)
+        # Clipped, never removed from the accessibility tree.
+        for rule in (".sc-milestone-text {", ".sc-milestone-words {"):
+            body = css[css.index(rule):]
+            body = body[: body.index("}")]
+            self.assertNotIn("display: none", body)
+            self.assertNotIn("visibility", body)
+
+    def test_banner_holds_open_for_reduced_motion_hover_and_focus(self):
+        css = read(THEME_CSS)
+        reduced = re.search(
+            r"@media \(prefers-reduced-motion: reduce\) \{\s*"
+            r"\.sc-milestone-banner,\s*\.sc-milestone-text \{\s*animation: none;",
+            css,
+        )
+        self.assertIsNotNone(reduced, "no reduced-motion rule holds the banner open")
+        self.assertIn(".sc-milestone-banner:focus-visible .sc-milestone-text", css)
+        self.assertIn(".sc-milestone-banner:hover .sc-milestone-text", css)
+
+    def test_banner_sits_on_the_wordmark(self):
+        # 1.37.2 (Ray, 2026-10-16): "too much space gaps. the milestone
+        # rectable need to come close to the brandname". The hero's top
+        # padding and the brand row's top margin are cut from outside.
+        css = read(THEME_CSS)
+        hero = css[css.index("The hero's spacing (1.37.2"):]
+        self.assertIn(".sc-landing #hero {\n  padding-top: 0.75rem !important;", hero)
+        self.assertIn(
+            ".sc-landing #hero > div > div:first-child {\n  margin-top: 0 !important;", hero
+        )
+        self.assertIn(
+            ".sc-landing #hero > div > div:first-child + div {\n  margin-bottom: 0 !important;", hero
+        )
+        section = code_of(self.SECTION)
+        self.assertIn('className="sc-milestone-slot ', section)
+        self.assertNotIn(" pt-4 ", section)
+
+    def test_band_is_a_floating_nav_stop(self):
+        # 1.37.2 (Ray, 2026-10-16): "the floating nav on the side has no
+        # milestone section". Its DOM id stays the pill's target.
+        band = code_of(self.BAND)
+        self.assertIn("nav: [{ id: LMS_MILESTONE_ANCHOR, label: LMS_MILESTONE_NAV_LABEL }]", band)
+        self.assertIn('export const LMS_MILESTONE_NAV_LABEL = "Milestone";', code_of(self.COPY))
 
     def test_no_session_fact_ticker(self):
         # 1.36.17 (Ray, 2026-10-09): the ticker under the band is out.
