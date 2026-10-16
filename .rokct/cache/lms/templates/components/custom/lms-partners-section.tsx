@@ -20,6 +20,15 @@
 //
 // The three cards are one swipeable row below 640px (`sc-row`,
 // landing/lms-theme.css); from 640px up the grid is unchanged.
+//
+// Since 1.37.0 a dark "Become a Sponsor or Partner" card follows the three
+// cards (LMS_LANDING_CONFIG.partners.join): the heading, one paragraph,
+// three short ways to give and one primary button. The button is a
+// same-site link to this SDK's own partner signup page (/partner/signup,
+// app/partner/signup/page.tsx, which calls api.lms.partner_signup through
+// the platform gateway). It never opens a chat app, a phone number or any
+// other off-site contact link. `.sc-sponsor-card` (landing/lms-theme.css)
+// keeps the card dark in both modes, with its own ink for each.
 
 // No "use client" here (1.24.0): base reads `meta` in the SERVER render,
 // where every export of a client module is a client reference (Next
@@ -31,13 +40,69 @@
 
 import React from "react";
 import Link from "next/link";
-import { RiNotification4Line, RiCalendarCheckLine, RiShieldCheckLine } from "@remixicon/react";
+import {
+  RiNotification4Line,
+  RiCalendarCheckLine,
+  RiShieldCheckLine,
+  RiHandHeartLine,
+  RiSchoolLine,
+  RiTeamLine,
+} from "@remixicon/react";
 
-import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
+import {
+  LMS_LANDING_CONFIG,
+  type PartnersJoinConfig,
+} from "@/components/custom/landing/lms-landing-config";
 import type {
   PageSectionMeta,
   PageSectionProps,
 } from "@/components/custom/landing/page-sections";
+
+const WAY_ICONS = [RiHandHeartLine, RiSchoolLine, RiTeamLine];
+
+/** Only a same-site path is a valid button target: "/x", never "//x" or a scheme. */
+function isSameSitePath(href: string): boolean {
+  return href.startsWith("/") && !href.startsWith("//");
+}
+
+export function LmsSponsorCard({ join }: { join: PartnersJoinConfig }) {
+  const href = isSameSitePath(join.button.href) ? join.button.href : "/partner/signup";
+  return (
+    <div
+      className="sc-sponsor-card flex flex-col gap-8 p-6 md:p-10"
+      data-sponsor-card
+    >
+      <div className="flex flex-col gap-3 max-w-2xl">
+        <p className="sc-sponsor-eyebrow">{join.eyebrow}</p>
+        <h3 className="text-[28px] md:text-[36px] font-extrabold leading-[1.1] tracking-tight text-balance">
+          {join.heading}
+        </h3>
+        <p className="sc-sponsor-text text-base md:text-lg leading-relaxed">
+          {join.text}
+        </p>
+      </div>
+      <ul className="grid gap-4 md:grid-cols-3">
+        {join.ways.map((way, i) => {
+          const Icon = WAY_ICONS[i % WAY_ICONS.length];
+          return (
+            <li key={way.title} className="sc-sponsor-way flex gap-3 p-4">
+              <Icon className="size-6 shrink-0 text-[var(--sc-primary)]" aria-hidden="true" />
+              <div className="flex flex-col gap-1">
+                <span className="font-bold">{way.title}</span>
+                <span className="sc-sponsor-text text-sm leading-relaxed">{way.text}</span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <div>
+        <Link href={href} className="sc-btn sc-btn-primary">
+          {join.button.label}
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export function LmsPartnersSection({
   id,
@@ -113,6 +178,8 @@ export function LmsPartnersSection({
             </div>
           </div>
         </div>
+
+        {config.join ? <LmsSponsorCard join={config.join} /> : null}
 
         <div className="flex flex-col items-center gap-2 text-center">
           <Link

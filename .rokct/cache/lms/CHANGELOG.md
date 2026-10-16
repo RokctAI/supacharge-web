@@ -1,5 +1,84 @@
 # Changelog
 
+## 1.37.2
+
+* Landing hero (Ray, 2026-10-16: "too much space gaps. the milestone
+  rectable need to come close to the brandname and it needs to collapse to
+  a pilll or a circle with a lightning icon. this collapse and expand need
+  to keep animating but taking longer"). `landing/lms-theme.css` cuts base
+  hero frame's spacing from outside, through the `#hero` element order the
+  other hero rules use: the section's top padding (`pt-16` to 0.75rem, 1rem
+  from 768px), the brand row's top margin (`mt-16 md:mt-24` to 0) and its
+  bottom margin (6.7rem to 0.75rem, 1.25rem from 768px), the headline's
+  `mb-12` (to 0) and the trust line's `mt-10` (to 1.75rem, 2.25rem from
+  768px). The milestone banner (`lms-milestone-section.tsx`, still order
+  -0.5, before the hero) now sits about 18px above the wordmark.
+* The banner leads with a lightning bolt (`RiFlashlightFill`) and loops
+  on its own, in CSS only (the entry stays a server component): the
+  rectangle held 6s, folding over 1.2s into a 36px circle that shows only
+  the bolt, held 3s, opening over 1.2s (`sc-milestone-cycle-box` and
+  `sc-milestone-cycle-text`, 11.4s). The words fold through a one-column
+  grid (`1fr` to `0fr`), so no width is guessed; they are clipped, never
+  `display: none`, so the link's name is the whole text in both states.
+  Reduced motion, a pointer over it or keyboard focus on it hold it open.
+  Below 768px the "Supacharge milestone" label is read but not drawn, and
+  the line is 13px, 11px below 640px and 10.5px below 375px, so it fits a
+  360px phone on one line.
+* Floating nav: the milestone band at the bottom is a stop, "Milestone"
+  (`LMS_MILESTONE_NAV_LABEL`), between Testimonials and Footer; its DOM id
+  is still `gse-milestone`, the banner's target. Every other section in
+  the landing's flow already had a stop; the footer section is covered by
+  base's own "Footer" entry.
+* `LMS_LANDING_VERSION` goes to 1.37.2.
+
+## 1.37.1
+
+* Landing subjects: the Grades R to 3 cards are kids mode (Ray,
+  2026-10-16: "make the card for grade r-3 in nextjs landing page be kids
+  mode"). A phase with the new `kidsMode` (`KidsModeLabels`: `badge`,
+  `tutorLabel`) draws `KidsSubjectCard` in
+  `lms-subjects-section.client.tsx` instead of the plain `sc-card`: the
+  Grades R-3 library's fixed cream palette from the app (lms/dart
+  `r3_session_page.dart` kR3Background `#FFF8E7`, `r3_picture.dart`
+  kR3Ink `#1F2A44` and the six kR3TileColors), a "Kids mode" pill, a row
+  of the six tile colours, and an "AI tutor" row naming Kavitha. New
+  `.sc-kids-*` rules in `landing/lms-theme.css`; no theme rule touches
+  them, so the cards stay light on the dark site theme. Every word clears
+  WCAG AA on the cream (ink 13.5:1, secondary 6.8:1, pill 11:1). Other
+  phases' cards are unchanged.
+* The Foundation Phase text says what the app does today: an AI tutor,
+  Kavitha (pre-recorded, never live, so "one live tutor" goes), game-style
+  rounds to tap, count, match and trace, and a profile a parent sets up
+  for each child. The skills lines name only what the bundled Grade R Term
+  1 packs teach: "Grade R, Term 1: the numbers 1 to 4, and circles,
+  squares, triangles, rectangles and hearts" and "Grade R, Term 1: the
+  sounds a, v, g, m, j, k and i, and writing each letter".
+* `LMS_LANDING_VERSION` goes to 1.37.1.
+
+## 1.37.0
+
+* Landing: a dark "Become a Sponsor or Partner" card under the partner
+  cards, after the reference site's dark card: the heading, "Fund a
+  learner, sponsor a school programme, or partner with us to expand reach.
+  Every contribution opens a seat for a child who needs it.", three short
+  ways to give (fund a learner, sponsor a school programme, partner with
+  us) and a "Become a partner" button. Config-driven as
+  `LMS_LANDING_CONFIG.partners.join` (`PartnersJoinConfig`); the existing
+  sponsors note stays. New `.sc-sponsor-card` in `landing/lms-theme.css`
+  keeps it dark in both modes.
+* The button opens this site's own partner signup page, never WhatsApp, a
+  phone number or a wa.me link: new `/partner/signup`
+  (`templates/app/partner`, installed at `app/partner`) with name,
+  organisation, email, password and a "how you'd like to help" choice. It
+  calls `api.lms.partner_signup` through the platform gateway with no
+  session (`requireAuth: false`), sending the name, email, password and
+  the two optional fields rlms's signup now accepts: `organisation` and
+  `help_type` (`fund_learner` / `sponsor_school` / `partner`), which the
+  backend validates and stores on a new `LMS Partner Profile`. The app's
+  signup sends neither and is unchanged. `requires` adds
+  `app/services/base/platform-gateway.ts`.
+* `LMS_LANDING_VERSION` goes to 1.37.0.
+
 ## 1.36.22
 
 - Landing subjects: the Grades 4 to 6 cards name the tutor duos the roster

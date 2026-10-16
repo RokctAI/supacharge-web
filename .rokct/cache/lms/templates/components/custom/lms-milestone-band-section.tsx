@@ -37,6 +37,8 @@
 // more lms-milestone-carousel.client.tsx slides them to the left on its
 // own. The orange stays on the section, so every slide shares it.
 //
+// 1.37.2: a floating-nav stop of its own, "Milestone" (meta below).
+//
 // No "use client" here (1.24.0): base reads `meta` in the SERVER render.
 // The only client piece is the slider, rendered with the slides as children.
 
@@ -45,6 +47,7 @@ import { RiArrowRightLine, RiArrowRightUpLine } from "@remixicon/react";
 
 import {
   LMS_MILESTONE_ANCHOR,
+  LMS_MILESTONE_NAV_LABEL,
   LMS_MILESTONES,
   type Milestone,
 } from "@/components/custom/landing/lms-milestone";
@@ -55,12 +58,16 @@ import type {
 } from "@/components/custom/landing/page-sections";
 
 /**
- * After the testimonials (90) and before the footer (95); no floating-nav
- * tick. The DOM id is the anchor the pill at the top points at.
+ * After the testimonials (90) and before the footer (95). The DOM id is
+ * the anchor the pill at the top points at. Since 1.37.2 it is a
+ * floating-nav stop, "Milestone", between Testimonials and Footer (Ray,
+ * 2026-10-16: "the floating nav on the side has no milestone section"):
+ * base takes the DOM id from the first nav entry, so the entry's id is the
+ * same anchor and the pill's link is unchanged.
  */
 export const meta: PageSectionMeta = {
   order: 92,
-  nav: [],
+  nav: [{ id: LMS_MILESTONE_ANCHOR, label: LMS_MILESTONE_NAV_LABEL }],
   anchor: LMS_MILESTONE_ANCHOR,
 };
 

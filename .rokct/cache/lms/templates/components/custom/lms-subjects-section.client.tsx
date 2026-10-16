@@ -59,6 +59,17 @@
 // on its way shows the duos the roster already casts, and a solo subject
 // (kids mode, Grades R to 3) one "Tutor" row (Subject.tutor).
 //
+// Kids mode (1.37.1; Ray, 2026-10-16: "make the card for grade r-3 in
+// nextjs landing page be kids mode"): a phase with `kidsMode` (Foundation
+// Phase, Grades R to 3) draws KidsSubjectCard instead - the app's kids mode
+// look, the cream background, dark ink and bright tile colours of the
+// Grades R-3 library (lms/dart r3_session_page.dart kR3Background,
+// r3_picture.dart kR3TileColors and kR3Ink; `.sc-kids-*` in
+// landing/lms-theme.css). The palette is fixed: the card stays light in the
+// site's dark theme, as the library is light in the app's. The row of six
+// tile colours is decoration (aria-hidden); the pill reads the config's
+// `kidsMode.badge` and the tutor row its `kidsMode.tutorLabel`.
+//
 // Below 640px the grid is one swipeable row (`sc-row`, landing/lms-theme.css;
 // Ray, 2026-09-09: "most cards should be one row in mobile. even subjects
 // cards"); from 640px up it is the two- then three-column grid.
@@ -68,7 +79,25 @@ import React, { useState } from "react";
 import { LmsPhaseGrades } from "@/components/custom/landing/lms-curricula";
 import { LmsGradeTabs, gradeTabIds } from "@/components/custom/landing/lms-grade-tabs";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
-import type { Phase, Subject } from "@/components/custom/landing/lms-landing-config";
+import type {
+  KidsModeLabels,
+  Phase,
+  Subject,
+} from "@/components/custom/landing/lms-landing-config";
+
+/**
+ * The Grades R-3 library's tile colours, in the app's order (lms/dart
+ * r3_picture.dart kR3TileColors). Mirrored as `--sc-kids-tile-1..6` in
+ * landing/lms-theme.css; exported for the tests.
+ */
+export const KIDS_TILE_COLORS = [
+  "#FFE08A",
+  "#B8E6FF",
+  "#C8F2C2",
+  "#FFC9DE",
+  "#E2D4FF",
+  "#FFD2B0",
+] as const;
 
 /**
  * The phase selected on first paint: the config's `defaultPhase` by name,
@@ -113,6 +142,52 @@ function SubjectCard({ subject }: { subject: Subject }) {
           <div className="flex justify-between gap-4">
             <dt className="text-[var(--sc-ink-2)]">Tutor</dt>
             <dd className="font-semibold text-[var(--sc-ink)]">{subject.tutor}</dd>
+          </div>
+        </dl>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * A kids mode subject card (1.37.1): the same name, skills line and tutor
+ * row as SubjectCard, on the R-3 library's cream with its tile colours.
+ * `index` picks the card's accent tile, so neighbours differ.
+ */
+function KidsSubjectCard({
+  subject,
+  labels,
+  index,
+}: {
+  subject: Subject;
+  labels: KidsModeLabels;
+  index: number;
+}) {
+  const tile = (index % KIDS_TILE_COLORS.length) + 1;
+  return (
+    <div
+      className={`sc-kids-card sc-kids-accent-${tile} flex flex-col gap-4 p-6`}
+      data-kids-card=""
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span aria-hidden="true" className="flex gap-1.5">
+          {KIDS_TILE_COLORS.map((_, i) => (
+            <span key={i} className={`sc-kids-tile sc-kids-tile-${i + 1}`} />
+          ))}
+        </span>
+        <span className="sc-kids-badge">{labels.badge}</span>
+      </div>
+      <div className="flex flex-col gap-1">
+        <h3 className="sc-kids-ink text-2xl font-black tracking-tight">{subject.name}</h3>
+        {subject.skills ? (
+          <span className="sc-kids-ink-2 text-sm leading-relaxed">{subject.skills}</span>
+        ) : null}
+      </div>
+      {subject.tutor ? (
+        <dl className="mt-auto flex flex-col gap-1 text-sm">
+          <div className="flex justify-between gap-4">
+            <dt className="sc-kids-ink-2">{labels.tutorLabel}</dt>
+            <dd className="sc-kids-ink font-bold">{subject.tutor}</dd>
           </div>
         </dl>
       ) : null}
@@ -168,12 +243,19 @@ export function LmsSubjectsPhases({ id }: { id?: string }) {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sc-row">
-          {selected.subjects.map((subject) => (
-            <SubjectCard
-              key={subject.grades ? `${subject.name} ${subject.grades}` : subject.name}
-              subject={subject}
-            />
-          ))}
+          {selected.subjects.map((subject, index) => {
+            const key = subject.grades ? `${subject.name} ${subject.grades}` : subject.name;
+            return selected.kidsMode ? (
+              <KidsSubjectCard
+                key={key}
+                subject={subject}
+                labels={selected.kidsMode}
+                index={index}
+              />
+            ) : (
+              <SubjectCard key={key} subject={subject} />
+            );
+          })}
         </div>
       </div>
     </>
