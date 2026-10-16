@@ -137,11 +137,22 @@ function FeatureCard({ feature }: { feature: Feature }) {
               </span>
             </li>
           ) : null}
+          {/* 1.37.6 (Ray, 2026-10-16: "also at Your day, sorted. grade r-3
+              rectangle loses soon and gain kids mode colors"): the kids mode
+              phase draws no soon badge and wears the kids palette
+              (`.sc-feature-phase-kids`). It stays in the list: the filter
+              still reads the config badge. */}
           {phases.map((phase) => (
             <li key={phase.name} className="sc-feature-line">
-              <span>
-                <LmsPhaseGrades phase={phase} />
-              </span>
+              {phase.kidsMode ? (
+                <span className="sc-feature-phase-kids">
+                  <LmsPhaseGrades phase={{ ...phase, badge: undefined }} outlined />
+                </span>
+              ) : (
+                <span>
+                  <LmsPhaseGrades phase={phase} />
+                </span>
+              )}
             </li>
           ))}
           {(feature.lines ?? []).map((line) => (

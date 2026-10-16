@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.37.6
+
+* Landing, Grades R to 3 tab (Ray, 2026-10-16: "in landing tab for grade
+  R-3 need to loose soon", "that tab is the only change", "cards will have
+  soon"): the kids mode tab no longer draws the soon badge
+  (`landing/lms-grade-tabs.tsx`). Nothing else moves: the phase keeps its
+  badge in the config, and the subject cards keep their "Coming soon" pills.
+* Landing, "Your day, sorted." (Ray, 2026-10-16: "also at Your day, sorted.
+  grade r-3 rectangle loses soon and gain kids mode colors"): the Subjects
+  feature card's Grades R to 3 rectangle draws no soon badge and wears the
+  kids palette, as its tab does (`lms-features-section.tsx`,
+  `.sc-feature-phase-kids` in `landing/lms-theme.css`). Grades 4 to 6 keeps
+  its pill.
+* Landing, partners section (Ray, 2026-10-16: "i think one button is
+  needed"): with the sponsor card drawn, its "Become a partner" button
+  (/partner/signup) is the section's only button. The "Link a student in
+  seconds" CTA under it went to the student signup (/register); a partner
+  links a student with the pairing code after signing up. A config with no
+  `join` card still draws the CTA (`lms-partners-section.tsx`).
+
 ## 1.37.5
 
 * Landing subjects, Grades R to 3 (Ray, 2026-10-16: "below that subject

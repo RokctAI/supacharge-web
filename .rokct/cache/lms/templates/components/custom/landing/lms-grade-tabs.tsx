@@ -134,7 +134,12 @@ export function LmsGradeTabs({
             onClick={() => onSelect(tab.name)}
             onKeyDown={(event) => onKeyDown(event, index)}
           >
-            <LmsPhaseGrades phase={tab} outlined />
+            {/* 1.37.6 (Ray, 2026-10-16: "in landing tab for grade R-3 need
+                to loose soon", "that tab is the only change", "cards will
+                have soon"): the kids mode tab draws no soon badge. The
+                phase keeps its badge everywhere else, and its subject cards
+                keep their own "Coming soon" pills. */}
+            <LmsPhaseGrades phase={tab.kidsMode ? { ...tab, badge: undefined } : tab} outlined />
           </button>
         );
       })}
