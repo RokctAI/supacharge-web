@@ -95,6 +95,7 @@ import { LmsGradeTabs, gradeTabIds } from "@/components/custom/landing/lms-grade
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import { R3_SUBJECTS_WITH_PACKS } from "@/components/custom/landing/lms-r3-availability";
 import type {
+  KidsDay,
   KidsModeLabels,
   Phase,
   Subject,
@@ -176,6 +177,45 @@ function SubjectCard({ subject }: { subject: Subject }) {
 }
 
 /**
+ * The parents' "day, sorted" under the kids cards (1.37.5; Ray,
+ * 2026-10-16: a kids mode version of "Your day, sorted", talking to
+ * parents): the heading and blurb, then each item as a kids card with its
+ * step number on a coloured tile, popping in after the subject cards.
+ */
+export function KidsDaySection({ day }: { day: KidsDay }) {
+  return (
+    <div className="flex flex-col gap-6 pt-4" data-kids-day="">
+      <div className="flex flex-col items-center text-center gap-2">
+        <h3 className="text-2xl md:text-3xl font-black tracking-tight text-[var(--sc-ink)]">
+          {day.heading}
+        </h3>
+        <p className="text-sm md:text-base text-[var(--sc-ink-2)] leading-relaxed max-w-2xl">
+          {day.blurb}
+        </p>
+      </div>
+      <ol className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {day.items.map((item, index) => {
+          const tile = (index % KIDS_TILE_COLORS.length) + 1;
+          return (
+            <li
+              key={item.name}
+              className={`sc-kids-card sc-kids-accent-${tile} flex flex-col gap-3 p-6`}
+              style={{ "--sc-kids-i": index + 4 } as React.CSSProperties}
+            >
+              <span aria-hidden="true" className={`sc-kids-step sc-kids-tile-${tile}`}>
+                {index + 1}
+              </span>
+              <h4 className="sc-kids-ink text-xl font-black tracking-tight">{item.name}</h4>
+              <p className="sc-kids-ink-2 text-sm leading-relaxed">{item.text}</p>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+/**
  * A kids mode subject card (1.37.1): the same name, skills line and tutor
  * row as SubjectCard, on the R-3 library's cream with its tile colours.
  * `index` picks the card's accent tile, so neighbours differ.
@@ -194,6 +234,7 @@ function KidsSubjectCard({
   return (
     <div
       className={`sc-kids-card sc-kids-accent-${tile} flex flex-col gap-4 p-6`}
+      style={{ "--sc-kids-i": index } as React.CSSProperties}
       data-kids-card=""
     >
       <div className="flex items-center justify-between gap-3">
@@ -294,6 +335,8 @@ export function LmsSubjectsPhases({ id }: { id?: string }) {
             );
           })}
         </div>
+
+        {selected.kidsMode?.day ? <KidsDaySection day={selected.kidsMode.day} /> : null}
       </div>
     </>
   );

@@ -185,11 +185,15 @@ export function defaultGradeFilterOf(
  * else its name. Exported for the tests.
  */
 export function gradeFilterTabs(filters: GradeFilter[], phases: Phase[]): GradeTab[] {
-  return filters.map((filter) => ({
-    name: filter.name,
-    grades:
-      filter.grades ?? phases.find((phase) => phase.name === filter.name)?.grades ?? filter.name,
-  }));
+  return filters.map((filter) => {
+    const phase = phases.find((p) => p.name === filter.name);
+    return {
+      name: filter.name,
+      grades: filter.grades ?? phase?.grades ?? filter.name,
+      // 1.37.4: the kids mode phase's tab wears the kids palette here too.
+      ...(phase?.kidsMode ? { kidsMode: phase.kidsMode } : {}),
+    };
+  });
 }
 
 /**
