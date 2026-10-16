@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.52.1
+
+* fix: `components/ui/select.tsx` is prettier-formatted (its icon import is
+  wrapped). The fleet linter reformatted it in every app that tracks it, and
+  the next compose put the long line back (supacharge-web a0e95f6, #82).
+  Ray asked for that fix at source; the installer banner's double blank line
+  is fixed in the protocol.
+
 ## 1.52.0
 
 * fix(seo): `buildSiteMetadata()` no longer sets `canonical: "/"` and
