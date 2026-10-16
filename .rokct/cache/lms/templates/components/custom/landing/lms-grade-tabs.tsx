@@ -33,7 +33,9 @@
 // hover. The selection itself is the caller's React state: this row holds
 // none, so the caller's default is selected in the server's first HTML.
 // The look is `.sc-phase-tab` (landing/lms-theme.css): the selected
-// rectangle filled with the primary, a focus ring, no hover rule.
+// rectangle filled with the primary, a focus ring, no hover rule. A tab
+// with `kidsMode` (1.37.4, the Grades R to 3 tab) adds `.sc-phase-tab-kids`:
+// the kids mode cream and ink, filled with the yellow tile when selected.
 
 import React, { useRef, type KeyboardEvent } from "react";
 
@@ -128,7 +130,7 @@ export function LmsGradeTabs({
             aria-selected={isSelected}
             aria-controls={ids.panel}
             tabIndex={isSelected ? 0 : -1}
-            className="sc-phase-tab"
+            className={tab.kidsMode ? "sc-phase-tab sc-phase-tab-kids" : "sc-phase-tab"}
             onClick={() => onSelect(tab.name)}
             onKeyDown={(event) => onKeyDown(event, index)}
           >

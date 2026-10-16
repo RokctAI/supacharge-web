@@ -490,11 +490,76 @@ html.light .sc-landing .sc-sponsor-card {
   border-color: var(--sc-kids-blue);
   transform: translateY(-2px);
 }
+/*
+ * Kids mode motion (1.37.4; Ray, 2026-10-16: "elements of the kids mode
+ * cards should be animating or reactive ... trying to make it feel
+ * different"). Small and playful, CSS only:
+ * - each card pops in when its tab opens, one after another (`--sc-kids-i`,
+ *   the card's index, set by KidsSubjectCard);
+ * - the six tiles bob in a slow wave, and hop higher while the card is
+ *   hovered or pressed;
+ * - a hovered card lifts and tips a little on a springy curve, a pressed
+ *   one squishes (the tap on a phone);
+ * - the "Coming soon" pill breathes.
+ * Under prefers-reduced-motion none of it runs and the card is still.
+ */
+.sc-kids-card {
+  animation: sc-kids-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation-delay: calc(var(--sc-kids-i, 0) * 80ms);
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 150ms ease;
+}
+.sc-kids-card:hover {
+  transform: translateY(-6px) rotate(-1deg) scale(1.02);
+}
+.sc-kids-card:active {
+  transform: translateY(1px) scale(0.97);
+}
+.sc-kids-card .sc-kids-tile {
+  animation: sc-kids-bob 2.4s ease-in-out infinite;
+}
+.sc-kids-card .sc-kids-tile:nth-child(2) { animation-delay: 0.15s; }
+.sc-kids-card .sc-kids-tile:nth-child(3) { animation-delay: 0.3s; }
+.sc-kids-card .sc-kids-tile:nth-child(4) { animation-delay: 0.45s; }
+.sc-kids-card .sc-kids-tile:nth-child(5) { animation-delay: 0.6s; }
+.sc-kids-card .sc-kids-tile:nth-child(6) { animation-delay: 0.75s; }
+.sc-kids-card:hover .sc-kids-tile,
+.sc-kids-card:active .sc-kids-tile {
+  animation-name: sc-kids-hop;
+  animation-duration: 0.9s;
+}
+.sc-kids-card .sc-kids-badge-upcoming {
+  animation: sc-kids-breathe 2.8s ease-in-out infinite;
+}
+@keyframes sc-kids-pop {
+  from { opacity: 0; transform: translateY(14px) scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sc-kids-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes sc-kids-hop {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  40% { transform: translateY(-7px) rotate(-8deg); }
+  60% { transform: translateY(-7px) rotate(8deg); }
+}
+@keyframes sc-kids-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
 @media (prefers-reduced-motion: reduce) {
   .sc-kids-card,
-  .sc-kids-card:hover {
+  .sc-kids-card:hover,
+  .sc-kids-card:active {
+    animation: none;
     transition: none;
     transform: none;
+  }
+  .sc-kids-card .sc-kids-tile,
+  .sc-kids-card .sc-kids-badge-upcoming {
+    animation: none;
   }
 }
 .sc-kids-accent-1 { --sc-kids-accent: var(--sc-kids-tile-1); }
@@ -521,6 +586,32 @@ html.light .sc-landing .sc-sponsor-card {
 .sc-kids-tile-4 { background: var(--sc-kids-tile-4); }
 .sc-kids-tile-5 { background: var(--sc-kids-tile-5); }
 .sc-kids-tile-6 { background: var(--sc-kids-tile-6); }
+/*
+ * The step number on each card of the parents' "day, sorted" (1.37.5,
+ * KidsDaySection): a rounded square on the card's own tile colour, ink on
+ * it (every tile clears 10:1), bobbing like the card's tile row.
+ */
+.sc-kids-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  color: var(--sc-kids-ink);
+  font-weight: 900;
+  font-size: 1.125rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sc-kids-card .sc-kids-step {
+    animation: sc-kids-bob 2.4s ease-in-out infinite;
+  }
+  .sc-kids-card:hover .sc-kids-step,
+  .sc-kids-card:active .sc-kids-step {
+    animation-name: sc-kids-hop;
+    animation-duration: 0.9s;
+  }
+}
 .sc-kids-badge {
   border-radius: 9999px;
   background: var(--sc-kids-tile-1);
@@ -537,6 +628,7 @@ html.light .sc-landing .sc-sponsor-card {
  * (about 10.7:1), so it reads apart from the yellow "Kids mode" pill.
  */
 .sc-kids-badge-upcoming {
+  display: inline-block;
   background: var(--sc-kids-tile-2);
 }
 /*
@@ -592,6 +684,25 @@ html.light .sc-landing .sc-sponsor-card {
 }
 .sc-phase-tab[aria-selected="true"] > span > :last-child {
   background: #ffffff;
+}
+/*
+ * The kids mode phase's tab (1.37.4; Ray, 2026-10-16: "that tab I click to
+ * switch to that grade R-3 should be in kids mode colors"): the rectangle
+ * wears the kids card's fixed palette - cream fill, ink text, a yellow
+ * tile edge - and, selected, is filled with the yellow tile instead of the
+ * primary, the ink staying on it (about 11:1, as on the kids pill). The
+ * pill keeps its own rules above. Light in both site themes, like the
+ * cards; still no hover rule.
+ */
+.sc-phase-tab-kids > span {
+  background: var(--sc-kids-bg);
+  color: var(--sc-kids-ink);
+  border: 2px solid var(--sc-kids-tile-1);
+}
+.sc-phase-tab-kids[aria-selected="true"] > span {
+  background: var(--sc-kids-tile-1);
+  color: var(--sc-kids-ink);
+  border-color: var(--sc-kids-ink);
 }
 .sc-phase-tab:focus-visible {
   outline: 2px solid var(--sc-primary);

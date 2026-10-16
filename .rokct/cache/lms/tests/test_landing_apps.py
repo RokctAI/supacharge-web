@@ -2776,7 +2776,7 @@ class TestPhaseTabs(unittest.TestCase):
         self.assertIn("aria-label={label}", tabs)
         self.assertRegex(
             tabs,
-            r'<button\s+key=\{tab\.name\}\s+ref=\{[^}]*\}\s*\}\s+type="button"\s+role="tab"\s+id=\{ids\.tab\}\s+aria-selected=\{isSelected\}\s+aria-controls=\{ids\.panel\}\s+tabIndex=\{isSelected \? 0 : -1\}\s+className="sc-phase-tab"\s+onClick=\{\(\) => onSelect\(tab\.name\)\}\s+onKeyDown=',
+            r'<button\s+key=\{tab\.name\}\s+ref=\{[^}]*\}\s*\}\s+type="button"\s+role="tab"\s+id=\{ids\.tab\}\s+aria-selected=\{isSelected\}\s+aria-controls=\{ids\.panel\}\s+tabIndex=\{isSelected \? 0 : -1\}\s+className=\{tab\.kidsMode \? "sc-phase-tab sc-phase-tab-kids" : "sc-phase-tab"\}\s+onClick=\{\(\) => onSelect\(tab\.name\)\}\s+onKeyDown=',
         )
         # The tab's only content is the rectangle lms-curricula.tsx draws,
         # asked for on every tab so a live one gets it too.
@@ -2955,11 +2955,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.3")
+        self.assertEqual(manifest["version"], "1.37.5")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.3"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.5"', read(FOOTER_CHROME))
 
 
 class TestKidsModeCards(unittest.TestCase):
@@ -2986,8 +2986,10 @@ class TestKidsModeCards(unittest.TestCase):
         return bg, ink, tiles
 
     def test_only_the_r3_phase_is_kids_mode(self):
+        # 1.37.5: kidsMode also carries the parents' day (TestKidsDay).
+        labels = {k: v for k, v in self.r3["kidsMode"].items() if k != "day"}
         self.assertEqual(
-            self.r3["kidsMode"],
+            labels,
             {"badge": "Kids mode", "tutorLabel": "AI tutor", "soonLabel": "Coming soon"},
         )
         for phase in self.phases:
@@ -3047,11 +3049,11 @@ class TestKidsModeCards(unittest.TestCase):
 
     def test_version_and_changelog(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.3")
+        self.assertEqual(manifest["version"], "1.37.5")
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.0")[0]
         self.assertIn("## 1.37.1", head)
         self.assertIn("kids mode", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.3"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.5"', read(FOOTER_CHROME))
 
 
 R3_AVAILABILITY = os.path.join(LANDING, "lms-r3-availability.ts")
@@ -3177,7 +3179,7 @@ class TestR3Availability(unittest.TestCase):
 
     def test_installed_versioned_and_logged(self):
         manifest = load_manifest()
-        self.assertEqual(manifest["version"], "1.37.3")
+        self.assertEqual(manifest["version"], "1.37.5")
         self.assertIn("_comment_version_1_37_3", manifest)
         pairs = {i["from"]: i["to"] for i in manifest["installs"]}
         self.assertEqual(
@@ -3187,7 +3189,7 @@ class TestR3Availability(unittest.TestCase):
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.2")[0]
         self.assertIn("## 1.37.3", head)
         self.assertIn("gen_r3_availability.py", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.3"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.5"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -4402,3 +4404,88 @@ class TestTeamCount(unittest.TestCase):
         self.assertEqual(code.count("<LmsTutorCard"), 1)
         self.assertIn("{founders.map((founder) => {", code)
         self.assertIn("data-team-count={teamCardCount(founders)}", code)
+
+
+class TestKidsTabAndMotion(unittest.TestCase):
+    """1.37.4 (Ray, 2026-10-16: "that tab I click to switch to that grade
+    R-3 should be in kids mode colors", then "elements of the kids mode
+    cards should be animating or reactive"): the kids mode phase's tab wears
+    the kids palette in both tab rows, and the kids cards move - with all of
+    it off under prefers-reduced-motion."""
+
+    def test_the_kids_phase_tab_carries_the_kids_class(self):
+        tabs = code_of(GRADE_TABS)
+        self.assertIn(
+            'className={tab.kidsMode ? "sc-phase-tab sc-phase-tab-kids" : "sc-phase-tab"}', tabs
+        )
+        self.assertIn("kidsMode?: KidsModeLabels;", read(CONFIG).split("export interface GradeTab")[1])
+        # The tutors filter named for the kids phase copies its kidsMode.
+        tabs = run_client_functions(
+            ["gradeFilterTabs"],
+            "console.log(JSON.stringify(gradeFilterTabs(%s, %s)));"
+            % (json.dumps(lift_config_block("tutors")["gradeFilters"]), json.dumps(lift_subjects()["phases"])),
+            path=TUTORS_CLIENT,
+        )
+        kids = [t["name"] for t in tabs if t.get("kidsMode")]
+        self.assertEqual(kids, ["Foundation Phase"])
+
+    def test_the_kids_tab_sheet_uses_the_kids_palette(self):
+        css = read(THEME_CSS)
+        tab = css.split(".sc-phase-tab-kids > span {")[1].split("}")[0]
+        self.assertIn("background: var(--sc-kids-bg);", tab)
+        self.assertIn("color: var(--sc-kids-ink);", tab)
+        selected = css.split('.sc-phase-tab-kids[aria-selected="true"] > span {')[1].split("}")[0]
+        self.assertIn("background: var(--sc-kids-tile-1);", selected)
+        self.assertIn("color: var(--sc-kids-ink);", selected)
+        self.assertNotIn(".sc-phase-tab-kids:hover", css)
+
+    def test_the_cards_move_and_reduced_motion_stills_them(self):
+        css = read(THEME_CSS)
+        for frames in ("sc-kids-pop", "sc-kids-bob", "sc-kids-hop", "sc-kids-breathe"):
+            with self.subTest(frames=frames):
+                self.assertIn("@keyframes %s {" % frames, css)
+        # The pop must not hold its end state, or it would pin the hover lift.
+        self.assertIn("sc-kids-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;", css)
+        reduced = css.split("@media (prefers-reduced-motion: reduce) {\n  .sc-kids-card,")[1].split("\n}\n")[0]
+        self.assertIn("animation: none;", reduced)
+        self.assertIn(".sc-kids-card .sc-kids-tile,", reduced)
+        self.assertIn(".sc-kids-card .sc-kids-badge-upcoming {", reduced)
+        self.assertIn('style={{ "--sc-kids-i": index } as React.CSSProperties}', code_of(SUBJECTS_CLIENT))
+
+
+class TestKidsDay(unittest.TestCase):
+    """1.37.5 (Ray, 2026-10-16: "below that subject card section if grade
+    R-3 is selected a kind of your day, sorted section should show in kids
+    mode but not talking to kids but parents")."""
+
+    def setUp(self):
+        self.kids = [p for p in lift_subjects()["phases"] if p.get("kidsMode")]
+
+    def test_only_the_kids_phase_has_a_parents_day(self):
+        self.assertEqual([p["name"] for p in self.kids], ["Foundation Phase"])
+        day = self.kids[0]["kidsMode"]["day"]
+        self.assertEqual(day["heading"], "Their day, sorted.")
+        self.assertIn("parents", day["blurb"].lower())
+        self.assertEqual(len(day["items"]), 6)
+        for item in day["items"]:
+            with self.subTest(item=item["name"]):
+                # Written to the parent: about "your child", never "you" as the learner.
+                self.assertTrue(item["name"] and item["text"])
+                self.assertNotIn("soon", item["text"].lower())
+        self.assertTrue(any("your child" in i["text"] for i in day["items"]))
+
+    def test_the_panel_draws_it_under_the_kids_cards(self):
+        code = code_of(SUBJECTS_CLIENT)
+        self.assertIn(
+            "{selected.kidsMode?.day ? <KidsDaySection day={selected.kidsMode.day} /> : null}", code
+        )
+        self.assertLess(code.index("<KidsSubjectCard"), code.index("<KidsDaySection day="))
+        self.assertIn("export function KidsDaySection({ day }: { day: KidsDay })", code)
+        self.assertIn("sc-kids-step sc-kids-tile-${tile}", code)
+
+    def test_the_step_motion_is_off_under_reduced_motion(self):
+        css = read(THEME_CSS)
+        self.assertIn(".sc-kids-step {", css)
+        gated = css.split("@media (prefers-reduced-motion: no-preference) {")[1].split("\n}\n")[0]
+        self.assertIn(".sc-kids-card .sc-kids-step {", gated)
+        self.assertNotIn("animation", css.split(".sc-kids-step {")[1].split("}")[0])

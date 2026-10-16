@@ -305,6 +305,24 @@ export interface KidsModeLabels {
    * (1.37.3): "Coming soon". Drawn only where kidsSubjectSoon says so.
    */
   soonLabel: string;
+  /**
+   * The parents' "day, sorted" (1.37.5; Ray, 2026-10-16: "below that
+   * subject card section if grade R-3 is selected a kind of your day,
+   * sorted section should show in kids mode but not talking to kids but
+   * parents"): drawn under the kids cards while the phase is selected
+   * (KidsDaySection, lms-subjects-section.client.tsx). Absent, nothing is.
+   */
+  day?: KidsDay;
+}
+
+/** The kids mode phase's parents' walkthrough (KidsModeLabels.day, 1.37.5). */
+export interface KidsDay {
+  /** "Their day, sorted." */
+  heading: string;
+  /** One line under the heading, to the parent. */
+  blurb: string;
+  /** In the order a family meets them; each is a numbered kids card. */
+  items: { name: string; text: string }[];
 }
 
 /**
@@ -325,6 +343,14 @@ export interface GradesChip {
 export interface GradeTab extends GradesChip {
   /** Unique within its row: "Senior Phase", "All Grades". */
   name: string;
+  /**
+   * The kids mode phase's labels (1.37.4; Ray, 2026-10-16: "that tab I
+   * click to switch to that grade R-3 should be in kids mode colors"): a
+   * tab that has them wears the kids mode palette (`.sc-phase-tab-kids`).
+   * A Phase brings its own `kidsMode`; a tutors filter named for that
+   * phase copies it (gradeFilterTabs).
+   */
+  kidsMode?: KidsModeLabels;
 }
 
 /**
@@ -889,7 +915,53 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         // claimed for it until its packs ship.
         text: "Kids mode: an AI tutor, Kavitha, takes your child through short game-style rounds in Mathematics and English Home Language - picture tiles to tap, count, match and trace - in one app a parent and child share, where a parent sets up a profile for each child.",
         badge: "soon",
-        kidsMode: { badge: "Kids mode", tutorLabel: "AI tutor", soonLabel: "Coming soon" },
+        kidsMode: {
+          badge: "Kids mode",
+          tutorLabel: "AI tutor",
+          soonLabel: "Coming soon",
+          // 1.37.5: each line says only what the app ships for a Grade R-3
+          // child (lms/dart): the "Who's learning?" picker
+          // (who_is_learning_page.dart), locked child mode left by the
+          // parent's PIN or opted-in fingerprint or face
+          // (child_mode_lock.dart, child_biometrics.dart), the kid library
+          // in CAPS week order with stars and the next pack glowing
+          // (r3_library_page.dart), the session engine's hint ladder and
+          // "beat the tutor" round (r3_session_engine.dart), mastery as 3
+          // right in a row per skill saved per learner
+          // (r3_progress_models.dart, http_r3_progress.dart), and the claim
+          // code that turns a profile into the child's own account
+          // (claim_child_profile_page.dart).
+          day: {
+            heading: "Their day, sorted.",
+            blurb: "For parents: how kids mode keeps your child's learning simple and safe.",
+            items: [
+              {
+                name: "Who's learning?",
+                text: "One phone for the family. Open the app, tap your child's picture, and add a profile for each child.",
+              },
+              {
+                name: "Locked to learning",
+                text: "While your child learns, the app shows only their lessons. Leaving needs your PIN, or your fingerprint or face if you turn it on.",
+              },
+              {
+                name: "Their own library",
+                text: "This term's lessons as picture tiles in CAPS week order. Finished ones get a star and the next one glows.",
+              },
+              {
+                name: "Play with Kavitha",
+                text: "Short rounds of tapping, counting, matching and tracing, with gentle hints after a wrong answer and a round where your child catches Kavitha's mistake.",
+              },
+              {
+                name: "Learned, not just done",
+                text: "A skill counts as learned after three right answers in a row, and progress is saved for each child.",
+              },
+              {
+                name: "Growing up",
+                text: "When your child gets their own phone, a code from you turns their profile into their own account, and everything they learned comes with them.",
+              },
+            ],
+          },
+        },
         // Named, not cast: no duo until the phase exists.
         subjects: [
           {

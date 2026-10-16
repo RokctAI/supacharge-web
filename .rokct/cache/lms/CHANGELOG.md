@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.37.5
+
+* Landing subjects, Grades R to 3 (Ray, 2026-10-16: "below that subject
+  card section if grade R-3 is selected a kind of your day, sorted section
+  should show in kids mode but not talking to kids but parents"). Under the
+  kids cards the panel draws "Their day, sorted." (`kidsMode.day`, new
+  `KidsDay`; `KidsDaySection` in lms-subjects-section.client.tsx): six
+  numbered kids cards to parents, each naming only what the app ships for
+  a Grade R-3 child (sources in the config comment). The step number sits
+  on the card's tile colour (`.sc-kids-step`) and bobs with the tiles; the
+  cards pop in after the subject cards; nothing moves under
+  prefers-reduced-motion.
+
+## 1.37.4
+
+* Landing subjects and tutors, the Grades R to 3 tab (Ray, 2026-10-16:
+  "that tab I click to switch to that grade R-3 should be in kids mode
+  colors"). A tab with `kidsMode` (GradeTab, new optional field; a Phase
+  brings its own, gradeFilterTabs copies it to the tutors filter of that
+  phase) adds `.sc-phase-tab-kids`: the kids card's cream fill, ink text
+  and a yellow tile edge, filled with the yellow tile when selected.
+* Kids mode cards move (Ray, 2026-10-16: "elements of the kids mode cards
+  should be animating or reactive"): each card pops in when its tab opens,
+  one after another (`--sc-kids-i`); the six tiles bob in a slow wave and
+  hop while the card is hovered or pressed; a hovered card lifts and tips
+  on a springy curve and a pressed one squishes; the "Coming soon" pill
+  breathes. CSS only, all off under prefers-reduced-motion.
+
 ## 1.37.3
 
 * Landing subjects, Foundation Phase tab (Ray, 2026-10-16: "supacharge web
