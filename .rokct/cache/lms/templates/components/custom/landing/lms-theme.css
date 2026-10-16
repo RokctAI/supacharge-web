@@ -532,6 +532,14 @@ html.light .sc-landing .sc-sponsor-card {
   white-space: nowrap;
 }
 /*
+ * The "Coming soon" pill (1.37.3) on a kids card whose subject has no
+ * lessons in the app yet: the same pill on the blue tile, ink on #b8e6ff
+ * (about 10.7:1), so it reads apart from the yellow "Kids mode" pill.
+ */
+.sc-kids-badge-upcoming {
+  background: var(--sc-kids-tile-2);
+}
+/*
  * The badged curriculum and its pill in ONE border-only rectangle (Ray,
  * 2026-09-10: "i think cambridge and its label should be in a border only
  * rectangle to give it distiction."; 2026-09-11: "give the border primary

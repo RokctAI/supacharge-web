@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.37.3
+
+* Landing subjects, Foundation Phase tab (Ray, 2026-10-16: "supacharge web
+  is showing 2", then "i think show all but if we add soon will it change
+  on its own when lessons for the third is available?"). The Grades R to 3
+  kids mode tab names all four CAPS Foundation Phase subjects:
+  Mathematics, English Home Language, Life Skills, and English First
+  Additional Language, marked "Grades 1 to 3" (CAPS has no FAL in Grade
+  R). Each R-3 subject carries `key`, its pack subject id in the app's
+  `lms/dart/templates/assets/r3_packs` (`maths`, `english_home_language`,
+  `life_skills`, `english_first_additional_language`).
+* A kids card whose subject has no lessons in the app wears a second pill,
+  "Coming soon" (`kidsMode.soonLabel`, on the blue tile,
+  `.sc-kids-badge-upcoming`). The pill is never set by hand:
+  `kidsSubjectSoon(subject.key, R3_SUBJECTS_WITH_PACKS)` in
+  `lms-subjects-section.client.tsx` reads the new generated
+  `components/custom/landing/lms-r3-availability.ts`, which
+  `scripts/gen_r3_availability.py` writes from `r3_packs/index.json`. Today
+  Mathematics and English Home Language have packs (Grade R, Term 1) and
+  keep their skills lines; Life Skills and FAL show the pill and no skills
+  line. `TestR3Availability` fails while the generated file disagrees with
+  the index, so the change that adds Life Skills packs must rerun the
+  script, and the pill comes off by itself. A kids card also shows the
+  subject's grades when it is not the whole phase.
+
 ## 1.37.2
 
 * Landing hero (Ray, 2026-10-16: "too much space gaps. the milestone
