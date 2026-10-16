@@ -2134,6 +2134,11 @@ class TestCurricula(unittest.TestCase):
                 strings = re.findall(r'"([^"\n]*)"', code_of(path))
                 for text in strings:
                     if re.search(r"\bsoon\b", text, re.I):
+                        # 1.37.3: the one exception is the kids mode card's
+                        # pill label (kidsMode.soonLabel), drawn only where
+                        # the generated R-3 pack availability says so.
+                        if path == CONFIG and text == "Coming soon":
+                            continue
                         self.assertEqual(
                             text,
                             "soon",
@@ -2589,8 +2594,15 @@ class TestPhaseTabs(unittest.TestCase):
 
     def test_phases_on_their_way_name_subjects_and_the_rosters_cast(self):
         r3 = self.by_grades["Grades R to 3"]
+        # 1.37.3: all four CAPS Foundation Phase subjects (TestR3Availability).
         self.assertEqual(
-            [s["name"] for s in r3["subjects"]], ["Mathematics", "English Home Language"]
+            [s["name"] for s in r3["subjects"]],
+            [
+                "Mathematics",
+                "English Home Language",
+                "Life Skills",
+                "English First Additional Language",
+            ],
         )
         self.assertIn("Kids mode", r3["text"])
         # 1.36.4: the Primer wording under the CAPS names, R to 3 only.
@@ -2601,6 +2613,8 @@ class TestPhaseTabs(unittest.TestCase):
             [
                 "Grade R, Term 1: the numbers 1 to 4, and circles, squares, triangles, rectangles and hearts",
                 "Grade R, Term 1: the sounds a, v, g, m, j, k and i, and writing each letter",
+                None,
+                None,
             ],
         )
         for phase in self.by_grades.values():
@@ -2941,11 +2955,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.2")
+        self.assertEqual(manifest["version"], "1.37.3")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.2"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.3"', read(FOOTER_CHROME))
 
 
 class TestKidsModeCards(unittest.TestCase):
@@ -2973,7 +2987,8 @@ class TestKidsModeCards(unittest.TestCase):
 
     def test_only_the_r3_phase_is_kids_mode(self):
         self.assertEqual(
-            self.r3["kidsMode"], {"badge": "Kids mode", "tutorLabel": "AI tutor"}
+            self.r3["kidsMode"],
+            {"badge": "Kids mode", "tutorLabel": "AI tutor", "soonLabel": "Coming soon"},
         )
         for phase in self.phases:
             if phase is not self.r3:
@@ -2991,8 +3006,13 @@ class TestKidsModeCards(unittest.TestCase):
             packs = json.load(f)["packs"]
         # Grade R Term 1 is all the app bundles; nothing past it is named.
         self.assertTrue(all("/gradeR/term1/" in p for p in packs))
+        # 1.37.3: a subject without packs has no skills line at all.
+        with_packs = {p.split("/", 1)[0] for p in packs}
         for subject in self.r3["subjects"]:
-            self.assertTrue(subject["skills"].startswith("Grade R, Term 1: "))
+            if subject["key"] in with_packs:
+                self.assertTrue(subject["skills"].startswith("Grade R, Term 1: "))
+            else:
+                self.assertNotIn("skills", subject)
         maths = [p for p in packs if p.startswith("maths/")]
         for word in ("one", "two", "three", "four", "circle", "square", "triangle", "rectangle", "heart"):
             self.assertTrue(any(word in p for p in maths), word)
@@ -3027,11 +3047,147 @@ class TestKidsModeCards(unittest.TestCase):
 
     def test_version_and_changelog(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.2")
+        self.assertEqual(manifest["version"], "1.37.3")
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.0")[0]
         self.assertIn("## 1.37.1", head)
         self.assertIn("kids mode", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.2"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.3"', read(FOOTER_CHROME))
+
+
+R3_AVAILABILITY = os.path.join(LANDING, "lms-r3-availability.ts")
+R3_GENERATOR = os.path.join(SDK_ROOT, "scripts", "gen_r3_availability.py")
+R3_INDEX = os.path.join(
+    SDK_ROOT, os.pardir, "dart", "templates", "assets", "r3_packs", "index.json"
+)
+
+
+def load_r3_generator():
+    """scripts/gen_r3_availability.py as a module, so the tests render the
+    file exactly as the script would."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("gen_r3_availability", R3_GENERATOR)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def r3_subjects_with_packs():
+    """R3_SUBJECTS_WITH_PACKS as the committed generated file lists it."""
+    match = re.search(
+        r"R3_SUBJECTS_WITH_PACKS: readonly string\[\] = (\[.*?\]);",
+        read(R3_AVAILABILITY),
+    )
+    return json.loads(match.group(1))
+
+
+class TestR3Availability(unittest.TestCase):
+    """1.37.3 (Ray, 2026-10-16: "i think show all but if we add soon will it
+    change on its own when lessons for the third is available?"): the
+    Grades R to 3 tab names all four CAPS Foundation Phase subjects, and the
+    "Coming soon" pill on a kids card is derived from the app's shipped R-3
+    packs (r3_packs/index.json, through the generated lms-r3-availability.ts),
+    never typed into the config."""
+
+    KEYS = {
+        "Mathematics": "maths",
+        "English Home Language": "english_home_language",
+        "Life Skills": "life_skills",
+        "English First Additional Language": "english_first_additional_language",
+    }
+
+    def setUp(self):
+        phases = lift_subjects()["phases"]
+        self.r3 = next(p for p in phases if p["grades"] == "Grades R to 3")
+        self.subjects = self.r3["subjects"]
+
+    def soon_of(self, keys, with_packs):
+        return run_client_functions(
+            ["kidsSubjectSoon"],
+            "const keys = %s;\nconst withPacks = %s;\n"
+            "console.log(JSON.stringify(keys.map((k) => kidsSubjectSoon(k ?? undefined, withPacks))));"
+            % (json.dumps(keys), json.dumps(with_packs)),
+        )
+
+    def test_the_four_foundation_phase_subjects_in_order_with_pack_keys(self):
+        self.assertEqual(
+            [(s["name"], s["key"]) for s in self.subjects], list(self.KEYS.items())
+        )
+        for s in self.subjects:
+            with self.subTest(subject=s["name"]):
+                self.assertEqual(s["tutor"], "Kavitha")
+                self.assertNotIn("soon", s)
+                self.assertNotIn("badge", s)
+
+    def test_fal_is_grades_1_to_3_and_the_rest_the_whole_phase(self):
+        grades = {s["name"]: s.get("grades") for s in self.subjects}
+        self.assertEqual(grades.pop("English First Additional Language"), "Grades 1 to 3")
+        self.assertEqual(set(grades.values()), {None})
+        client = code_of(SUBJECTS_CLIENT)
+        kids = client[client.index("function KidsSubjectCard"):]
+        self.assertIn("{subject.grades}", kids[: kids.index("export function LmsSubjectsPhases")])
+
+    def test_soon_is_derived_from_the_shipped_packs(self):
+        keys = [s["key"] for s in self.subjects]
+        with_packs = r3_subjects_with_packs()
+        self.assertEqual(with_packs, ["english_home_language", "maths"])
+        self.assertEqual(self.soon_of(keys, with_packs), [False, False, True, True])
+        # The flip: once Life Skills packs ship, its pill comes off by itself.
+        self.assertEqual(
+            self.soon_of(keys, with_packs + ["life_skills"]), [False, False, False, True]
+        )
+        # No key, no claim either way.
+        self.assertEqual(self.soon_of([None], []), [False])
+        client = code_of(SUBJECTS_CLIENT)
+        self.assertIn(
+            'import { R3_SUBJECTS_WITH_PACKS } from "@/components/custom/landing/lms-r3-availability";',
+            client,
+        )
+        self.assertIn("kidsSubjectSoon(subject.key, R3_SUBJECTS_WITH_PACKS)", client)
+        self.assertIn("{labels.soonLabel}", client)
+        self.assertIn('data-kids-soon=""', client)
+        self.assertIn(".sc-kids-badge-upcoming {", read(THEME_CSS))
+
+    def test_every_subject_with_packs_has_a_card(self):
+        keys = {s["key"] for s in self.subjects}
+        for subject in r3_subjects_with_packs():
+            with self.subTest(subject=subject):
+                self.assertIn(subject, keys)
+
+    def test_generated_file_is_fresh(self):
+        gen = load_r3_generator()
+        with open(R3_INDEX, encoding="utf-8") as f:
+            packs = json.load(f)["packs"]
+        self.assertEqual(
+            read(R3_AVAILABILITY),
+            gen.render(packs),
+            "lms-r3-availability.ts is stale: run python3 lms/nextjs/scripts/gen_r3_availability.py",
+        )
+        self.assertNotIn("\r", read(R3_AVAILABILITY))
+
+    def test_generator_picks_up_a_new_subject(self):
+        gen = load_r3_generator()
+        extra = ["life_skills/gradeR/term1/w01_my_body.json", "maths/grade1/term2/w01_x.json"]
+        data = gen.availability(load_r3_generator().load_packs() + extra)
+        self.assertEqual(data["life_skills"], ["gradeR/term1"])
+        self.assertEqual(data["maths"], ["gradeR/term1", "grade1/term2"])
+        self.assertIn('"life_skills"', gen.render(gen.load_packs() + extra))
+        with self.assertRaises(ValueError):
+            gen.availability(["not-a-pack.json"])
+
+    def test_installed_versioned_and_logged(self):
+        manifest = load_manifest()
+        self.assertEqual(manifest["version"], "1.37.3")
+        self.assertIn("_comment_version_1_37_3", manifest)
+        pairs = {i["from"]: i["to"] for i in manifest["installs"]}
+        self.assertEqual(
+            pairs["templates/components/custom/landing/lms-r3-availability.ts"],
+            "components/custom/landing/lms-r3-availability.ts",
+        )
+        head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.2")[0]
+        self.assertIn("## 1.37.3", head)
+        self.assertIn("gen_r3_availability.py", head)
+        self.assertIn('LMS_LANDING_VERSION = "1.37.3"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):

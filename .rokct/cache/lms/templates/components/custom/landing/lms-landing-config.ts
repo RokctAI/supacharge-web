@@ -187,6 +187,17 @@ export interface SessionsConfig {
 export interface Subject {
   name: string;
   /**
+   * The subject's id in the app's Grades R-3 lesson packs (1.37.3): the
+   * pack folder under lms/dart/templates/assets/r3_packs - "maths",
+   * "english_home_language", "life_skills",
+   * "english_first_additional_language". Kids mode cards only. The card
+   * wears the "Coming soon" pill while the generated lms-r3-availability.ts
+   * lists no packs for it (lms-subjects-section.client.tsx,
+   * kidsSubjectSoon), so the pill is never typed here and comes off by
+   * itself once the packs ship and the file is regenerated.
+   */
+  key?: string;
+  /**
    * Tutor duo per subject: the expert and the simplifier
    * (lms/team/tutors/CAPS/roster.json). Absent where the roster casts
    * nobody yet: the card draws no duo rather than an invented one. Since
@@ -289,6 +300,11 @@ export interface KidsModeLabels {
   badge: string;
   /** The label of the solo tutor row: "AI tutor". */
   tutorLabel: string;
+  /**
+   * The pill on a card whose subject has no lessons in the app yet
+   * (1.37.3): "Coming soon". Drawn only where kidsSubjectSoon says so.
+   */
+  soonLabel: string;
 }
 
 /**
@@ -863,19 +879,40 @@ export const LMS_LANDING_CONFIG: LmsLandingConfig = {
         // bundled packs teach (lms/dart/templates/assets/r3_packs/index.json:
         // the 20 Grade R Term 1 packs, 10 per subject). Grades 1 to 3 have
         // no packs yet, so nothing past Grade R Term 1 is named.
+        // 1.37.3 (Ray, 2026-10-16: "i think show all but if we add soon will
+        // it change on its own when lessons for the third is available?"):
+        // all four CAPS Foundation Phase subjects are named, English First
+        // Additional Language from Grade 1 (CAPS has no FAL in Grade R).
+        // Each carries `key`, its r3_packs subject id; a subject with no
+        // packs wears the "Coming soon" pill, worked out from the generated
+        // lms-r3-availability.ts, and has no skills line - nothing is
+        // claimed for it until its packs ship.
         text: "Kids mode: an AI tutor, Kavitha, takes your child through short game-style rounds in Mathematics and English Home Language - picture tiles to tap, count, match and trace - in one app a parent and child share, where a parent sets up a profile for each child.",
         badge: "soon",
-        kidsMode: { badge: "Kids mode", tutorLabel: "AI tutor" },
+        kidsMode: { badge: "Kids mode", tutorLabel: "AI tutor", soonLabel: "Coming soon" },
         // Named, not cast: no duo until the phase exists.
         subjects: [
           {
+            key: "maths",
             name: "Mathematics",
             skills: "Grade R, Term 1: the numbers 1 to 4, and circles, squares, triangles, rectangles and hearts",
             tutor: "Kavitha",
           },
           {
+            key: "english_home_language",
             name: "English Home Language",
             skills: "Grade R, Term 1: the sounds a, v, g, m, j, k and i, and writing each letter",
+            tutor: "Kavitha",
+          },
+          {
+            key: "life_skills",
+            name: "Life Skills",
+            tutor: "Kavitha",
+          },
+          {
+            key: "english_first_additional_language",
+            name: "English First Additional Language",
+            grades: "Grades 1 to 3",
             tutor: "Kavitha",
           },
         ],

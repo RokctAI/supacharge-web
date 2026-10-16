@@ -70,6 +70,20 @@
 // tile colours is decoration (aria-hidden); the pill reads the config's
 // `kidsMode.badge` and the tutor row its `kidsMode.tutorLabel`.
 //
+// Coming soon (1.37.3; Ray, 2026-10-16: "i think show all but if we add
+// soon will it change on its own when lessons for the third is
+// available?"): the tab names all four CAPS Foundation Phase subjects, and
+// a card whose subject the app ships no lessons for wears a second pill,
+// `kidsMode.soonLabel`. Whether it does is kidsSubjectSoon over the
+// subject's `key` and R3_SUBJECTS_WITH_PACKS, the generated
+// landing/lms-r3-availability.ts (scripts/gen_r3_availability.py, from the
+// app's lms/dart/templates/assets/r3_packs/index.json) - never a flag in
+// the config - so when the packs for a subject ship and the file is
+// regenerated (a test fails until it is), its pill comes off by itself.
+// A kids card now also shows the subject's grades when it is not taught
+// through the whole phase ("Grades 1 to 3" on English First Additional
+// Language).
+//
 // Below 640px the grid is one swipeable row (`sc-row`, landing/lms-theme.css;
 // Ray, 2026-09-09: "most cards should be one row in mobile. even subjects
 // cards"); from 640px up it is the two- then three-column grid.
@@ -79,6 +93,7 @@ import React, { useState } from "react";
 import { LmsPhaseGrades } from "@/components/custom/landing/lms-curricula";
 import { LmsGradeTabs, gradeTabIds } from "@/components/custom/landing/lms-grade-tabs";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
+import { R3_SUBJECTS_WITH_PACKS } from "@/components/custom/landing/lms-r3-availability";
 import type {
   KidsModeLabels,
   Phase,
@@ -98,6 +113,17 @@ export const KIDS_TILE_COLORS = [
   "#E2D4FF",
   "#FFD2B0",
 ] as const;
+
+/**
+ * Whether a kids mode card wears the "Coming soon" pill (1.37.3): its
+ * subject has a pack subject id (`key`) and the app ships no packs for it
+ * (`withPacks`, R3_SUBJECTS_WITH_PACKS of the generated
+ * lms-r3-availability.ts). A subject without a key claims nothing either
+ * way. Exported for the tests.
+ */
+export function kidsSubjectSoon(key: string | undefined, withPacks: readonly string[]): boolean {
+  return key !== undefined && !withPacks.includes(key);
+}
 
 /**
  * The phase selected on first paint: the config's `defaultPhase` by name,
@@ -164,6 +190,7 @@ function KidsSubjectCard({
   index: number;
 }) {
   const tile = (index % KIDS_TILE_COLORS.length) + 1;
+  const soon = kidsSubjectSoon(subject.key, R3_SUBJECTS_WITH_PACKS);
   return (
     <div
       className={`sc-kids-card sc-kids-accent-${tile} flex flex-col gap-4 p-6`}
@@ -175,10 +202,20 @@ function KidsSubjectCard({
             <span key={i} className={`sc-kids-tile sc-kids-tile-${i + 1}`} />
           ))}
         </span>
-        <span className="sc-kids-badge">{labels.badge}</span>
+        <span className="flex flex-wrap justify-end gap-1.5">
+          <span className="sc-kids-badge">{labels.badge}</span>
+          {soon ? (
+            <span className="sc-kids-badge sc-kids-badge-upcoming" data-kids-soon="">
+              {labels.soonLabel}
+            </span>
+          ) : null}
+        </span>
       </div>
       <div className="flex flex-col gap-1">
         <h3 className="sc-kids-ink text-2xl font-black tracking-tight">{subject.name}</h3>
+        {subject.grades ? (
+          <span className="sc-kids-ink text-sm font-semibold">{subject.grades}</span>
+        ) : null}
         {subject.skills ? (
           <span className="sc-kids-ink-2 text-sm leading-relaxed">{subject.skills}</span>
         ) : null}
