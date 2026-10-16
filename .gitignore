@@ -42,6 +42,26 @@ next-env.d.ts
 # installer-written bytes (build.yml's zero-drift gate compares them to the
 # base_sdk cache copy).
 components/custom/theme-provider.tsx
+# The base_sdk components/ui primitives the shell also tracks: the linter
+# reformatted them on main (a0e95f6, after 197f56c) and every compose
+# since rewrites them, so the zero-drift gate went red on #81.
+components/ui/avatar.tsx
+components/ui/calendar.tsx
+components/ui/collapsible.tsx
+components/ui/dialog.tsx
+components/ui/dropdown-menu.tsx
+components/ui/label.tsx
+components/ui/popover.tsx
+components/ui/progress.tsx
+components/ui/radio-group.tsx
+components/ui/scroll-area.tsx
+components/ui/select.tsx
+components/ui/separator.tsx
+components/ui/sheet.tsx
+components/ui/sidebar.tsx
+components/ui/switch.tsx
+components/ui/tabs.tsx
+components/ui/tooltip.tsx
 
 # Composed output — everything the SDK installers write into the host, listed
 # in the generated block at the end of this file. The shell commits none of
