@@ -40,6 +40,7 @@
 import React, { useRef, type KeyboardEvent } from "react";
 
 import { LmsPhaseGrades } from "@/components/custom/landing/lms-curricula";
+import { LmsKidsButterfly } from "@/components/custom/landing/lms-kids-butterfly";
 import type { GradeTab } from "@/components/custom/landing/lms-landing-config";
 
 /** A DOM id from a tab name: "Senior Phase" -> "senior-phase". */
@@ -140,6 +141,8 @@ export function LmsGradeTabs({
                 phase keeps its badge everywhere else, and its subject cards
                 keep their own "Coming soon" pills. */}
             <LmsPhaseGrades phase={tab.kidsMode ? { ...tab, badge: undefined } : tab} outlined />
+            {/* 1.37.7: a butterfly visits the kids mode tab (lms-kids-butterfly.tsx). */}
+            {tab.kidsMode ? <LmsKidsButterfly /> : null}
           </button>
         );
       })}

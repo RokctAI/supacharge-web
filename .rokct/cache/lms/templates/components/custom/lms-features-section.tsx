@@ -72,6 +72,7 @@ import {
 } from "@/components/custom/landing/lms-landing-config";
 import { LmsCurricula } from "@/components/custom/landing/lms-curricula";
 import { LmsPhaseGrades } from "@/components/custom/landing/lms-curricula";
+import { LmsKidsButterfly } from "@/components/custom/landing/lms-kids-butterfly";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
 
 import "@/components/custom/landing/lms-features.css";
@@ -147,6 +148,8 @@ function FeatureCard({ feature }: { feature: Feature }) {
               {phase.kidsMode ? (
                 <span className="sc-feature-phase-kids">
                   <LmsPhaseGrades phase={{ ...phase, badge: undefined }} outlined />
+                  {/* 1.37.7: the butterfly, half a cycle after the tab's. */}
+                  <LmsKidsButterfly later />
                 </span>
               ) : (
                 <span>
