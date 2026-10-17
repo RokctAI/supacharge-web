@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.37.8
+
+* Installs `landing/lms-kids-butterfly.tsx`. 1.37.7 added the butterfly and
+  its two importers but no install entry in `manifest.json`, so a composed
+  app failed to build ("Module not found:
+  @/components/custom/landing/lms-kids-butterfly"). A new test fails when
+  any file under `templates/` has no install entry.
+
+## 1.37.7
+
+* Landing, kids mode rectangles (Ray, 2026-10-16: "on those tabs its
+  possible to have a bird or a butterfly to come and rest on it then fly
+  away?"): a small butterfly flies in, rests on the top edge of the Grades
+  R to 3 tab for about five seconds and flies off, every 14 seconds. It is
+  drawn from the side like a cartoon bird, standing on the edge, with big
+  monarch wings (orange and yellow, ink edges and veins, white spots) that
+  beat in flight and slowly open and close while it rests (Ray,
+  2026-10-17: "i should be seeing it from the sides like a twitter
+  bird"). The
+  Grades R to 3 rectangle on the "Your day, sorted." Subjects card gets one
+  half a cycle later (`landing/lms-kids-butterfly.tsx`,
+  `.sc-kids-butterfly` in `landing/lms-theme.css`). Inline SVG and CSS, no
+  image; decorative (aria-hidden, no pointer events) and hidden under
+  prefers-reduced-motion.
+
 ## 1.37.6
 
 * Landing, Grades R to 3 tab (Ray, 2026-10-16: "in landing tab for grade

@@ -2782,7 +2782,7 @@ class TestPhaseTabs(unittest.TestCase):
         # asked for on every tab so a live one gets it too.
         self.assertRegex(
             tabs,
-            r'onKeyDown=\{\(event\) => onKeyDown\(event, index\)\}\s*>\s*(?:\{\s*\}\s*)?<LmsPhaseGrades phase=\{tab\.kidsMode \? \{ \.\.\.tab, badge: undefined \} : tab\} outlined />\s*</button>',
+            r'onKeyDown=\{\(event\) => onKeyDown\(event, index\)\}\s*>\s*(?:\{\s*\}\s*)?<LmsPhaseGrades phase=\{tab\.kidsMode \? \{ \.\.\.tab, badge: undefined \} : tab\} outlined />\s*(?:\{\s*\}\s*)?\{tab\.kidsMode \? <LmsKidsButterfly /> : null\}\s*</button>',
         )
         self.assertEqual(tabs.count("<LmsPhaseGrades"), 1)
         self.assertNotIn("useState", tabs)
@@ -2955,11 +2955,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.6")
+        self.assertEqual(manifest["version"], "1.37.8")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.6"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
 
 
 class TestKidsModeCards(unittest.TestCase):
@@ -3049,11 +3049,11 @@ class TestKidsModeCards(unittest.TestCase):
 
     def test_version_and_changelog(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.6")
+        self.assertEqual(manifest["version"], "1.37.8")
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.0")[0]
         self.assertIn("## 1.37.1", head)
         self.assertIn("kids mode", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.6"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
 
 
 R3_AVAILABILITY = os.path.join(LANDING, "lms-r3-availability.ts")
@@ -3179,7 +3179,7 @@ class TestR3Availability(unittest.TestCase):
 
     def test_installed_versioned_and_logged(self):
         manifest = load_manifest()
-        self.assertEqual(manifest["version"], "1.37.6")
+        self.assertEqual(manifest["version"], "1.37.8")
         self.assertIn("_comment_version_1_37_3", manifest)
         pairs = {i["from"]: i["to"] for i in manifest["installs"]}
         self.assertEqual(
@@ -3189,7 +3189,7 @@ class TestR3Availability(unittest.TestCase):
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.2")[0]
         self.assertIn("## 1.37.3", head)
         self.assertIn("gen_r3_availability.py", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.6"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -4536,10 +4536,61 @@ class TestKidsTabNoSoon(unittest.TestCase):
 
     def test_versioned_and_logged(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.6")
         self.assertIn("_comment_version_1_37_6", manifest)
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.5")[0]
         self.assertIn("## 1.37.6", head)
         self.assertIn("need to loose soon", head)
         self.assertIn("gain kids mode colors", head)
         self.assertIn("i think one button is", head)
+
+
+class TestKidsButterfly(unittest.TestCase):
+    """1.37.7 (Ray, 2026-10-16: "on those tabs its possible to have a bird
+    or a butterfly to come and rest on it then fly away?")."""
+
+    def test_the_two_kids_rectangles_draw_it_and_nothing_else_does(self):
+        landing = os.path.join(SDK_ROOT, "templates/components/custom")
+        tabs = code_of(os.path.join(landing, "landing/lms-grade-tabs.tsx"))
+        self.assertIn("{tab.kidsMode ? <LmsKidsButterfly /> : null}", tabs)
+        features = code_of(os.path.join(landing, "lms-features-section.tsx"))
+        self.assertRegex(
+            features,
+            r'<span className="sc-feature-phase-kids">\s*<LmsPhaseGrades[^>]*/>\s*(?:\{\s*\}\s*)?<LmsKidsButterfly later />',
+        )
+        bfly = code_of(os.path.join(landing, "landing/lms-kids-butterfly.tsx"))
+        # An <i>, so the `> span` kids rectangle rules never reach it.
+        self.assertIn("<i", bfly)
+        self.assertIn('aria-hidden="true"', bfly)
+        self.assertNotIn("<img", bfly)
+
+    def test_it_visits_quietly_and_respects_reduced_motion(self):
+        theme = code_of(os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-theme.css"))
+        rule = re.search(r"\.sc-kids-butterfly \{([^}]*)\}", theme).group(1)
+        self.assertIn("pointer-events: none;", rule)
+        self.assertIn("animation: sc-kids-butterfly-visit 14s ease-in-out infinite;", rule)
+        for frames in ("visit", "beat-near", "beat-far", "breathe", "show-fly", "show-rest"):
+            self.assertIn("@keyframes sc-kids-butterfly-" + frames, theme)
+
+    def test_it_is_a_side_view_monarch(self):
+        # Ray, 2026-10-17: "i should be seeing it from the sides like a
+        # twitter bird", "dont butterfly have giant wings compared to body?"
+        bfly = code_of(os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-kids-butterfly.tsx"))
+        self.assertIn('<g className="sc-kids-butterfly-fly">', bfly)
+        self.assertIn('<g className="sc-kids-butterfly-rest">', bfly)
+        self.assertIn('<g className="sc-kids-butterfly-legs"', bfly)
+        theme = code_of(os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-theme.css"))
+        self.assertIn("--sc-kids-wing-1: #ff9a2e;", theme)
+        self.assertIn("--sc-kids-wing-far: #d9701a;", theme)
+        self.assertRegex(
+            theme,
+            r"@media \(prefers-reduced-motion: reduce\) \{\s*\.sc-kids-butterfly \{ display: none; \}",
+        )
+
+    def test_versioned_and_logged(self):
+        manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
+        self.assertEqual(manifest["version"], "1.37.8")
+        self.assertIn("_comment_version_1_37_7", manifest)
+        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
+        head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.6")[0]
+        self.assertIn("## 1.37.7", head)
+        self.assertIn("rest on it then fly", head)

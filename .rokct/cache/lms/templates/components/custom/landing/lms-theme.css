@@ -477,6 +477,10 @@ html.light .sc-landing .sc-sponsor-card {
   --sc-kids-tile-5: #e2d4ff;
   --sc-kids-tile-6: #ffd2b0;
   --sc-kids-blue: #4c8df6;
+  /* 1.37.7: the butterfly's wings (lms-kids-butterfly.tsx). */
+  --sc-kids-wing-1: #ff9a2e;
+  --sc-kids-wing-2: #ffc73b;
+  --sc-kids-wing-far: #d9701a;
 }
 .sc-kids-card {
   background: var(--sc-kids-bg);
@@ -712,6 +716,108 @@ html.light .sc-landing .sc-sponsor-card {
   background: var(--sc-kids-bg);
   color: var(--sc-kids-ink);
   border: 2px solid var(--sc-kids-tile-1);
+}
+/* 1.37.7 (Ray, 2026-10-16: "on those tabs its possible to have a bird or
+ * a butterfly to come and rest on it then fly away?"): the butterfly
+ * (landing/lms-kids-butterfly.tsx) on the kids mode tab and the "Your day,
+ * sorted." kids rectangle. One 14s visit: it flies in from the top right
+ * (0-14%), rests on the top edge with its wings slowly beating (to 50%),
+ * flies off to the top left (to 62%) and is gone until the next visit. It
+ * never takes pointer events, and prefers-reduced-motion hides it. */
+.sc-phase-tab-kids,
+.sc-feature-phase-kids {
+  position: relative;
+}
+.sc-feature-phase-kids {
+  display: inline-flex;
+}
+/* Seen from the side, like a cartoon bird: body level, legs on the edge,
+   wings up over its back. It faces left, the way it flies. Drawn at 60x52
+   so the monarch pattern (ink edge, veins, white spots) survives at 32px. */
+.sc-kids-butterfly {
+  position: absolute;
+  right: 6px;
+  top: -34px;
+  width: 36px;
+  height: 34px;
+  pointer-events: none;
+  opacity: 0;
+  animation: sc-kids-butterfly-visit 14s ease-in-out infinite;
+}
+.sc-kids-butterfly-later,
+.sc-kids-butterfly-later * {
+  animation-delay: -7s;
+}
+.sc-kids-butterfly svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.sc-kids-butterfly svg * {
+  transform-box: view-box;
+  transform-origin: 30px 40px;
+}
+/* In flight the near wings beat down past the body and back up; the far
+   wing only dips, so the pair reads as one seen side on. */
+.sc-kids-butterfly-fly .sc-kids-butterfly-near { animation: sc-kids-butterfly-beat-near 0.17s ease-in-out infinite alternate; }
+.sc-kids-butterfly-fly .sc-kids-butterfly-far { animation: sc-kids-butterfly-beat-far 0.17s ease-in-out infinite alternate; }
+/* Standing, the wings are closed upright; every few seconds they ease
+   open, hold a moment, and close again, the way a resting butterfly does. */
+.sc-kids-butterfly-rest .sc-kids-butterfly-near { animation: sc-kids-butterfly-breathe 3.2s ease-in-out infinite; }
+.sc-kids-butterfly-rest .sc-kids-butterfly-far { animation: sc-kids-butterfly-breathe-far 3.2s ease-in-out infinite; }
+.sc-kids-butterfly-fly { animation: sc-kids-butterfly-show-fly 14s step-end infinite; }
+.sc-kids-butterfly-rest { animation: sc-kids-butterfly-show-rest 14s step-end infinite; }
+.sc-kids-butterfly-legs { animation: sc-kids-butterfly-show-rest 14s step-end infinite; }
+.sc-kids-butterfly-bodyset { animation: sc-kids-butterfly-bob 0.34s ease-in-out infinite; }
+@keyframes sc-kids-butterfly-beat-near {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(-0.5) skewX(10deg); }
+}
+@keyframes sc-kids-butterfly-beat-far {
+  from { transform: scaleY(0.95); }
+  to { transform: scaleY(0.15); }
+}
+@keyframes sc-kids-butterfly-breathe {
+  0%, 60%, 100% { transform: scaleY(1); }
+  78%, 86% { transform: scaleY(0.4) skewX(6deg); }
+}
+@keyframes sc-kids-butterfly-breathe-far {
+  0%, 60%, 100% { transform: scaleY(0.95); }
+  78%, 86% { transform: scaleY(0.2); }
+}
+@keyframes sc-kids-butterfly-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
+}
+@keyframes sc-kids-butterfly-show-fly {
+  0% { opacity: 1; }
+  14% { opacity: 0; }
+  50% { opacity: 1; }
+}
+@keyframes sc-kids-butterfly-show-rest {
+  0% { opacity: 0; }
+  14% { opacity: 1; }
+  50% { opacity: 0; }
+}
+/* The visit: a wavering flight in from the upper right, a settle, a
+   five second rest, and a lift off to the upper left. */
+@keyframes sc-kids-butterfly-visit {
+  0% { opacity: 0; transform: translate(70px, -60px) rotate(-12deg); }
+  3% { opacity: 1; }
+  6% { transform: translate(50px, -32px) rotate(-6deg); }
+  9% { transform: translate(28px, -36px) rotate(-10deg); }
+  12% { transform: translate(8px, -14px) rotate(-3deg); }
+  14% { transform: translate(0, 0) rotate(0deg); }
+  50% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+  53% { transform: translate(-12px, -22px) rotate(8deg); }
+  56% { transform: translate(-30px, -30px) rotate(12deg); }
+  59% { transform: translate(-52px, -44px) rotate(6deg); }
+  62% { opacity: 1; transform: translate(-80px, -70px) rotate(14deg); }
+  66%, 100% { opacity: 0; transform: translate(-80px, -70px) rotate(14deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-kids-butterfly { display: none; }
 }
 .sc-phase-tab:focus-visible {
   outline: 2px solid var(--sc-primary);
