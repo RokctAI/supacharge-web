@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.37.8
+
+* Installs `landing/lms-kids-butterfly.tsx`. 1.37.7 added the butterfly and
+  its two importers but no install entry in `manifest.json`, so a composed
+  app failed to build ("Module not found:
+  @/components/custom/landing/lms-kids-butterfly"). A new test fails when
+  any file under `templates/` has no install entry.
+
 ## 1.37.7
 
 * Landing, kids mode rectangles (Ray, 2026-10-16: "on those tabs its

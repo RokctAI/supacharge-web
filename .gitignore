@@ -258,6 +258,7 @@ components/ui/tooltip.tsx
 /components/custom/landing/lms-header-menu.ts
 /components/custom/landing/lms-hero-copy.ts
 /components/custom/landing/lms-hero-form.tsx
+/components/custom/landing/lms-kids-butterfly.tsx
 /components/custom/landing/lms-landing-config.ts
 /components/custom/landing/lms-marquee.tsx
 /components/custom/landing/lms-milestone.ts

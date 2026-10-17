@@ -2955,11 +2955,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.7")
+        self.assertEqual(manifest["version"], "1.37.8")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.7"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
 
 
 class TestKidsModeCards(unittest.TestCase):
@@ -3049,11 +3049,11 @@ class TestKidsModeCards(unittest.TestCase):
 
     def test_version_and_changelog(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.7")
+        self.assertEqual(manifest["version"], "1.37.8")
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.0")[0]
         self.assertIn("## 1.37.1", head)
         self.assertIn("kids mode", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.7"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
 
 
 R3_AVAILABILITY = os.path.join(LANDING, "lms-r3-availability.ts")
@@ -3179,7 +3179,7 @@ class TestR3Availability(unittest.TestCase):
 
     def test_installed_versioned_and_logged(self):
         manifest = load_manifest()
-        self.assertEqual(manifest["version"], "1.37.7")
+        self.assertEqual(manifest["version"], "1.37.8")
         self.assertIn("_comment_version_1_37_3", manifest)
         pairs = {i["from"]: i["to"] for i in manifest["installs"]}
         self.assertEqual(
@@ -3189,7 +3189,7 @@ class TestR3Availability(unittest.TestCase):
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.2")[0]
         self.assertIn("## 1.37.3", head)
         self.assertIn("gen_r3_availability.py", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.7"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -4588,9 +4588,9 @@ class TestKidsButterfly(unittest.TestCase):
 
     def test_versioned_and_logged(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.7")
+        self.assertEqual(manifest["version"], "1.37.8")
         self.assertIn("_comment_version_1_37_7", manifest)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.7"', read(FOOTER_CHROME))
+        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.6")[0]
         self.assertIn("## 1.37.7", head)
         self.assertIn("rest on it then fly", head)
