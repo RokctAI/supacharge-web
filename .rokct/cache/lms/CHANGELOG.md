@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.39.1
+
+* The landing's fonts are bundled with the SDK and load through
+  `next/font/local`, so building the shell no longer downloads anything
+  from Google Fonts. supacharge-web main 6449cbd failed its Vercel build
+  twice with `next/font/google queries have exactly one entry`: Google
+  answered with `fonts.gstatic.com/l/font?kit=...` URLs, which Turbopack's
+  `next/font/google` loader cannot resolve.
+* `landing/fonts/lms/` holds Inter (weights 400 to 800) and Montserrat
+  (700 to 900, upright and italic) as woff2, with `OFL.txt` (SIL Open Font
+  License 1.1). They are the google/fonts sources (the versions Google
+  serves) cut to the latin and latin-ext characters, and they draw the same
+  glyphs. Cyrillic, greek and vietnamese text, which Google's extra faces
+  covered, now draws in the fallback. `lms-fonts.ts` keeps `lmsSans` and `lmsBrand`, the
+  `--sc-font-inter` and `--sc-font-montserrat` variables, `display: swap`
+  and the metric-matched Arial fallback, so the landing looks the same.
+  `LMS_LANDING_VERSION` goes to 1.39.1. No base_sdk floor moves.
+
 ## 1.39.0
 
 * The AppGallery badge shows only when the latest Supacharge release has a

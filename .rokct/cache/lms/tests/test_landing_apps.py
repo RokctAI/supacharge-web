@@ -3033,7 +3033,7 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.39.0")
+        self.assertGreaterEqual(tuple(int(n) for n in manifest["version"].split(".")), (1, 39, 0))
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
@@ -3127,7 +3127,7 @@ class TestKidsModeCards(unittest.TestCase):
 
     def test_version_and_changelog(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.39.0")
+        self.assertGreaterEqual(tuple(int(n) for n in manifest["version"].split(".")), (1, 39, 0))
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.0")[0]
         self.assertIn("## 1.37.1", head)
         self.assertIn("kids mode", head)
@@ -3257,7 +3257,7 @@ class TestR3Availability(unittest.TestCase):
 
     def test_installed_versioned_and_logged(self):
         manifest = load_manifest()
-        self.assertEqual(manifest["version"], "1.39.0")
+        self.assertGreaterEqual(tuple(int(n) for n in manifest["version"].split(".")), (1, 39, 0))
         self.assertIn("_comment_version_1_37_3", manifest)
         pairs = {i["from"]: i["to"] for i in manifest["installs"]}
         self.assertEqual(
@@ -4673,7 +4673,7 @@ class TestKidsButterfly(unittest.TestCase):
 
     def test_versioned_and_logged(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.39.0")
+        self.assertGreaterEqual(tuple(int(n) for n in manifest["version"].split(".")), (1, 39, 0))
         self.assertIn("_comment_version_1_37_7", manifest)
         self.assertRegex(read(FOOTER_CHROME), r'LMS_LANDING_VERSION = "1\.(37\.12|3[89]\.\d+|[4-9]\d\.\d+)"')
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.6")[0]
@@ -4795,7 +4795,7 @@ class TestButterflyLandsKidsMode(unittest.TestCase):
 
     def test_versioned_and_logged(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.39.0")
+        self.assertGreaterEqual(tuple(int(n) for n in manifest["version"].split(".")), (1, 39, 0))
         self.assertIn("_comment_version_1_37_11", manifest)
         self.assertRegex(read(FOOTER_CHROME), r'LMS_LANDING_VERSION = "1\.(37\.12|3[89]\.\d+|[4-9]\d\.\d+)"')
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.8")[0]

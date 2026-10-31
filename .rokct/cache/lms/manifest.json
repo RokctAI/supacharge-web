@@ -1,6 +1,7 @@
 {
   "name": "lms_sdk",
-  "version": "1.39.0",
+  "version": "1.39.1",
+  "_comment_version_1_39_1": "1.39.0 -> 1.39.1: the landing's two faces load through next/font/local from bundled woff2 files instead of next/font/google, so composing the shell makes no build-time request to Google Fonts. supacharge-web main 6449cbd failed its Vercel build twice when fonts.googleapis.com answered with fonts.gstatic.com/l/font?kit=... URLs that Turbopack's next/font/google loader cannot resolve (\"next/font/google queries have exactly one entry\"). templates/components/custom/landing/fonts/lms/ holds Inter (wght 400-800) and Montserrat (wght 700-900, normal and italic), cut from the google/fonts OFL sources to latin + latin-ext with every other axis at its default, and OFL.txt; it installs to components/custom/landing/fonts/lms/. lms-fonts.ts keeps the exports (lmsSans, lmsBrand), the CSS variables (--sc-font-inter, --sc-font-montserrat), display swap and the Arial-based metric fallback. No base_sdk floor moves.",
   "_comment_version_1_39_0": "1.38.0 -> 1.39.0 (after agent#560's 1.38.0 site credit): the AppGallery badge shows only when the latest RokctAI/supacharge release carries a separate Huawei APK (Ray, 2026-10-31; there is no real Huawei build yet and the badge served the Android APK). app/download/[platform]/resolve.ts adds huawei (app-huawei-v<version>.apk; the Android pattern ^app-v\\d never matches it) and availablePlatforms(release); /download/huawei without the file goes to the releases page like every other miss, never to the Android APK. The huawei entry's href is /download/huawei. The latest-release fetch moves to app/download/[platform]/latest-release.ts (same revalidate 600) and the new landing/lms-available-apps.ts narrows LMS_SHOWN_APPS to the platforms the release has a file for - the same rule for Android and Windows, and a failed fetch hides every direct download. The hero badges and the header's apps group read it through getters per request, the footer and the lesson route's download prompt await it. Also (Ray, 2026-10-31: \"there is a butterfly in landing that lands on a button and rectangle, those need to be normal until it lands on them\"): the kids tab and rectangle get data-kids-landed at the touchdown the visitor sees - lms-kids-butterfly.tsx follows the visit animation's progress on the browser timeline while the rectangle is on screen (new landing/lms-kids-butterfly-landing.ts) - instead of on a timer from mount, which flagged every rectangle below the fold before anyone saw its butterfly.",
   "_comment_version_1_38_0": "1.37.12 -> 1.38.0: the footer ends with base_sdk 1.54.0's site credit, `© <year> Supacharge · Built with ♥ by ROKCT` (Ray, 2026-10-31: every site's footer names the site, then credits ROKCT with a heart). LMS_FOOTER_CHROME drops copyrightHolder (the legal entity), so the row names the host's PLATFORM_NAME; the floor for footer-chrome.tsx and footer-chrome-config.ts moves to base_sdk 1.54.0.",
   "_comment_version_1_37_12": "1.37.11 -> 1.37.12: public/team/tutors/CAPS/tutor_001/acknowledgements/ and signoffs/ (5 .m4a) are removed and team-assets.ts drops their entries, because lms/dart/tool/sync_team_assets.dart now vendors audio only from the baked tutor-card samples (tutor_001-003 samples/, Ray 2026-10-17); every other voice clip is downloaded per grade from the backend (lms_sdk dart 1.59.0). No component read these files. Version bumped so version-aware cache reconciliation removes them from composed shells.",
@@ -121,6 +122,11 @@
     {
       "from": "templates/components/custom/landing/lms-fonts.ts",
       "to": "components/custom/landing/lms-fonts.ts"
+    },
+    {
+      "from": "templates/components/custom/landing/fonts/lms",
+      "to": "components/custom/landing/fonts/lms",
+      "_comment": "1.39.1: the woff2 files lms-fonts.ts loads through next/font/local (Inter, Montserrat) and their OFL.txt."
     },
     {
       "from": "templates/components/custom/landing/lms-theme-classes.ts",
