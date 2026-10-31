@@ -415,42 +415,76 @@ html.light .sc-landing .sc-milestone-icon {
 }
 /*
  * The "Become a Sponsor or Partner" card (1.37.0, lms-partners-section.tsx).
- * Dark in both modes, after the reference's dark card: near-black with a
- * primary glow on the dark set, the light set's own ink (#1b1b20) on the
- * light set so it still reads as one dark panel on a light page. Its ink
- * is fixed light on that dark ground; the button stays .sc-btn-primary.
+ * 1.37.8 (Ray, 2026-10-17: "Sponsors and partners need to stand out its
+ * where we asking for money"): the card is the brand orange in both modes
+ * instead of a dark panel, with a warm glow, a large faint heart behind
+ * the copy and a white button that pulses gently. Its ink is fixed white
+ * on that orange; the pulse stops under prefers-reduced-motion.
  */
 .sc-sponsor-card {
   position: relative;
   overflow: hidden;
   border-radius: var(--sc-radius-panel);
-  border: 1px solid var(--sc-stroke);
+  border: 0;
   background:
-    radial-gradient(70% 90% at 100% 0%, rgba(255, 102, 0, 0.22) 0%, rgba(255, 102, 0, 0) 60%),
-    #0a0a0a;
+    radial-gradient(60% 90% at 100% 0%, rgba(255, 214, 102, 0.5) 0%, rgba(255, 214, 102, 0) 60%),
+    linear-gradient(135deg, #ff6600 0%, #e23d0b 100%);
   color: #ffffff;
+  box-shadow: 0 28px 60px -24px rgba(255, 102, 0, 0.65);
+}
+.sc-sponsor-card > * {
+  position: relative;
+}
+.sc-sponsor-heart {
+  position: absolute !important;
+  right: -1.5rem;
+  bottom: -2rem;
+  width: 14rem;
+  height: 14rem;
+  color: #ffffff;
+  opacity: 0.12;
+  pointer-events: none;
 }
 .sc-sponsor-eyebrow {
+  align-self: flex-start;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--sc-primary);
+  color: #ffffff;
 }
 .sc-sponsor-text {
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.92);
 }
 .sc-sponsor-way {
   border-radius: var(--sc-radius-card);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
 }
-html.sc-landing:not(.dark) .sc-sponsor-card,
-html.light .sc-landing .sc-sponsor-card {
-  border-color: transparent;
-  background:
-    radial-gradient(70% 90% at 100% 0%, rgba(255, 102, 0, 0.3) 0%, rgba(255, 102, 0, 0) 60%),
-    #1b1b20;
+.sc-sponsor-icon {
+  color: #ffffff;
+}
+.sc-sponsor-btn {
+  min-height: 3.5rem;
+  padding: 0.9rem 2rem;
+  font-size: 1.0625rem;
+  background: #ffffff;
+  color: #c2410c;
+  border: 1px solid #ffffff;
+  animation: sc-sponsor-pulse 2.4s ease-out infinite;
+}
+.sc-sponsor-btn:hover {
+  background: #fff4ec;
+}
+@keyframes sc-sponsor-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6); }
+  70%, 100% { box-shadow: 0 0 0 14px rgba(255, 255, 255, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-sponsor-btn { animation: none; }
 }
 /*
  * Kids mode subject cards (1.37.1; Ray, 2026-10-16: "make the card for
@@ -698,12 +732,12 @@ html.light .sc-landing .sc-sponsor-card {
  * pill keeps its own rules above. Light in both site themes, like the
  * cards; still no hover rule.
  */
-.sc-phase-tab-kids > span {
+.sc-phase-tab-kids[data-kids-landed] > span {
   background: var(--sc-kids-bg);
   color: var(--sc-kids-ink);
   border: 2px solid var(--sc-kids-tile-1);
 }
-.sc-phase-tab-kids[aria-selected="true"] > span {
+.sc-phase-tab-kids[data-kids-landed][aria-selected="true"] > span {
   background: var(--sc-kids-tile-1);
   color: var(--sc-kids-ink);
   border-color: var(--sc-kids-ink);
@@ -712,10 +746,30 @@ html.light .sc-landing .sc-sponsor-card {
  * loses soon and gain kids mode colors"): the Subjects feature card's
  * Grades R to 3 rectangle wears the same kids palette as its tab - cream
  * fill, ink text, a yellow tile edge. */
-.sc-feature-phase-kids > span {
+.sc-feature-phase-kids[data-kids-landed] > span {
   background: var(--sc-kids-bg);
   color: var(--sc-kids-ink);
   border: 2px solid var(--sc-kids-tile-1);
+}
+/* 1.37.11 (Ray, 2026-10-17: "they should be normal then when a butterfly
+ * lands on them they become kids mode and stay kids mode"): both kids
+ * rectangles start in the normal outlined look, and the kids palette above
+ * waits for `data-kids-landed`, which the butterfly sets when it first
+ * touches down (landing/lms-kids-butterfly.tsx) and never removes. The
+ * colours ease over, and the 1px margin before landing makes up for the
+ * kids border's extra pixel, so nothing beside the rectangle moves. */
+.sc-phase-tab-kids > span,
+.sc-feature-phase-kids > span {
+  margin: 1px;
+  transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease;
+}
+.sc-phase-tab-kids[data-kids-landed] > span,
+.sc-feature-phase-kids[data-kids-landed] > span {
+  margin: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-phase-tab-kids > span,
+  .sc-feature-phase-kids > span { transition: none; }
 }
 /* 1.37.7 (Ray, 2026-10-16: "on those tabs its possible to have a bird or
  * a butterfly to come and rest on it then fly away?"): the butterfly

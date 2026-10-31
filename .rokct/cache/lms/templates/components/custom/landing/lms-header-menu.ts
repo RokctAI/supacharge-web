@@ -141,9 +141,10 @@
 import type { HeaderMenu } from "@/components/custom/landing/header-menu";
 
 import {
-  LMS_LANDING_CONFIG,
-  LMS_SHOWN_APPS,
-} from "@/components/custom/landing/lms-landing-config";
+  availableAppsNow,
+  primeAvailableApps,
+} from "@/components/custom/landing/lms-available-apps";
+import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import LMS_SITE_METADATA from "@/components/custom/landing/lms-site-metadata";
 
 /**
@@ -180,6 +181,10 @@ function marketCode(): string {
  * real; the row stays a floating-nav stop in the meantime. Add the id here
  * when the quotes are.
  */
+// The first request after the module loads already knows which files the
+// latest release carries (1.39.0). Server-only; a browser fetches nothing.
+await primeAvailableApps();
+
 const LMS_HEADER_MENU: HeaderMenu = {
   // Supacharge text is the logo until an icon is designed (Ray, 2026-09-09);
   // since 1.20.0 it folds into base's letter tile, with the market's code
@@ -205,16 +210,22 @@ const LMS_HEADER_MENU: HeaderMenu = {
       // "Get the app" - the landing's own label for the download.
       label: LMS_LANDING_CONFIG.app.label,
       layout: "row",
-      items: LMS_SHOWN_APPS.map(
-        ({ id, label, href, external, description, icon }) => ({
-          id,
-          label,
-          href,
-          external,
-          description,
-          icon,
-        }),
-      ),
+      // Only the apps the latest release has a file for (1.39.0; Ray,
+      // 2026-10-31): a getter, read per request when base resolves the
+      // menu on the server, so a new release shows within the fetch's ten
+      // minutes and a failed fetch lists none.
+      get items() {
+        return availableAppsNow().map(
+          ({ id, label, href, external, description, icon }) => ({
+            id,
+            label,
+            href,
+            external,
+            description,
+            icon,
+          }),
+        );
+      },
     },
     {
       id: "explore",

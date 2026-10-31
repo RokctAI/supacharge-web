@@ -23,12 +23,15 @@
 // whole in ./_components/lesson-playback.tsx, flagged as not used on the
 // web, and nothing imports it.
 //
-// Nothing is fetched here: the prompt reads the same for every lesson, and
-// the lesson fetch (fetchLesson, with its enrolment guardrail) belongs to
+// The one thing fetched here (1.39.0) is the latest release, through the
+// download route's cached fetch, so the prompt offers only the apps it has
+// a file for; the prompt reads the same for every lesson, and the lesson
+// fetch (fetchLesson, with its enrolment guardrail) belongs to
 // the player that is not on this surface. The route stays under /handson,
 // which auth_sdk's middleware gates, so an anonymous visitor never reaches
 // it.
 
+import { loadAvailableApps } from "@/components/custom/landing/lms-available-apps";
 import { LmsDownloadAppPrompt } from "@/components/custom/lms-download-app";
 
 interface LessonPageProps {
@@ -37,11 +40,12 @@ interface LessonPageProps {
 }
 
 export default async function LessonPage({ params }: LessonPageProps) {
-  const { courseName } = await params;
+  const [{ courseName }, apps] = await Promise.all([params, loadAvailableApps()]);
 
   return (
     <div className="p-6 md:p-10">
       <LmsDownloadAppPrompt
+        apps={apps}
         backHref={`/handson/all/lms/courses/${courseName}`}
       />
     </div>

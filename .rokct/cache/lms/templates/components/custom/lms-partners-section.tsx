@@ -47,6 +47,7 @@ import {
   RiHandHeartLine,
   RiSchoolLine,
   RiTeamLine,
+  RiHeart3Fill,
 } from "@remixicon/react";
 
 import {
@@ -72,9 +73,10 @@ export function LmsSponsorCard({ join }: { join: PartnersJoinConfig }) {
       className="sc-sponsor-card flex flex-col gap-8 p-6 md:p-10"
       data-sponsor-card
     >
+      <RiHeart3Fill className="sc-sponsor-heart" aria-hidden="true" />
       <div className="flex flex-col gap-3 max-w-2xl">
         <p className="sc-sponsor-eyebrow">{join.eyebrow}</p>
-        <h3 className="text-[28px] md:text-[36px] font-extrabold leading-[1.1] tracking-tight text-balance">
+        <h3 className="text-[32px] md:text-[44px] font-extrabold leading-[1.1] tracking-tight text-balance">
           {join.heading}
         </h3>
         <p className="sc-sponsor-text text-base md:text-lg leading-relaxed">
@@ -86,7 +88,7 @@ export function LmsSponsorCard({ join }: { join: PartnersJoinConfig }) {
           const Icon = WAY_ICONS[i % WAY_ICONS.length];
           return (
             <li key={way.title} className="sc-sponsor-way flex gap-3 p-4">
-              <Icon className="size-6 shrink-0 text-[var(--sc-primary)]" aria-hidden="true" />
+              <Icon className="sc-sponsor-icon size-6 shrink-0" aria-hidden="true" />
               <div className="flex flex-col gap-1">
                 <span className="font-bold">{way.title}</span>
                 <span className="sc-sponsor-text text-sm leading-relaxed">{way.text}</span>
@@ -96,7 +98,8 @@ export function LmsSponsorCard({ join }: { join: PartnersJoinConfig }) {
         })}
       </ul>
       <div>
-        <Link href={href} className="sc-btn sc-btn-primary">
+        <Link href={href} className="sc-btn sc-sponsor-btn">
+          <RiHandHeartLine className="size-5" aria-hidden="true" />
           {join.button.label}
         </Link>
       </div>

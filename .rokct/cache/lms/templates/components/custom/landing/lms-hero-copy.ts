@@ -63,9 +63,10 @@
 import type { HeroCopy } from "@/components/custom/landing/hero-copy";
 import type { HeroBadge } from "@/components/custom/landing/hero-config";
 import {
-  LMS_SHOWN_APPS,
-  type LandingApp,
-} from "@/components/custom/landing/lms-landing-config";
+  availableAppsNow,
+  primeAvailableApps,
+} from "@/components/custom/landing/lms-available-apps";
+import type { LandingApp } from "@/components/custom/landing/lms-landing-config";
 
 /**
  * The store mark the frame draws in each badge, by app id: the SVG files
@@ -74,7 +75,9 @@ import {
  * AppGallery flower - the stores the app is, or will be, listed in (Ray,
  * 2026-09-09) - and the desktop entry the Windows panes, the one platform
  * with no store. Which of them is drawn is the entry's own business
- * (LMS_SHOWN_APPS: shown today, or listed).
+ * (LMS_SHOWN_APPS: shown today, or listed) and, since 1.39.0, the
+ * release's (lms-available-apps.ts: only a platform the latest release has
+ * a file for).
  */
 export const LMS_APP_MARKS: Record<
   LandingApp["id"],
@@ -86,14 +89,20 @@ export const LMS_APP_MARKS: Record<
   huawei: { src: "/brand/marks/app-gallery.svg", alt: "AppGallery" },
 };
 
-/** One store badge per shown app, in the frame's own shape. */
-export const LMS_HERO_BADGES: HeroBadge[] = LMS_SHOWN_APPS.map((app) => ({
-  id: app.id,
-  href: app.href,
-  eyebrow: app.badge.eyebrow,
-  label: app.badge.label,
-  icon: LMS_APP_MARKS[app.id],
-}));
+/** One store badge per app, in the frame's own shape. */
+export function lmsHeroBadges(apps: readonly LandingApp[]): HeroBadge[] {
+  return apps.map((app) => ({
+    id: app.id,
+    href: app.href,
+    eyebrow: app.badge.eyebrow,
+    label: app.badge.label,
+    icon: LMS_APP_MARKS[app.id],
+  }));
+}
+
+// The first request after the module loads already knows which files the
+// latest release carries (1.39.0). Server-only; a browser fetches nothing.
+await primeAvailableApps();
 
 const LMS_HERO_COPY: HeroCopy = {
   // The frame renders "<text> <verb> <suffix>". The headline is the
@@ -115,7 +124,14 @@ const LMS_HERO_COPY: HeroCopy = {
   backgroundImage: "",
   // The frame draws this line over its badges, as rokct.ai's hero does.
   trustLine: ["Trusted by learners across South Africa"],
-  badges: LMS_HERO_BADGES,
+  // One badge per app the latest release has a file for (1.39.0; Ray,
+  // 2026-10-31: no AppGallery badge without a Huawei APK). A getter, so
+  // base's loadHeroCopy - which spreads this object on every request -
+  // reads the current release, not the one at module load; a failed fetch
+  // draws no badges.
+  get badges() {
+    return lmsHeroBadges(availableAppsNow());
+  },
   // The wordmark shows the site name's stem, rendered by base on the server.
   brand: "stem",
   // No host logo tile beside that slot (base_sdk 1.46.0's HeroConfig.logo,

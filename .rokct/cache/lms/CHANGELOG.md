@@ -1,5 +1,67 @@
 # Changelog
 
+## 1.39.0
+
+* The AppGallery badge shows only when the latest Supacharge release has a
+  separate Huawei build (Ray, 2026-10-31). There is no Huawei build yet,
+  and until now the badge served the Android build. The Huawei entry links
+  to `/download/huawei`, which resolves the release's
+  `app-huawei-v<version>` file; without it the route goes to the releases
+  page like any other miss, never to the Android build. The Android
+  pattern (`^app-v\d`) does not match the Huawei file.
+* Every download badge follows the same rule: the hero badges, the
+  header's app cards, the footer's download buttons and the lesson
+  prompt show a platform only while the latest release carries its file
+  (`availablePlatforms(release)` in `app/download/[platform]/resolve.ts`,
+  read through `landing/lms-available-apps.ts`). They reuse the download
+  route's release fetch, now in `app/download/[platform]/latest-release.ts`
+  with the same ten-minute revalidation. A failed fetch hides every direct
+  download. A store listing (`storeUrl`) is not a release file and stays.
+* The kids mode tab and the "Your day, sorted." Grades R to 3 rectangle
+  stay in the normal look until the visitor sees the butterfly land on
+  them (Ray, 2026-10-31: "there is a butterfly in landing that lands on a
+  button and rectangle, those need to be normal until it lands on them").
+  1.37.11 switched them on a timer from page load, so a rectangle below
+  the fold was already in kids mode when the visitor scrolled to it. The
+  switch now follows the butterfly's animation while the rectangle is on
+  screen and happens at touchdown (`landing/lms-kids-butterfly-landing.ts`).
+  With reduced motion there is no butterfly and they are in kids mode from
+  the start, as before.
+## 1.38.0
+
+* The footer ends with the site credit, `© <year> Supacharge · Built with
+  ♥ by ROKCT` (Ray, 2026-10-31: "all site will be copyright sitename then
+  built with love (as heart) by ROKCT"), instead of "© Copyright <year> -
+  ROKCT INTELLIGENCE (PTY) LTD". base_sdk 1.54.0's footer row draws it in
+  its own type; `LMS_FOOTER_CHROME` drops `copyrightHolder`, so the row
+  names the host's `PLATFORM_NAME`. The base_sdk floor for
+  `footer-chrome.tsx` and `footer-chrome-config.ts` is 1.54.0.
+
+## 1.37.12
+
+* The tutor_001 acknowledgement and signoff clips leave `public/team` and `team-assets.ts`. Only the baked tutor-card samples (tutor_001 to tutor_003) are vendored now; every other voice clip downloads per grade from the backend.
+
+## 1.37.11
+
+* The Grades R to 3 tab and the "Your day, sorted." Grades R to 3
+  rectangle start in the normal look. When the butterfly first lands on
+  one, it turns into kids mode and stays that way (Ray, 2026-10-17: "they
+  should be normal then when a butterfly lands on them they become kids
+  mode and stay kids mode"). With reduced motion they are in kids mode
+  from the start.
+
+## 1.37.10
+
+* Landing, partners section (Ray, 2026-10-17: "Sponsors and partners need
+  to stand out its where we asking for money"): the Become a Sponsor or
+  Partner card is the brand orange in both modes, with a warm glow and
+  shadow, a large faint heart behind the copy, a bigger heading, a white
+  Sponsors and partners pill and white glass tiles for the three ways to
+  give. The Become a partner button is white with a hand-heart icon and a
+  gentle pulse, still the same-site /partner/signup link
+  (`lms-partners-section.tsx`, `.sc-sponsor-*` in `landing/lms-theme.css`).
+  The pulse stops under prefers-reduced-motion.
+
 ## 1.37.8
 
 * Installs `landing/lms-kids-butterfly.tsx`. 1.37.7 added the butterfly and

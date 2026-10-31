@@ -1,3 +1,5 @@
+"use client";
+
 /*
  * Copyright (c) 2026 ROKCT INTELLIGENCE (PTY) LTD
  *
@@ -34,12 +36,100 @@
 // style it. Decorative: aria-hidden, no pointer events, and hidden under
 // prefers-reduced-motion. `later` starts it half a cycle on, so the tab
 // and the "Your day, sorted." rectangle take turns.
+//
+// 1.37.11 (Ray, 2026-10-17: "those grader-3 tabs and rectangle they should
+// be normal then when a butterfly lands on them they become kids mode and
+// stay kids mode"): the rectangle starts in the site's normal look, and
+// when the butterfly first touches down it marks its rectangle with
+// `data-kids-landed`, which turns the kids palette on
+// (`.sc-phase-tab-kids[data-kids-landed]`, landing/lms-theme.css). The
+// mark is never taken off, so the rectangle stays in kids mode after the
+// butterfly flies away. It is a data attribute, not a class, because
+// React rewrites the tab's className whenever the selection changes and
+// would drop an added class. With reduced motion the butterfly is hidden,
+// so the mark goes on straight away.
+//
+// 1.39.0 (Ray, 2026-10-31: "there is a butterfly in landing that lands on
+// a button and rectangle, those need to be normal until it lands on them"):
+// the mark no longer goes on from a timer started at mount, which fired
+// for rectangles below the fold before anyone saw them, and about a second
+// after the real touchdown. It follows the visit animation on the
+// browser's own timeline while the rectangle is on screen, and goes on at
+// the touchdown the visitor watches (lms-kids-butterfly-landing.ts).
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
+
+import {
+  LANDING_START,
+  watchLanding,
+  type LandingWatch,
+} from "@/components/custom/landing/lms-kids-butterfly-landing";
+
+/** The keyframes the visit runs (lms-theme.css). */
+const VISIT = "sc-kids-butterfly-visit";
+
+/** The visit's iteration progress (0 to 1) on the browser's timeline, or null. */
+function visitProgress(butterfly: HTMLElement): number | null {
+  const visit = butterfly
+    .getAnimations()
+    .find((animation) => (animation as CSSAnimation).animationName === VISIT);
+  const progress = visit?.effect?.getComputedTiming().progress;
+  return typeof progress === "number" ? progress : null;
+}
 
 export function LmsKidsButterfly({ later }: { later?: boolean }) {
+  const ref = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const butterfly = ref.current;
+    const rectangle = butterfly?.parentElement;
+    if (!butterfly || !rectangle) return;
+    const land = () => rectangle.setAttribute("data-kids-landed", "");
+    // Reduced motion hides the butterfly, so there is no landing to wait
+    // for: the rectangle is in kids mode from the start (1.37.11).
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      land();
+      return;
+    }
+    // A browser without the timeline or the observer cannot tell when the
+    // landing is seen; the rectangle keeps the normal look.
+    if (
+      typeof butterfly.getAnimations !== "function" ||
+      typeof IntersectionObserver === "undefined"
+    ) {
+      return;
+    }
+    // 1.39.0: follow the animation, frame by frame, while the rectangle is
+    // on screen (lms-kids-butterfly-landing.ts), and mark it when the
+    // butterfly touches down in view.
+    let visible = false;
+    let watch: LandingWatch = LANDING_START;
+    let frame = 0;
+    const tick = () => {
+      frame = 0;
+      watch = watchLanding(watch, visible, visitProgress(butterfly));
+      if (watch.landed) {
+        land();
+        observer.disconnect();
+        return;
+      }
+      if (visible) frame = window.requestAnimationFrame(tick);
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = Boolean(entry?.isIntersecting);
+      if (!visible) watch = LANDING_START;
+      if (visible && frame === 0) frame = window.requestAnimationFrame(tick);
+    });
+    observer.observe(rectangle);
+    return () => {
+      observer.disconnect();
+      if (frame !== 0) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
     <i
+      ref={ref}
       className={later ? "sc-kids-butterfly sc-kids-butterfly-later" : "sc-kids-butterfly"}
       aria-hidden="true"
       data-kids-butterfly

@@ -1,5 +1,65 @@
 # Changelog
 
+## 1.54.0
+
+* feat(footer): the site credit (Ray, 2026-10-31: "all site will be
+  copyright sitename then built with love (as heart) by ROKCT"). Every
+  site's footer now ends `© <year> <site name> · Built with ♥ by ROKCT`:
+  the SITE's own name, never the legal entity (Polaris read "© Copyright
+  2026 - ROKCT INTELLIGENCE (PTY) LTD"; it now reads "© 2026 Polaris ·
+  Built with ♥ by ROKCT"). New `components/custom/site-credit.tsx`
+  (`SiteCredit`: server-safe, `siteName` defaulting to the host's
+  `PLATFORM_NAME`, `year` defaulting to the current one, the footer's own
+  `separator` and type `className`, the heart a `role="img"` named `love`)
+  and its pure rules `components/custom/landing/site-credit.ts`
+  (`siteCopyright`, `siteCreditText`, `siteCreditLine`,
+  `resolveCreditYear`). A home SDK footer that draws its own markup imports
+  `SiteCredit` from `@/components/custom/site-credit`.
+* feat(footer-chrome): `FooterChromeRow` draws the credit in place of
+  `© Copyright <year> - <holder>`, naming `config.siteName`, else
+  `PLATFORM_NAME`; the credit is always drawn (a nameless site carries the
+  credit alone). `FooterChromeConfig` gains `siteName` and
+  `creditSeparator`; `copyrightHolder` is optional, deprecated and no
+  longer drawn, and `FOOTER_CHROME_CONFIG` no longer reads
+  `NEXT_PUBLIC_COPYRIGHT_HOLDER`.
+* docs(site-data): `site.json` `footer.legal` stays valid, but the credit
+  names the site's `name`, so no shipped footer draws it any more.
+* test: `tests/site-credit.test.mts` (run by test_manifest.py) drives the
+  rules; `TestSiteCredit` checks the installs, the component and the row.
+
+## 1.53.0
+
+* feat(site-data): a local-data site's whole page is data (Ray, 2026-10-31:
+  one shared site renderer, every client from data, no SDK per client).
+  New kinds, each validated down to the field by the new
+  `lib/site-data/validate-site.mjs` (installed beside `validate.mjs`):
+  * `site` (`data/site.json`): name, type wordmark, motto, place, since,
+    WhatsApp number, header logo and action, metadata, footer links, line
+    and `legal` (the copyright holder, else the shell's LEGAL_COMPANY_NAME);
+  * `sections` (`data/sections.json`): the page top to bottom, from a closed
+    library of section types (hero, intro, steps, pricing, gallery, facts,
+    order, contact), each with its fields, a layout `variant` and a `tone`;
+  * `pricing` (`data/pricing.json`): price tiers (with the quantity each
+    starts at, for the order form);
+  * `order` (`data/order.json`): the WhatsApp order form's fields, message
+    lines and label preview;
+  * `css` (`data/site.css`): the site's own stylesheet, plain CSS (no tags,
+    no `@import`).
+  `theme.json` gains `palette` / `paletteDark` (named tokens, hex) and
+  `fonts` (a display and a text face from a small allowed set, and the
+  display voice: weight, italic, capitals). Cross-kind rules fail the build
+  too: a page needs `site.json`; a pricing or order section needs its file;
+  anything that opens WhatsApp needs the number. base renders none of it -
+  corporate_sdk, the home SDK of every local-data site, does.
+* feat(site-data): `generate.mjs` also enforces the HOME SDK's
+  `home.site_data.requires` in a local build (the home recorded in
+  `.rokct/cache/install_state.json`, else the one `composer.json` flags).
+* feat(landing): `HeroConfig.formData` (optional, never read by base): plain
+  data a home SDK's server-loaded hero copy hands to its client hero form.
+* test: `tests/site-page.test.mts` (run by test_manifest.py) drives the new
+  validators, the cross-kind rule, the home block's required kinds and the
+  generator against `tests/fixtures/site-data/site-page/`, a made-up bakery.
+
 ## 1.52.1
 
 * fix: `components/ui/select.tsx` is prettier-formatted (its icon import is

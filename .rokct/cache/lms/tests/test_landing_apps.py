@@ -120,8 +120,10 @@ LESSON_PLAYBACK = os.path.join(LESSON_DIR, "_components", "lesson-playback.tsx")
 
 RELEASES_PAGE = "https://github.com/RokctAI/supacharge/releases/latest"
 
-# The surfaces that offer the app. Each reads LMS_SHOWN_APPS and never the
-# raw LMS_APPS, so a demoted entry cannot leak through one of them. Since
+# The surfaces that offer the app. None reads the raw LMS_APPS, so a demoted
+# entry cannot leak through one of them; since 1.39.0 each draws the apps
+# lms-available-apps.ts narrowed LMS_SHOWN_APPS to (the platforms the latest
+# release has a file for), handed in or read per request. Since
 # 1.15.0 the hero's surface is its copy (the badges the frame draws), not
 # its form, which draws nothing.
 # Since 1.31.0 the footer's surface is its chrome config (the download
@@ -237,6 +239,9 @@ def lift_header_menu():
         + json.dumps(app_label.group(1))
         + " } };\n"
         "const LMS_SHOWN_APPS = " + json.dumps(lift_apps(shown=True)) + ";\n"
+        # 1.39.0: the apps group reads the release-checked list; here every
+        # shown app is taken as available.
+        "const availableAppsNow = () => LMS_SHOWN_APPS;\n"
         'const marketCode = () => "";\n' + literal + "\n"
         "console.log(JSON.stringify(LMS_HEADER_MENU));\n"
     )
@@ -265,19 +270,21 @@ class TestApps(unittest.TestCase):
         cls.by_id = {app["id"]: app for app in cls.apps}
 
     def test_shown_apps_are_the_android_and_the_desktop_build_in_that_order(self):
-        """Ray, 2026-09-09: Google Play, AppGallery, Windows, left to right;
-        the AppGallery badge on the Android download until it is listed."""
+        """Ray, 2026-09-09: Google Play, AppGallery, Windows, left to right.
+        Since 1.39.0 (Ray, 2026-10-31) the AppGallery badge is the Huawei
+        build's own download, never the Android one; whether it is drawn
+        is the release's business (lms-available-apps.ts)."""
         shown = lift_apps(shown=True)
         self.assertEqual([app["id"] for app in shown], ["android", "huawei", "desktop"])
         by_id = {app["id"]: app for app in shown}
-        self.assertEqual(by_id["huawei"]["href"], "/download/android")
-        self.assertEqual(by_id["huawei"]["href"], by_id["android"]["href"])
+        self.assertEqual(by_id["huawei"]["href"], "/download/huawei")
+        self.assertNotEqual(by_id["huawei"]["href"], by_id["android"]["href"])
 
     def test_ios_is_kept_in_code_and_not_shown_and_appgallery_is_shown_unlisted(self):
         self.assertIn("ios", self.by_id, "the iOS entry is demoted, not removed")
         self.assertIs(self.by_id["ios"]["shown"], False)
         self.assertEqual(self.by_id["ios"]["storeUrl"], "")
-        # AppGallery is shown on the Android download, unlisted as yet.
+        # AppGallery is offered on its own download, unlisted as yet.
         self.assertIs(self.by_id["huawei"]["shown"], True)
         self.assertEqual(self.by_id["huawei"]["storeUrl"], "")
         source = read(CONFIG)
@@ -347,7 +354,7 @@ class TestApps(unittest.TestCase):
         for app in self.apps:
             with self.subTest(app=app["id"]):
                 self.assertIsInstance(app["storeUrl"], str)
-                self.assertNotRegex(app["href"], r"(?i)play\.google|apple\.com|huawei")
+                self.assertNotRegex(app["href"], r"(?i)play\.google|apple\.com|huawei\.com|appgallery")
 
     def test_no_rendered_word_says_apk(self):
         """1.15.0 (Ray, 2026-09-09: "its saying apk which it should not"):
@@ -425,7 +432,7 @@ class TestSurfaces(unittest.TestCase):
         for name, path in APP_SURFACES.items():
             with self.subTest(surface=name):
                 source = code_of(path)
-                self.assertIn("LMS_SHOWN_APPS", source)
+                self.assertNotIn("LMS_SHOWN_APPS", source, "the release-checked list, not the shown one")
                 self.assertNotRegex(source, r"\bLMS_APPS\b")
                 self.assertNotRegex(source, r"[\"']ios[\"']")
 
@@ -439,14 +446,15 @@ class TestSurfaces(unittest.TestCase):
         platform, and the platform's mark handed to the frame through its
         {src, alt} icon slot."""
         copy = code_of(HERO_COPY)
-        self.assertIn("LMS_SHOWN_APPS.map(", copy)
+        self.assertIn("return apps.map((app) => ({", copy)
         for field in (
             "eyebrow: app.badge.eyebrow",
             "label: app.badge.label",
             "icon: LMS_APP_MARKS[app.id]",
         ):
             self.assertIn(field, copy)
-        self.assertIn("badges: LMS_HERO_BADGES,", copy)
+        # 1.39.0: a getter over the release-checked apps, read per request.
+        self.assertIn("get badges() {\n    return lmsHeroBadges(availableAppsNow());", copy)
         # The hero form draws no button of its own any more.
         form = code_of(HERO_FORM)
         self.assertIn("return null;", form)
@@ -1901,6 +1909,76 @@ class TestIntermediateHostPortraits(unittest.TestCase):
                 self.assertIn('"%s"' % url, assets)
                 self.assertTrue(os.path.isfile(os.path.join(SDK_ROOT, "templates/public" + url)), url)
 
+
+def _base_sdk_root():
+    """base_sdk's nextjs root: $ROKCT_BASE_SDK, else the sibling core clone."""
+    env = os.environ.get("ROKCT_BASE_SDK")
+    if env:
+        return env
+    return os.path.abspath(os.path.join(SDK_ROOT, os.pardir, os.pardir, os.pardir, "core", "base", "nextjs"))
+
+
+class TestSiteCredit(unittest.TestCase):
+    """1.38.0: the footer ends with base_sdk 1.54.0's site credit,
+    `© <year> Supacharge · Built with ♥ by ROKCT` (Ray, 2026-10-31: "all
+    site will be copyright sitename then built with love (as heart) by
+    ROKCT"), never the legal entity."""
+
+    def setUp(self):
+        with open(os.path.join(SDK_ROOT, "manifest.json"), encoding="utf-8") as f:
+            self.manifest = json.load(f)
+
+    def test_footer_chrome_names_no_legal_entity(self):
+        chrome = read(FOOTER_CHROME)
+        code = re.sub(r"^\s*//.*$", "", re.sub(r"/\*.*?\*/", "", chrome, flags=re.S), flags=re.M)
+        body = code.split("export const LMS_FOOTER_CHROME: FooterChromeConfig = {", 1)[1].split("\n};", 1)[0]
+        self.assertNotIn("copyrightHolder", body)
+        self.assertNotIn("LMS_COPYRIGHT_HOLDER", body)
+        self.assertNotIn("PTY", body)
+        # No siteName override: the row names the host's PLATFORM_NAME.
+        self.assertNotIn("siteName", body)
+        # The footer section still ends with base's row, fed this config.
+        section = read(FOOTER_SECTION)
+        self.assertIn('import { FooterChromeRow } from "@/components/custom/footer-chrome";', section)
+        self.assertIn(
+            "config={{ ...LMS_FOOTER_CHROME, downloads: lmsFooterDownloads(apps), links: legalFooterLinks(terms) }}",
+            section,
+        )
+        self.assertNotIn("©", re.sub(r"^\s*//.*$", "", section, flags=re.M))
+
+    def test_manifest_names_the_base_floor_that_draws_the_credit(self):
+        notes = self.manifest["_comment"]
+        for key in ("components/custom/footer-chrome.tsx", "components/custom/landing/footer-chrome-config.ts"):
+            with self.subTest(key=key):
+                self.assertIn(key, self.manifest["requires"])
+                self.assertTrue(notes[key].startswith("installed by base_sdk >= 1.54.0"), notes[key])
+        head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.12")[0]
+        self.assertIn("## 1.38.0", head)
+        self.assertIn("Built with", head)
+
+    def test_credit_line_reads_supacharge_built_with_love_by_rokct(self):
+        """Executes base_sdk's own site-credit rules for this site's name
+        (skips when no base_sdk >= 1.54.0 checkout is reachable)."""
+        rules = os.path.join(_base_sdk_root(), "templates", "components", "custom", "landing", "site-credit.ts")
+        node = shutil.which("node")
+        if not os.path.isfile(rules) or not node:
+            raise unittest.SkipTest("base_sdk >= 1.54.0 site-credit.ts or node not reachable (set ROKCT_BASE_SDK)")
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copy(rules, os.path.join(tmp, "site-credit.ts"))
+            probe = os.path.join(tmp, "probe.mts")
+            with open(probe, "w", encoding="utf-8") as f:
+                f.write(
+                    "import { siteCreditLine } from './site-credit.ts';\n"
+                    "console.log(siteCreditLine('Supacharge', { year: 2026 }));\n"
+                )
+            run = subprocess.run(
+                [node, "--experimental-strip-types", "--no-warnings", probe],
+                capture_output=True, text=True, timeout=60, cwd=tmp,
+            )
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(run.stdout.strip(), "\u00a9 2026 Supacharge \u00b7 Built with \u2665 by ROKCT")
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -2955,11 +3033,11 @@ class TestFoundationSkills(unittest.TestCase):
         client = read(os.path.join(SDK_ROOT, "templates/components/custom/lms-subjects-section.client.tsx"))
         self.assertIn("{subject.skills}", client)
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.8")
+        self.assertEqual(manifest["version"], "1.39.0")
         head = " ".join(read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.36.3")[0].split())
         self.assertIn('"Arithmetic, patterns, shapes, measuring"', head)
         self.assertIn('"Reading, writing, phonics"', head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
+        self.assertRegex(read(FOOTER_CHROME), r'LMS_LANDING_VERSION = "1\.(37\.12|3[89]\.\d+|[4-9]\d\.\d+)"')
 
 
 class TestKidsModeCards(unittest.TestCase):
@@ -3049,11 +3127,11 @@ class TestKidsModeCards(unittest.TestCase):
 
     def test_version_and_changelog(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.8")
+        self.assertEqual(manifest["version"], "1.39.0")
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.0")[0]
         self.assertIn("## 1.37.1", head)
         self.assertIn("kids mode", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
+        self.assertRegex(read(FOOTER_CHROME), r'LMS_LANDING_VERSION = "1\.(37\.12|3[89]\.\d+|[4-9]\d\.\d+)"')
 
 
 R3_AVAILABILITY = os.path.join(LANDING, "lms-r3-availability.ts")
@@ -3179,7 +3257,7 @@ class TestR3Availability(unittest.TestCase):
 
     def test_installed_versioned_and_logged(self):
         manifest = load_manifest()
-        self.assertEqual(manifest["version"], "1.37.8")
+        self.assertEqual(manifest["version"], "1.39.0")
         self.assertIn("_comment_version_1_37_3", manifest)
         pairs = {i["from"]: i["to"] for i in manifest["installs"]}
         self.assertEqual(
@@ -3189,7 +3267,7 @@ class TestR3Availability(unittest.TestCase):
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.2")[0]
         self.assertIn("## 1.37.3", head)
         self.assertIn("gen_r3_availability.py", head)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
+        self.assertRegex(read(FOOTER_CHROME), r'LMS_LANDING_VERSION = "1\.(37\.12|3[89]\.\d+|[4-9]\d\.\d+)"')
 
 
 class TestGradeFilters(unittest.TestCase):
@@ -3583,13 +3661,10 @@ class TestFooterDownloads(unittest.TestCase):
 
     def test_footer_chrome_maps_the_shown_list_into_the_downloads_field(self):
         code = code_of(FOOTER_CHROME)
-        self.assertIn("LMS_SHOWN_APPS", code)
+        # 1.39.0: the section hands in the release-checked apps.
         self.assertNotRegex(code, r"\bLMS_APPS\b")
-        self.assertIn(
-            'export const LMS_FOOTER_DOWNLOADS: NonNullable<FooterChromeConfig["downloads"]> =',
-            code,
-        )
-        body = code.split("LMS_SHOWN_APPS.map((app) => ({")[1].split("}));")[0]
+        self.assertIn("export function lmsFooterDownloads(", code)
+        body = code.split("return apps.map((app) => ({")[1].split("}));")[0]
         for field in (
             "id: app.id",
             "platform: app.downloadPlatform",
@@ -3605,9 +3680,11 @@ class TestFooterDownloads(unittest.TestCase):
         # come through the shown list.
         self.assertNotIn("/download/", code)
         self.assertNotRegex(code, r"[\"']ios[\"']")
-        self.assertIn("downloads: LMS_FOOTER_DOWNLOADS,", code)
         chrome = code.split("export const LMS_FOOTER_CHROME: FooterChromeConfig = {")[1]
-        self.assertIn("downloads: LMS_FOOTER_DOWNLOADS,", chrome)
+        self.assertIn("downloads: [],", chrome)
+        self.assertIn(
+            "downloads: lmsFooterDownloads(apps),", code_of(FOOTER_SECTION)
+        )
 
     def test_footer_section_prints_no_text_download_link(self):
         code = code_of(FOOTER_SECTION)
@@ -3623,9 +3700,11 @@ class TestFooterDownloads(unittest.TestCase):
         self.assertIn("<FooterChromeRow", code)
         # Since 1.31.2 the config is spread, with base's Legal group beside it.
         self.assertIn("config={{ ...LMS_FOOTER_CHROME,", code)
-        # Nothing here draws a button or an offer of its own: base does.
+        # Nothing here draws a button or an offer of its own: base does. The
+        # one mention of downloads is the release-checked list it hands in.
         self.assertNotIn("InstallOffer", code)
-        self.assertNotIn("downloads", code)
+        self.assertEqual(code.count("downloads"), 1)
+        self.assertIn("downloads: lmsFooterDownloads(apps),", code)
 
     def test_footer_wordmark_stands_alone_with_no_tld_or_suffix_node(self):
         """1.31.1: the footer renders the traced SVG wordmark and nothing
@@ -3737,9 +3816,10 @@ class TestFooterDownloads(unittest.TestCase):
         ):
             with self.subTest(key=key):
                 self.assertIn(key, manifest["requires"])
-                self.assertTrue(
-                    notes[key].startswith("installed by base_sdk >= 1.41.0 ("), notes[key]
-                )
+                # 1.38.0 moved the footer row's floor on to 1.54.0 (the site
+                # credit, TestSiteCredit); 1.41.0 stays in its history.
+                self.assertRegex(notes[key], r"^installed by base_sdk >= 1\.(41|54)\.0 \(")
+                self.assertIn("installed by base_sdk >= 1.41.0 (", notes[key])
                 self.assertIn("Before that: installed by base_sdk >= 1.", notes[key])
         self.assertIn(
             "base_sdk floor for components/custom/footer-chrome.tsx, components/custom/landing/footer-chrome-config.ts and components/custom/header.tsx is 1.41.0 since 1.31.0",
@@ -3875,7 +3955,7 @@ class TestFooterLegalLinks(unittest.TestCase):
     LINKS_IMPORT = (
         'import { legalFooterLinks } from "@/components/custom/landing/legal-links";'
     )
-    ROW = "config={{ ...LMS_FOOTER_CHROME, links: legalFooterLinks(terms) }}"
+    ROW = "config={{ ...LMS_FOOTER_CHROME, downloads: lmsFooterDownloads(apps), links: legalFooterLinks(terms) }}"
 
     def test_section_imports_the_read_and_the_rule_from_base(self):
         section = code_of(FOOTER_SECTION)
@@ -3889,12 +3969,15 @@ class TestFooterLegalLinks(unittest.TestCase):
     def test_section_awaits_the_list_on_the_server(self):
         section = code_of(FOOTER_SECTION)
         self.assertIn("export async function LmsFooterSection(", section)
-        self.assertIn("const terms = await listPublicTerms();", section)
+        self.assertIn(
+            "const [terms, apps] = await Promise.all([listPublicTerms(), loadAvailableApps()]);",
+            section,
+        )
         # The await sits inside the component, after the config guard and
         # before the markup.
         body = section.split("export async function LmsFooterSection(", 1)[1]
-        self.assertLess(body.index("if (!config) return null;"), body.index("await listPublicTerms()"))
-        self.assertLess(body.index("await listPublicTerms()"), body.index("<footer"))
+        self.assertLess(body.index("if (!config) return null;"), body.index("await Promise.all([listPublicTerms()"))
+        self.assertLess(body.index("await Promise.all([listPublicTerms()"), body.index("<footer"))
         # Still a server module: base reads meta in the server render (1.24.0).
         self.assertNotIn('"use client"', section)
         self.assertFalse(read(FOOTER_SECTION).lstrip().startswith('"use client"'))
@@ -4431,10 +4514,10 @@ class TestKidsTabAndMotion(unittest.TestCase):
 
     def test_the_kids_tab_sheet_uses_the_kids_palette(self):
         css = read(THEME_CSS)
-        tab = css.split(".sc-phase-tab-kids > span {")[1].split("}")[0]
+        tab = css.split(".sc-phase-tab-kids[data-kids-landed] > span {")[1].split("}")[0]
         self.assertIn("background: var(--sc-kids-bg);", tab)
         self.assertIn("color: var(--sc-kids-ink);", tab)
-        selected = css.split('.sc-phase-tab-kids[aria-selected="true"] > span {')[1].split("}")[0]
+        selected = css.split('.sc-phase-tab-kids[data-kids-landed][aria-selected="true"] > span {')[1].split("}")[0]
         self.assertIn("background: var(--sc-kids-tile-1);", selected)
         self.assertIn("color: var(--sc-kids-ink);", selected)
         self.assertNotIn(".sc-phase-tab-kids:hover", css)
@@ -4516,7 +4599,7 @@ class TestKidsTabNoSoon(unittest.TestCase):
         # The other badged phase keeps its pill.
         self.assertIn("<LmsPhaseGrades phase={phase} />", features)
         theme = code_of(os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-theme.css"))
-        rule = re.search(r"\.sc-feature-phase-kids > span \{([^}]*)\}", theme)
+        rule = re.search(r"\.sc-feature-phase-kids\[data-kids-landed\] > span \{([^}]*)\}", theme)
         self.assertIsNotNone(rule)
         self.assertIn("background: var(--sc-kids-bg);", rule.group(1))
         self.assertIn("color: var(--sc-kids-ink);", rule.group(1))
@@ -4530,7 +4613,9 @@ class TestKidsTabNoSoon(unittest.TestCase):
             r"\{config\.join \? \(\s*<LmsSponsorCard join=\{config\.join\} />\s*\) : \(",
         )
         self.assertEqual(section.count("{config.cta.label}"), 1)
-        self.assertEqual(section.count('className="sc-btn sc-btn-primary"'), 2)
+        # The sponsor card's button (white since 1.37.8) and the fallback CTA.
+        self.assertEqual(section.count('className="sc-btn sc-btn-primary"'), 1)
+        self.assertEqual(section.count('className="sc-btn sc-sponsor-btn"'), 1)
         config = code_of(os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-landing-config.ts"))
         self.assertIn('button: { label: "Become a partner", href: "/partner/signup" }', config)
 
@@ -4588,9 +4673,134 @@ class TestKidsButterfly(unittest.TestCase):
 
     def test_versioned_and_logged(self):
         manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
-        self.assertEqual(manifest["version"], "1.37.8")
+        self.assertEqual(manifest["version"], "1.39.0")
         self.assertIn("_comment_version_1_37_7", manifest)
-        self.assertIn('LMS_LANDING_VERSION = "1.37.8"', read(FOOTER_CHROME))
+        self.assertRegex(read(FOOTER_CHROME), r'LMS_LANDING_VERSION = "1\.(37\.12|3[89]\.\d+|[4-9]\d\.\d+)"')
         head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.6")[0]
         self.assertIn("## 1.37.7", head)
         self.assertIn("rest on it then fly", head)
+
+class TestButterflyLandsKidsMode(unittest.TestCase):
+    """1.37.11 (Ray, 2026-10-17: "those grader-3 tabs and rectangle they
+    should be normal then when a butterfly lands on them they become kids
+    mode and stay kids mode")."""
+
+    BFLY = os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-kids-butterfly.tsx")
+    THEME = os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-theme.css")
+
+    def test_the_kids_palette_waits_for_the_landing(self):
+        theme = code_of(self.THEME)
+        # No kids colour reaches either rectangle without the mark.
+        for rule in re.finditer(r"([^{}]+)\{([^}]*)\}", theme):
+            selector, body = rule.group(1), rule.group(2)
+            if "--sc-kids-bg" in body or "--sc-kids-tile-1" in body:
+                for part in selector.split(","):
+                    if "sc-phase-tab-kids" in part or "sc-feature-phase-kids" in part:
+                        with self.subTest(selector=part.strip()):
+                            self.assertIn("[data-kids-landed]", part)
+
+    LANDING = os.path.join(SDK_ROOT, "templates/components/custom/landing/lms-kids-butterfly-landing.ts")
+
+    def test_the_butterfly_marks_its_rectangle_on_landing_and_never_unmarks(self):
+        bfly = code_of(self.BFLY)
+        self.assertRegex(bfly.lstrip(), r'^"use client";')
+        self.assertIn("ref.current", bfly)
+        self.assertIn("butterfly?.parentElement", bfly)
+        self.assertIn('rectangle.setAttribute("data-kids-landed", "")', bfly)
+        self.assertNotIn("removeAttribute", bfly)
+        # Reduced motion hides the butterfly, so the mark goes on at once.
+        self.assertIn('matchMedia?.("(prefers-reduced-motion: reduce)")', bfly)
+
+    def test_the_mark_follows_the_animation_in_view_not_a_timer(self):
+        """1.39.0 (Ray, 2026-10-31: "there is a butterfly in landing that
+        lands on a button and rectangle, those need to be normal until it
+        lands on them"): 1.37.11's timer from mount marked every rectangle
+        below the fold before anyone saw it. The mark now follows the visit
+        animation on the browser's timeline while the rectangle is on
+        screen."""
+        bfly = code_of(self.BFLY)
+        self.assertNotIn("setTimeout", bfly)
+        self.assertNotIn("VISIT_MS", bfly)
+        self.assertIn('const VISIT = "sc-kids-butterfly-visit";', bfly)
+        self.assertIn(".getAnimations()", bfly)
+        self.assertIn("getComputedTiming().progress", bfly)
+        self.assertIn("new IntersectionObserver(", bfly)
+        self.assertIn("requestAnimationFrame(tick)", bfly)
+        self.assertIn("watch = watchLanding(watch, visible, visitProgress(butterfly));", bfly)
+        self.assertIn("@keyframes sc-kids-butterfly-visit", code_of(self.THEME))
+        self.assertIn("14% { transform: translate(0, 0) rotate(0deg); }", code_of(self.THEME))
+        self.assertIn("50% { opacity: 1; transform: translate(0, 0) rotate(0deg); }", code_of(self.THEME))
+        self.assertNotRegex(code_of(self.LANDING), r"^\s*import\s", "import-free so node runs it bare")
+        installs = {e["from"] for e in load_manifest()["installs"]}
+        self.assertIn("templates/components/custom/landing/lms-kids-butterfly-landing.ts", installs)
+
+    def test_watch_landing_under_node(self):
+        node = shutil.which("node")
+        if not node:
+            raise unittest.SkipTest("node is not installed")
+        frames = {
+            # [visible, progress] per frame, from LANDING_START.
+            "seen_touchdown": [[True, 0.05], [True, 0.10], [True, 0.139], [True, 0.141]],
+            "offscreen_touchdown": [[False, 0.05], [False, 0.141], [False, 0.3]],
+            "scrolled_in_resting": [[False, 0.1], [True, 0.2], [True, 0.3], [True, 0.45]],
+            "scrolled_in_resting_then_next_visit": [[True, 0.3], [True, 0.7], [True, 0.99], [True, 0.02], [True, 0.15]],
+            "left_view_before_touchdown": [[True, 0.1], [False, 0.12], [True, 0.15]],
+            "skipped_past_the_rest": [[True, 0.1], [True, 0.55]],
+            "no_animation_yet": [[True, None], [True, None]],
+            "stays_landed": [[True, 0.1], [True, 0.2], [False, 0.7], [True, 0.9], [False, None]],
+        }
+        driver = (
+            'import { LANDING_START, LIFTOFF, TOUCHDOWN, watchLanding } from "./landing.ts";\n'
+            "const frames = JSON.parse(process.argv[2]);\n"
+            "const out = { TOUCHDOWN, LIFTOFF };\n"
+            "for (const [name, list] of Object.entries(frames)) {\n"
+            "  let w = LANDING_START; const trail = [];\n"
+            "  for (const [v, p] of list) { w = watchLanding(w, v, p); trail.push(w.landed); }\n"
+            "  out[name] = trail;\n"
+            "}\n"
+            "console.log(JSON.stringify(out));\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copy(self.LANDING, os.path.join(tmp, "landing.ts"))
+            with open(os.path.join(tmp, "driver.ts"), "w", encoding="utf-8") as f:
+                f.write(driver)
+            run = subprocess.run(
+                [node, "--experimental-strip-types", "--no-warnings", "driver.ts", json.dumps(frames)],
+                capture_output=True, text=True, timeout=60, cwd=tmp,
+            )
+        self.assertEqual(run.returncode, 0, run.stderr)
+        out = json.loads(run.stdout.strip().splitlines()[-1])
+        self.assertEqual(out["TOUCHDOWN"], 0.14, "the visit's 14% keyframe")
+        self.assertEqual(out["LIFTOFF"], 0.5, "the visit's 50% keyframe")
+        self.assertEqual(out["seen_touchdown"], [False, False, False, True])
+        self.assertEqual(out["offscreen_touchdown"], [False, False, False], "normal until seen")
+        self.assertEqual(out["scrolled_in_resting"], [False, False, False, False], "a resting butterfly was not seen landing")
+        self.assertEqual(out["scrolled_in_resting_then_next_visit"], [False, False, False, False, True])
+        self.assertEqual(out["left_view_before_touchdown"], [False, False, False])
+        self.assertEqual(out["skipped_past_the_rest"], [False, False])
+        self.assertEqual(out["no_animation_yet"], [False, False])
+        self.assertEqual(out["stays_landed"], [False, True, True, True, True])
+
+    def test_nothing_beside_the_rectangle_moves(self):
+        theme = code_of(self.THEME)
+        before = re.search(r"\.sc-phase-tab-kids > span,\s*\.sc-feature-phase-kids > span \{([^}]*)\}", theme)
+        self.assertIsNotNone(before)
+        self.assertIn("margin: 1px;", before.group(1))
+        after = re.search(
+            r"\.sc-phase-tab-kids\[data-kids-landed\] > span,\s*\.sc-feature-phase-kids\[data-kids-landed\] > span \{([^}]*)\}",
+            theme,
+        )
+        self.assertIsNotNone(after)
+        self.assertIn("margin: 0;", after.group(1))
+
+    def test_versioned_and_logged(self):
+        manifest = json.loads(read(os.path.join(SDK_ROOT, "manifest.json")))
+        self.assertEqual(manifest["version"], "1.39.0")
+        self.assertIn("_comment_version_1_37_11", manifest)
+        self.assertRegex(read(FOOTER_CHROME), r'LMS_LANDING_VERSION = "1\.(37\.12|3[89]\.\d+|[4-9]\d\.\d+)"')
+        head = read(os.path.join(SDK_ROOT, "CHANGELOG.md")).split("## 1.37.8")[0]
+        self.assertIn("## 1.37.11", head)
+        self.assertIn("when a butterfly lands on them", head)
+        # 1.39.0: normal until the visitor sees it land.
+        self.assertIn("those need to be normal until it lands on them", head.split("## 1.37.12")[0])
+

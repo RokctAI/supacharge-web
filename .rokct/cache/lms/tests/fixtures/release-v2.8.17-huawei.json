@@ -1,0 +1,40 @@
+{
+  "tag_name": "v2.8.17",
+  "html_url": "https://github.com/RokctAI/supacharge/releases/tag/v2.8.17",
+  "draft": false,
+  "prerelease": false,
+  "published_at": "2026-10-27T18:18:39Z",
+  "assets": [
+    {
+      "name": "app-debug-v2.8.17.apk",
+      "size": 328606256,
+      "browser_download_url": "https://github.com/RokctAI/supacharge/releases/download/v2.8.17/app-debug-v2.8.17.apk"
+    },
+    {
+      "name": "app-v2.8.17.aab",
+      "size": 180743210,
+      "browser_download_url": "https://github.com/RokctAI/supacharge/releases/download/v2.8.17/app-v2.8.17.aab"
+    },
+    {
+      "name": "app-v2.8.17.apk",
+      "size": 216250373,
+      "browser_download_url": "https://github.com/RokctAI/supacharge/releases/download/v2.8.17/app-v2.8.17.apk"
+    },
+    {
+      "name": "app-huawei-v2.8.17.apk",
+      "size": 216250373,
+      "browser_download_url": "https://github.com/RokctAI/supacharge/releases/download/v2.8.17/app-huawei-v2.8.17.apk"
+    },
+    {
+      "name": "supacharge-windows-setup-v2.8.17.exe",
+      "size": 45299315,
+      "browser_download_url": "https://github.com/RokctAI/supacharge/releases/download/v2.8.17/supacharge-windows-setup-v2.8.17.exe"
+    },
+    {
+      "name": "update_package.zip",
+      "size": 56553087,
+      "browser_download_url": "https://github.com/RokctAI/supacharge/releases/download/v2.8.17/update_package.zip"
+    }
+  ],
+  "_comment": "release-v2.8.17.json with the Huawei build the lane will attach (app-huawei-v<version>.apk, agreed 2026-10-31) added beside app-v2.8.17.apk; the size is a stand-in."
+}

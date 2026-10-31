@@ -45,6 +45,24 @@ SDK_ROOT = os.path.abspath(os.path.join(HERE, os.pardir))
 ROUTE_DIR = os.path.join(SDK_ROOT, "templates", "app", "download", "[platform]")
 RESOLVE = os.path.join(ROUTE_DIR, "resolve.ts")
 ROUTE = os.path.join(ROUTE_DIR, "route.ts")
+LATEST_RELEASE = os.path.join(ROUTE_DIR, "latest-release.ts")
+AVAILABLE_APPS = os.path.join(
+    SDK_ROOT, "templates", "components", "custom", "landing", "lms-available-apps.ts"
+)
+FIXTURES = os.path.join(HERE, "fixtures")
+
+
+def fixture(name):
+    with open(os.path.join(FIXTURES, name), encoding="utf-8") as f:
+        return json.load(f)
+
+
+# The real latest release on 2026-10-31 (v2.8.17: no Huawei build), and the
+# same release with the agreed app-huawei-v<version>.apk beside the Android
+# build (1.39.0; Ray, 2026-10-31).
+V2817 = fixture("release-v2.8.17.json")
+V2817_HUAWEI = fixture("release-v2.8.17-huawei.json")
+DOWNLOAD_2817 = "https://github.com/RokctAI/supacharge/releases/download/v2.8.17/"
 
 RELEASES_PAGE = "https://github.com/RokctAI/supacharge/releases/latest"
 RELEASES_API = "https://api.github.com/repos/RokctAI/supacharge/releases/latest"
@@ -75,10 +93,21 @@ SETUP_EXE = {
 DRIVER = """
 import {
   LMS_DOWNLOAD_PLATFORMS, LMS_RELEASES_API, LMS_RELEASES_PAGE,
-  isDownloadPlatform, pickAssetUrl, resolveDownload,
+  availablePlatforms, downloadPlatformOfHref, isDownloadPlatform,
+  isHrefAvailable, pickAssetUrl, resolveDownload,
 } from "./resolve.ts";
 const cases = JSON.parse(process.argv[2]);
+// appsAvailableIn (lms-available-apps.ts) over the lifted shown apps; the
+// test below holds that module to this same expression.
+const appsAvailableIn = (apps, release) => {
+  const available = availablePlatforms(release);
+  return apps.filter((app) => isHrefAvailable(app.href, available));
+};
 const out = {
+  available: (cases.available ?? []).map((release) => availablePlatforms(release)),
+  hrefPlatform: Object.fromEntries((cases.hrefs ?? []).map((h) => [h, downloadPlatformOfHref(h)])),
+  hrefAvailable: (cases.hrefAvailable ?? []).map(([href, available]) => isHrefAvailable(href, available)),
+  shownIn: (cases.shownIn ?? []).map(([apps, release]) => appsAvailableIn(apps, release).map((app) => app.id)),
   api: LMS_RELEASES_API,
   page: LMS_RELEASES_PAGE,
   platforms: Object.keys(LMS_DOWNLOAD_PLATFORMS),
@@ -120,7 +149,7 @@ class TestResolver(unittest.TestCase):
     def setUpClass(cls):
         shuffled = with_assets(list(reversed(V129["assets"])))
         cls.out = run_resolver({
-            "is": ["android", "windows", "ios", "desktop", "", "constructor", "__proto__", "Android"],
+            "is": ["android", "windows", "huawei", "ios", "desktop", "", "constructor", "__proto__", "Android"],
             "pick": [
                 [V129, "android"],
                 [V129, "windows"],
@@ -162,13 +191,16 @@ class TestResolver(unittest.TestCase):
         self.assertIn("-windows-setup-v", source)
         self.assertLess(source.index("-windows-setup-v"), source.index("app-windows-v\\d"), "installer before zip")
 
-    def test_the_platforms_are_android_and_windows_and_nothing_publishes_ios(self):
-        self.assertEqual(self.out["platforms"], ["android", "windows"])
-        self.assertEqual(self.out["names"], {"android": "Android", "windows": "Windows"})
+    def test_the_platforms_are_android_huawei_and_windows_and_nothing_publishes_ios(self):
+        self.assertEqual(self.out["platforms"], ["android", "huawei", "windows"])
+        self.assertEqual(
+            self.out["names"],
+            {"android": "Android", "huawei": "Huawei", "windows": "Windows"},
+        )
         self.assertEqual(
             self.out["is"],
-            {"android": True, "windows": True, "ios": False, "desktop": False, "": False,
-             "constructor": False, "__proto__": False, "Android": False},
+            {"android": True, "windows": True, "huawei": True, "ios": False, "desktop": False,
+             "": False, "constructor": False, "__proto__": False, "Android": False},
         )
 
     def test_each_platform_picks_its_release_build_whatever_the_order(self):
@@ -218,6 +250,134 @@ class TestResolver(unittest.TestCase):
         self.assertEqual(resolve[5], {"url": RELEASES_PAGE, "direct": False})
 
 
+class TestHuaweiAndAvailability(unittest.TestCase):
+    """1.39.0 (Ray, 2026-10-31): the AppGallery badge shows only when the
+    latest release carries a separate Huawei build, app-huawei-v<version>.apk
+    beside app-v<version>.apk; /download/huawei never hands out the Android
+    file; every badge whose file is missing is hidden; a failed fetch hides
+    them all."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.shown = lift_apps(shown=True)
+        huawei_only = with_assets([
+            {"name": "app-huawei-v1.2.9.apk", "browser_download_url": DOWNLOAD + "app-huawei-v1.2.9.apk"},
+        ])
+        cls.out = run_resolver({
+            "is": [],
+            "pick": [
+                [V2817, "huawei"],
+                [V2817_HUAWEI, "huawei"],
+                [V2817_HUAWEI, "android"],
+                [dict(V2817_HUAWEI, assets=list(reversed(V2817_HUAWEI["assets"]))), "android"],
+                [huawei_only, "android"],
+                [V2817, "android"],
+                [V2817, "windows"],
+                [with_assets([{"name": "app-huawei-debug-v1.2.9.apk", "browser_download_url": DOWNLOAD + "x.apk"}]), "huawei"],
+                [with_assets([{"name": "app-huawei-v1.2.9.aab", "browser_download_url": DOWNLOAD + "x.aab"}]), "huawei"],
+            ],
+            "resolve": [
+                [V2817, "huawei"],
+                [V2817_HUAWEI, "huawei"],
+                [None, "huawei"],
+            ],
+            "available": [V2817, V2817_HUAWEI, V129, huawei_only, None, {"message": "API rate limit exceeded"},
+                          with_assets(V129["assets"], draft=True), with_assets([])],
+            "hrefs": ["/download/huawei", "/download/android", "/download/windows", "/download/ios",
+                      "/download/huawei/x", "https://store.example/x", RELEASES_PAGE],
+            "hrefAvailable": [
+                ["/download/huawei", ["android", "windows"]],
+                ["/download/huawei", ["android", "huawei", "windows"]],
+                ["/download/ios", ["android", "huawei", "windows"]],
+                ["https://appgallery.example/listing", []],
+                [RELEASES_PAGE, []],
+            ],
+            "shownIn": [
+                [cls.shown, V2817],
+                [cls.shown, V2817_HUAWEI],
+                [cls.shown, V129],
+                [cls.shown, huawei_only],
+                [cls.shown, None],
+                [cls.shown, {"message": "API rate limit exceeded"}],
+                [lift_apps(overrides={"huawei": {"storeUrl": "https://appgallery.example/listing"}}, shown=True), None],
+            ],
+        })
+
+    def test_the_android_pattern_never_matches_the_huawei_file(self):
+        pick = self.out["pick"]
+        self.assertEqual(pick[2], DOWNLOAD_2817 + "app-v2.8.17.apk")
+        self.assertEqual(pick[3], DOWNLOAD_2817 + "app-v2.8.17.apk", "huawei listed first must not win")
+        self.assertIsNone(pick[4], "a release with only the Huawei file has no Android download")
+        self.assertNotRegex("app-huawei-v2.8.17.apk", r"^app-v\d")
+
+    def test_huawei_picks_its_own_file_and_nothing_else(self):
+        pick = self.out["pick"]
+        self.assertIsNone(pick[0], "v2.8.17 carries no Huawei build")
+        self.assertEqual(pick[1], DOWNLOAD_2817 + "app-huawei-v2.8.17.apk")
+        self.assertIsNone(pick[7], "not a debug build")
+        self.assertIsNone(pick[8], "not an .aab")
+        # Today's release still serves Android and the Windows installer.
+        self.assertEqual(pick[5], DOWNLOAD_2817 + "app-v2.8.17.apk")
+        self.assertEqual(pick[6], DOWNLOAD_2817 + "supacharge-windows-setup-v2.8.17.exe")
+
+    def test_download_huawei_without_the_file_goes_to_the_page_never_to_android(self):
+        resolve = self.out["resolve"]
+        self.assertEqual(resolve[0], {"url": V2817["html_url"], "direct": False})
+        self.assertNotIn("app-v", resolve[0]["url"])
+        self.assertEqual(resolve[1], {"url": DOWNLOAD_2817 + "app-huawei-v2.8.17.apk", "direct": True})
+        self.assertEqual(resolve[2], {"url": RELEASES_PAGE, "direct": False})
+
+    def test_available_platforms_are_the_ones_with_a_file(self):
+        self.assertEqual(
+            self.out["available"],
+            [
+                ["android", "windows"],
+                ["android", "huawei", "windows"],
+                ["android", "windows"],
+                ["huawei"],
+                [],
+                [],
+                [],
+                [],
+            ],
+        )
+
+    def test_href_platforms_and_availability(self):
+        self.assertEqual(
+            self.out["hrefPlatform"],
+            {"/download/huawei": "huawei", "/download/android": "android",
+             "/download/windows": "windows", "/download/ios": None,
+             "/download/huawei/x": None, "https://store.example/x": None,
+             RELEASES_PAGE: None},
+        )
+        self.assertEqual(self.out["hrefAvailable"], [False, True, False, True, True])
+
+    def test_badges_shown_and_hidden_by_the_release(self):
+        shown_in = self.out["shownIn"]
+        self.assertEqual(shown_in[0], ["android", "desktop"], "today: no AppGallery badge")
+        self.assertEqual(shown_in[1], ["android", "huawei", "desktop"], "Huawei build attached: badge shown")
+        self.assertEqual(shown_in[2], ["android", "desktop"])
+        self.assertEqual(shown_in[3], ["huawei"], "Android and Windows hidden when their files are missing")
+        self.assertEqual(shown_in[4], [], "a failed fetch hides every direct download")
+        self.assertEqual(shown_in[5], [])
+        self.assertEqual(shown_in[6], ["huawei"], "a store listing is not a release file and stays")
+
+    def test_the_landing_filters_with_the_same_expression(self):
+        source = code_of(AVAILABLE_APPS)
+        self.assertIn(
+            "const available = availablePlatforms(release);\n"
+            "  return LMS_SHOWN_APPS.filter((app) => isHrefAvailable(app.href, available));",
+            source,
+        )
+        self.assertIn("await fetchLatestRelease()", source)
+        self.assertIn('from "@/app/download/[platform]/latest-release"', source)
+        self.assertIn('typeof window === "undefined"', source)
+
+    def test_the_huawei_entry_links_to_its_own_route(self):
+        by_id = {app["id"]: app for app in self.shown}
+        self.assertEqual(by_id["huawei"]["href"], "/download/huawei")
+
+
 class TestRouteHandler(unittest.TestCase):
     def setUp(self):
         self.source = code_of(ROUTE)
@@ -229,14 +389,21 @@ class TestRouteHandler(unittest.TestCase):
         self.assertIn("app/download", installs)
 
     def test_handler_reads_no_token_and_no_environment(self):
-        self.assertNotIn("process.env", self.source)
-        self.assertNotRegex(self.source, r"(?i)authorization|token|secret")
-        self.assertIn("LMS_RELEASES_API", self.source)
-        self.assertNotIn("api.github.com", self.source, "the URL lives in resolve.ts")
+        fetcher = code_of(LATEST_RELEASE)
+        for source in (self.source, fetcher):
+            self.assertNotIn("process.env", source)
+            self.assertNotRegex(source, r"(?i)authorization|token|secret")
+            self.assertNotIn("api.github.com", source, "the URL lives in resolve.ts")
+        self.assertIn("LMS_RELEASES_API", fetcher)
 
     def test_handler_caches_the_api_for_ten_minutes(self):
-        self.assertIn("LMS_RELEASE_REVALIDATE_SECONDS = 600", self.source)
-        self.assertIn("next: { revalidate: LMS_RELEASE_REVALIDATE_SECONDS }", self.source)
+        """1.39.0: the fetch lives in latest-release.ts, shared by the route
+        and the landing's badges - one request, one cache window."""
+        fetcher = code_of(LATEST_RELEASE)
+        self.assertIn("LMS_RELEASE_REVALIDATE_SECONDS = 600", fetcher)
+        self.assertIn("next: { revalidate: LMS_RELEASE_REVALIDATE_SECONDS }", fetcher)
+        self.assertIn('import { fetchLatestRelease } from "./latest-release";', self.source)
+        self.assertNotRegex(self.source, r"(?<![\w.])fetch\(", "the route makes no fetch of its own")
 
     def test_handler_redirects_302_refuses_unknown_platforms_and_ignores_prefetches(self):
         self.assertIn("status: 302", self.source)
