@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "repo": "RokctAI/supacharge-web",
+  "commit": "5f2dfde7d16a7bbe58ce2179f9b5be02a1a985c0",
+  "taken_at": "2026-10-31T14:19:34Z",
+  "dir": "shots/5f2dfde7d16a7bbe58ce2179f9b5be02a1a985c0",
+  "files": {
+    "desktop-light.webp": {
+      "width": 1200,
+      "height": 833,
+      "bytes": 42352,
+      "sha256": "2691adc1932410596d4b1aa0e72f675d72c46305bb08f52ecbe9584b9ee715aa"
+    },
+    "desktop-dark.webp": {
+      "width": 1200,
+      "height": 833,
+      "bytes": 41928,
+      "sha256": "0b7f129da6b3f35fda05e12739a80febcf5b8a7b0de0102c98a9928d1eacbc87"
+    },
+    "option-light.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 21016,
+      "sha256": "48af790d0fc783c2093524f2ee4565ba4ac59444653feb558e7c7e49b8e4568a"
+    },
+    "option-dark.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 20856,
+      "sha256": "c60d377484244b48dd0c47d980cfa9b9f1113ce8b2be57df8a424d4276e92d03"
+    },
+    "phone-light.webp": {
+      "width": 560,
+      "height": 1149,
+      "bytes": 44258,
+      "sha256": "ee74bf9e4cf4d15a2055a25a67881e444c65048f7c8f3fea26b932ae975713f8"
+    },
+    "phone-dark.webp": {
+      "width": 560,
+      "height": 1149,
+      "bytes": 43076,
+      "sha256": "27b4a71ed3ea97b6e9f700b13bf320647783616dae5e8cd6c7fc46d9ab47932c"
+    }
+  }
+}
