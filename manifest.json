@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "repo": "RokctAI/supacharge-web",
-  "commit": "48f3be492aa6d775485c3bd6c5d7d3ddabcd3ff6",
-  "taken_at": "2026-10-31T18:16:58Z",
-  "dir": "shots/48f3be492aa6d775485c3bd6c5d7d3ddabcd3ff6",
+  "commit": "4aaf5026039bfb054f9b341dc41b2dbee2e0370d",
+  "taken_at": "2026-10-31T18:19:46Z",
+  "dir": "shots/4aaf5026039bfb054f9b341dc41b2dbee2e0370d",
   "files": {
     "desktop-light.webp": {
       "width": 1200,
