@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.40.0
+
+* Supacharge's own Back to top button (Ray, 2026-10-31: the button must
+  not look the same on every site; base_sdk supplies only the mechanism
+  and each home SDK sets its own style). New
+  `components/custom/landing/lms-back-to-top.ts` registers a
+  `BackToTopConfig` at base_sdk 1.56.0's
+  `// @rokct-sdk-back-to-top-style-start` marker
+  (`components/custom/landing/back-to-top-style.ts`), so the landing's
+  framed button and the root button on every other route read it.
+* The style is Supacharge's: a line arrow (Ray, 2026-10-31: "I want a
+  line arrow. It start at bottom get cut, text in, text end line continue
+  a bit then the point."; "If it's line it can be bold is fine"). Read
+  bottom to top, a bold 4px line starts at the bottom, breaks for the
+  label SCROLL TO TOP (reading upward in the gap), resumes for a short
+  run and ends in a solid 28x14 point, with nothing behind any of it.
+  The config is base's text-arrow (head over label); the new
+  `components/custom/landing/lms-back-to-top.css`, imported by the style
+  module, adds the two line segments as the button's `::before` and
+  `::after` and enlarges the head, so base_sdk needs no change.
+* It takes the landing's tokens: `--sc-primary` for the ink (the lines,
+  the point and the words are all `currentColor`), `--sc-star` on hover,
+  `--sc-font-brand` (Montserrat) at 900 in capitals tracked 0.14em, a
+  halo of `--sc-surface`, and a springy 280ms
+  `cubic-bezier(0.34, 1.56, 0.64, 1)` for the fade and the hover
+  (motion-safe only). Outside `.sc-landing` each value falls back to
+  base's shadcn token.
+* The wording is the config's `label`, so a site changes it in
+  `data/theme.json` (`{ "backToTop": { "label": "Back to top" } }`)
+  without an SDK change.
+* `requires` gains `components/custom/landing/back-to-top-style.ts` and
+  `back-to-top.ts` (base_sdk >= 1.56.0). `LMS_LANDING_VERSION` goes to
+  1.40.0.
+* test: `tests/test_back_to_top_style.py`.
+
 ## 1.39.1
 
 * The landing's fonts are bundled with the SDK and load through

@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2026 ROKCT INTELLIGENCE (PTY) LTD
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/*
+ * Supacharge's Back to top button as a LINE ARROW (lms_sdk 1.40.0; Ray,
+ * 2026-10-31: "I want a line arrow. It start at bottom get cut, text in,
+ * text end line continue a bit then the point." and "If it's line it can
+ * be bold is fine"). Read bottom to top: a bold line starts at the bottom,
+ * breaks for the label (SCROLL TO TOP, reading upward in the gap), resumes
+ * after it for a short run, and ends in a solid arrowhead.
+ *
+ * base_sdk 1.56.0's text-arrow draws the head (an <svg>) over the label (a
+ * <span>) in a flex column; this sheet adds the two line segments as the
+ * button's ::before (between the head and the label) and ::after (below the
+ * label) with `order`, and enlarges the head to match the line's weight.
+ * Nothing in base changes. Every colour is currentColor - the button's
+ * --back-to-top-fg (Supacharge's --sc-primary) - so the lines, the head and
+ * the words are one ink, and the hover colour takes all three. The halo is
+ * the config's --back-to-top-halo, as on the words.
+ *
+ * Imported by lms-back-to-top.ts, which the root layout's theme seam loads
+ * on every route, so the arrow is the same on the landing and elsewhere.
+ * Plain CSS, no Tailwind directives. The selectors name the element
+ * (button[...]) so they outrank base's single-class utilities (gap-1).
+ */
+
+button[data-back-to-top-shape="text-arrow"] {
+  --sc-btt-line: 4px;
+  --sc-btt-head-w: 28px;
+  --sc-btt-head-h: 14px;
+  --sc-btt-tail: 30px;
+  --sc-btt-neck: 12px;
+  --sc-btt-break: 7px;
+  gap: 0;
+}
+
+/* The point: the solid head, sized to the line (7 line-widths wide). */
+button[data-back-to-top-shape="text-arrow"] > svg {
+  order: 0;
+  flex: none;
+  width: var(--sc-btt-head-w);
+  height: var(--sc-btt-head-h);
+}
+
+/* The label sits in the break, a gap above and below it. */
+button[data-back-to-top-shape="text-arrow"] > span {
+  order: 2;
+  margin-block: var(--sc-btt-break);
+}
+
+button[data-back-to-top-shape="text-arrow"]::before,
+button[data-back-to-top-shape="text-arrow"]::after {
+  content: "";
+  display: block;
+  flex: none;
+  width: var(--sc-btt-line);
+  background: currentColor;
+  filter: drop-shadow(0 0 3px var(--back-to-top-halo, transparent));
+}
+
+/* The short run after the label, up into the head's base (overlapping it
+   by a pixel so no seam shows). */
+button[data-back-to-top-shape="text-arrow"]::before {
+  order: 1;
+  height: var(--sc-btt-neck);
+  margin-top: -1px;
+}
+
+/* Where the line starts, at the bottom. */
+button[data-back-to-top-shape="text-arrow"]::after {
+  order: 3;
+  height: var(--sc-btt-tail);
+  border-radius: 0 0 calc(var(--sc-btt-line) / 2) calc(var(--sc-btt-line) / 2);
+}
+
+/* The head lifts on hover (base: group-hover:-translate-y-0.5); the neck
+   lifts with it so the point never comes away from its line. */
+@media (prefers-reduced-motion: no-preference) {
+  button[data-back-to-top-shape="text-arrow"]::before {
+    transition: transform var(--back-to-top-duration, 200ms) var(--back-to-top-easing, ease);
+  }
+  button[data-back-to-top-shape="text-arrow"]:hover::before {
+    transform: translateY(-0.125rem);
+  }
+}

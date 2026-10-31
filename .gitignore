@@ -240,6 +240,7 @@ components/ui/tooltip.tsx
 /components/custom/hero.tsx
 /components/custom/install-offer.tsx
 /components/custom/landing-content.tsx
+/components/custom/landing/back-to-top-style.ts
 /components/custom/landing/back-to-top.ts
 /components/custom/landing/brand-marks.ts
 /components/custom/landing/download-platform.ts
@@ -259,6 +260,8 @@ components/ui/tooltip.tsx
 /components/custom/landing/legal-links.ts
 /components/custom/landing/lms-ad-performance-rules.ts
 /components/custom/landing/lms-available-apps.ts
+/components/custom/landing/lms-back-to-top.css
+/components/custom/landing/lms-back-to-top.ts
 /components/custom/landing/lms-calendar-rules.ts
 /components/custom/landing/lms-card-deck.tsx
 /components/custom/landing/lms-curricula.tsx
@@ -335,6 +338,7 @@ components/ui/tooltip.tsx
 /components/custom/network-strip.tsx
 /components/custom/paas-login.tsx
 /components/custom/session-provider.tsx
+/components/custom/site-back-to-top.ts
 /components/custom/site-credit.tsx
 /components/custom/site-frame.tsx
 /components/custom/site-theme.tsx
