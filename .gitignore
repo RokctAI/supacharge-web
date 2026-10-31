@@ -208,6 +208,7 @@ components/ui/tooltip.tsx
 /app/services/base/tenant-host-control.ts
 /app/services/base/tenant-hosts.ts
 /app/services/control/global_settings.ts
+/app/site-shots/\[file\]/route.ts
 /app/styles/rokct-marquee.css
 /app/styles/rokct-scroll.css
 /app/team/page.tsx
@@ -283,6 +284,7 @@ components/ui/tooltip.tsx
 /components/custom/landing/site-credit.ts
 /components/custom/landing/site-frame.ts
 /components/custom/landing/site-metadata.ts
+/components/custom/landing/site-shots.ts
 /components/custom/landing/team-assets.ts
 /components/custom/landing/testimonials-marquee.tsx
 /components/custom/legal/legal-doc.tsx
