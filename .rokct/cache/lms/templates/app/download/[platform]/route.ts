@@ -23,13 +23,16 @@
 // components/custom/landing/lms-landing-config.ts). The handler asks the
 // public GitHub releases API for the latest release - no token, the
 // repository is public - through Next's data cache with a ten-minute
-// revalidation, so a burst of visitors costs one API call and a new
+// revalidation (./latest-release.ts, shared with the landing's badges since
+// 1.39.0), so a burst of visitors costs one API call and a new
 // release is picked up within ten minutes; ./resolve.ts finds the
 // platform's asset by its name pattern and this answers a 302 to it. When
 // the API is unreachable, rate-limited or carries no asset for the
 // platform the 302 goes to the releases page instead, so the button never
-// dead-ends. A platform the route does not serve (iOS, which nothing
-// publishes) is a 404, not an invented destination.
+// dead-ends; /download/huawei with no Huawei APK in the release goes to the
+// releases page too, never to the Android APK (1.39.0). A platform the
+// route does not serve (iOS, which nothing publishes) is a 404, not an
+// invented destination.
 //
 // A prefetch is answered with 204 and no redirect: a router or browser
 // warming the link must not start a 127 MB download on the visitor's
@@ -38,14 +41,8 @@
 
 import { NextResponse } from "next/server";
 
-import {
-  LMS_RELEASES_API,
-  isDownloadPlatform,
-  resolveDownload,
-} from "./resolve";
-
-/** How long one API answer serves every visitor, in seconds. */
-export const LMS_RELEASE_REVALIDATE_SECONDS = 600;
+import { fetchLatestRelease } from "./latest-release";
+import { isDownloadPlatform, resolveDownload } from "./resolve";
 
 function isPrefetch(request: Request): boolean {
   const headers = request.headers;
@@ -55,22 +52,6 @@ function isPrefetch(request: Request): boolean {
     headers.get("purpose") === "prefetch" ||
     (headers.get("sec-purpose") ?? "").includes("prefetch")
   );
-}
-
-async function fetchLatestRelease(): Promise<unknown> {
-  try {
-    const response = await fetch(LMS_RELEASES_API, {
-      headers: {
-        accept: "application/vnd.github+json",
-        "user-agent": "supacharge-web download route",
-      },
-      next: { revalidate: LMS_RELEASE_REVALIDATE_SECONDS },
-    });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
-  }
 }
 
 export async function GET(

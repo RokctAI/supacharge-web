@@ -99,17 +99,9 @@ export const TEAM_ASSETS: Readonly<Record<string, readonly string[]>> = {
     "/team/tutors/CAPS/tutor_001/appearance/renders/avatar_512.webp",
     "/team/tutors/CAPS/tutor_001/appearance/renders/card_1080x1440.webp",
   ],
-  "tutors/CAPS/tutor_001/acknowledgements": [
-    "/team/tutors/CAPS/tutor_001/acknowledgements/01.m4a",
-    "/team/tutors/CAPS/tutor_001/acknowledgements/02.m4a",
-  ],
   "tutors/CAPS/tutor_001/samples": [
+    "/team/tutors/CAPS/tutor_001/samples/sample_line.animations.json",
     "/team/tutors/CAPS/tutor_001/samples/sample_line.m4a",
-  ],
-  "tutors/CAPS/tutor_001/signoffs": [
-    "/team/tutors/CAPS/tutor_001/signoffs/01.m4a",
-    "/team/tutors/CAPS/tutor_001/signoffs/02.m4a",
-    "/team/tutors/CAPS/tutor_001/signoffs/03.m4a",
   ],
   "tutors/CAPS/tutor_002": [
     "/team/tutors/CAPS/tutor_002/appearance/renders/avatar_168.webp",
@@ -160,6 +152,9 @@ export const TEAM_ASSETS: Readonly<Record<string, readonly string[]>> = {
     "/team/tutors/CAPS/tutor_011/appearance/renders/avatar_168.webp",
     "/team/tutors/CAPS/tutor_011/appearance/renders/avatar_512.webp",
     "/team/tutors/CAPS/tutor_011/appearance/renders/card_1080x1440.webp",
+  ],
+  "tutors/CAPS/tutor_011/samples": [
+    "/team/tutors/CAPS/tutor_011/samples/sample_line.animations.json",
   ],
   "tutors/CAPS/tutor_012": [
     "/team/tutors/CAPS/tutor_012/appearance/renders/avatar_168.webp",

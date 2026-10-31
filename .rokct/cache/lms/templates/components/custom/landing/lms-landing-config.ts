@@ -757,10 +757,14 @@ export const LMS_APPS: LandingApp[] = [
     shown: true,
   },
   {
-    // Shown now (Ray, 2026-09-09: "yes though we havent built for huawei
-    // yet though we have hms sdk"): AppGallery's own badge wording over the
-    // Huawei mark, on the same direct Android download until the
-    // AppGallery listing exists - set storeUrl to it then.
+    // AppGallery's own badge wording over the Huawei mark (Ray, 2026-09-09:
+    // "yes though we havent built for huawei yet though we have hms sdk").
+    // Since 1.39.0 it is the Huawei build's own download, never the Android
+    // APK (Ray, 2026-10-31): /download/huawei resolves the release's
+    // app-huawei-v<version>.apk, and every surface draws the entry only
+    // while the latest release carries that file (lms-available-apps.ts),
+    // so `shown: true` means "offer it when the build exists". Set storeUrl
+    // to the AppGallery listing once it exists.
     id: "huawei",
     downloadPlatform: "huawei",
     mark: "appGallery",
@@ -768,7 +772,7 @@ export const LMS_APPS: LandingApp[] = [
     platform: "Huawei",
     badge: { eyebrow: "EXPLORE IT ON", label: "AppGallery" },
     storeUrl: "",
-    href: "/download/android",
+    href: "/download/huawei",
     external: true,
     description: "Direct download for Huawei devices from the latest release",
     icon: "smartphone",

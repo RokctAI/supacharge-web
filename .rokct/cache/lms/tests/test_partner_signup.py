@@ -110,14 +110,21 @@ class SponsorCardRenderTest(unittest.TestCase):
         code = read(SECTION)
         self.assertIn('href.startsWith("/") && !href.startsWith("//")', code)
 
-    def test_card_is_dark_in_both_modes(self):
+    def test_card_stands_out_in_brand_orange(self):
+        # 1.37.8 (Ray, 2026-10-17: "Sponsors and partners need to stand
+        # out its where we asking for money"): orange in both modes, a
+        # white pulsing button, no dark panel.
         css = read(THEME_CSS)
-        self.assertRegex(css, r"\.sc-sponsor-card \{[^}]*#0a0a0a")
+        self.assertRegex(css, r"\.sc-sponsor-card \{[^}]*linear-gradient\(135deg, #ff6600 0%, #e23d0b 100%\)")
+        self.assertNotIn("#0a0a0a;\n  color: #ffffff;\n}\n.sc-sponsor-eyebrow", css)
+        self.assertRegex(css, r"\.sc-sponsor-btn \{[^}]*background: #ffffff;[^}]*animation: sc-sponsor-pulse")
         self.assertRegex(
             css,
-            r"html\.sc-landing:not\(\.dark\) \.sc-sponsor-card,\s*"
-            r"html\.light \.sc-landing \.sc-sponsor-card \{[^}]*#1b1b20",
+            r"@media \(prefers-reduced-motion: reduce\) \{\s*\.sc-sponsor-btn \{ animation: none; \}",
         )
+        code = read(SECTION)
+        self.assertIn('className="sc-btn sc-sponsor-btn"', code)
+        self.assertIn('<RiHeart3Fill className="sc-sponsor-heart" aria-hidden="true" />', code)
 
 
 class PartnerSignupPageTest(unittest.TestCase):

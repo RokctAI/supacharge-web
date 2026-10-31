@@ -25,6 +25,12 @@
 // ./landing/lms-landing-config.ts, so the header, the hero, the footer and
 // this prompt can never disagree about which apps exist. iOS is in that list
 // with shown: false ("demoted for now") and never reaches this component.
+// Since 1.39.0 the caller hands in `apps`: the shown apps the latest
+// release has a file for (lms-available-apps.ts's loadAvailableApps(),
+// awaited by the lesson route on the server), so the prompt never offers a
+// download the release does not carry - the AppGallery entry only with a
+// Huawei APK. A caller that cannot check the release passes nothing and the
+// prompt offers no download rather than a possibly missing one.
 // Everything else - the schedule when signed in, a partner checking their
 // students, a student paying or updating their details - stays on the web.
 //
@@ -46,7 +52,6 @@ import { Button } from "@/components/ui/button";
 import { LMS_APP_MARKS } from "@/components/custom/landing/lms-hero-copy";
 import {
   LMS_LANDING_CONFIG,
-  LMS_SHOWN_APPS,
   type LandingApp,
 } from "@/components/custom/landing/lms-landing-config";
 import { cn } from "@/lib/utils";
@@ -72,6 +77,11 @@ const APP_GLYPHS: Record<LandingApp["id"], RemixiconComponentType> = {
 };
 
 export interface LmsDownloadAppPromptProps {
+  /**
+   * The apps to offer: the shown apps the latest release has a file for
+   * (1.39.0, loadAvailableApps()). None when omitted.
+   */
+  apps?: readonly LandingApp[];
   /** Where "Back" goes - the course the lesson belongs to, usually. */
   backHref?: string;
   backLabel?: string;
@@ -79,6 +89,7 @@ export interface LmsDownloadAppPromptProps {
 }
 
 export function LmsDownloadAppPrompt({
+  apps = [],
   backHref,
   backLabel = "Back to course",
   className,
@@ -98,7 +109,7 @@ export function LmsDownloadAppPrompt({
       <p className="mt-2 text-muted-foreground">{LMS_DOWNLOAD_APP_COPY.body}</p>
 
       <ul className="mt-6 flex flex-col items-stretch gap-4 sm:flex-row sm:justify-center">
-        {LMS_SHOWN_APPS.map((app, index) => {
+        {apps.map((app, index) => {
           const mark = LMS_APP_MARKS[app.id];
           const Glyph = APP_GLYPHS[app.id];
           return (

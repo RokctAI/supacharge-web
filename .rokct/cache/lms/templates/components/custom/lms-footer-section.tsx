@@ -57,7 +57,9 @@
 // carries, status indicator and version included, with Supacharge's values
 // from ./landing/lms-footer-chrome. It supersedes
 // LMS_LANDING_CONFIG.footer.legal for rendering - that field names the same
-// company and is left in place for now.
+// company and is left in place for now. Since 1.38.0 (base_sdk >= 1.54.0)
+// the row's last line is the site credit, `© <year> Supacharge · Built
+// with ♥ by ROKCT` (Ray, 2026-10-31), drawn in the row's own type.
 //
 // The row would also carry base_sdk 1.23.0's network strip ("Trusted by",
 // the other sites of the Rokct network) above the copyright line, and
@@ -80,7 +82,11 @@ import { listPublicTerms } from "@/app/actions/base/legal";
 import { FooterChromeRow } from "@/components/custom/footer-chrome";
 import { legalFooterLinks } from "@/components/custom/landing/legal-links";
 import { LmsWordmark } from "@/components/custom/landing/lms-wordmark";
-import { LMS_FOOTER_CHROME } from "@/components/custom/landing/lms-footer-chrome";
+import { loadAvailableApps } from "@/components/custom/landing/lms-available-apps";
+import {
+  LMS_FOOTER_CHROME,
+  lmsFooterDownloads,
+} from "@/components/custom/landing/lms-footer-chrome";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import type {
   PageSectionMeta,
@@ -103,8 +109,10 @@ export async function LmsFooterSection({
   if (!config) return null;
 
   // The published legal documents, read as a guest on the server; `[]`
-  // with none (or no backend), which base's row draws as no group.
-  const terms = await listPublicTerms();
+  // with none (or no backend), which base's row draws as no group. Beside
+  // them the apps the latest release has a file for (1.39.0): the footer's
+  // download buttons, none when the release fetch fails.
+  const [terms, apps] = await Promise.all([listPublicTerms(), loadAvailableApps()]);
 
   return (
     <footer
@@ -141,7 +149,7 @@ export async function LmsFooterSection({
           </nav>
         </div>
         <FooterChromeRow
-          config={{ ...LMS_FOOTER_CHROME, links: legalFooterLinks(terms) }}
+          config={{ ...LMS_FOOTER_CHROME, downloads: lmsFooterDownloads(apps), links: legalFooterLinks(terms) }}
           className="border-t border-[var(--sc-stroke-subtle)] pt-6"
         />
       </div>

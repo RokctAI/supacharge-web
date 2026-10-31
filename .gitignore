@@ -150,6 +150,7 @@ components/ui/tooltip.tsx
 /app/admin/system/translations/page.tsx
 /app/admin/system/update/page.tsx
 /app/brand-icon/route.tsx
+/app/download/\[platform\]/latest-release.ts
 /app/download/\[platform\]/resolve.ts
 /app/download/\[platform\]/route.ts
 /app/handson/all/lms/children/page.tsx
@@ -246,6 +247,7 @@ components/ui/tooltip.tsx
 /components/custom/landing/landing-page.ts
 /components/custom/landing/legal-links.ts
 /components/custom/landing/lms-ad-performance-rules.ts
+/components/custom/landing/lms-available-apps.ts
 /components/custom/landing/lms-calendar-rules.ts
 /components/custom/landing/lms-card-deck.tsx
 /components/custom/landing/lms-curricula.tsx
@@ -258,6 +260,7 @@ components/ui/tooltip.tsx
 /components/custom/landing/lms-header-menu.ts
 /components/custom/landing/lms-hero-copy.ts
 /components/custom/landing/lms-hero-form.tsx
+/components/custom/landing/lms-kids-butterfly-landing.ts
 /components/custom/landing/lms-kids-butterfly.tsx
 /components/custom/landing/lms-landing-config.ts
 /components/custom/landing/lms-marquee.tsx
@@ -277,6 +280,7 @@ components/ui/tooltip.tsx
 /components/custom/landing/page-sections.ts
 /components/custom/landing/plans-query.ts
 /components/custom/landing/platform-glyphs.tsx
+/components/custom/landing/site-credit.ts
 /components/custom/landing/site-frame.ts
 /components/custom/landing/site-metadata.ts
 /components/custom/landing/team-assets.ts
@@ -319,6 +323,7 @@ components/ui/tooltip.tsx
 /components/custom/network-strip.tsx
 /components/custom/paas-login.tsx
 /components/custom/session-provider.tsx
+/components/custom/site-credit.tsx
 /components/custom/site-frame.tsx
 /components/custom/site-theme.tsx
 /components/custom/submit-button.tsx
@@ -340,6 +345,7 @@ components/ui/tooltip.tsx
 /lib/site-data/kinds.ts
 /lib/site-data/read-site-data.ts
 /lib/site-data/site-theme.ts
+/lib/site-data/validate-site.mjs
 /lib/site-data/validate.mjs
 /middleware.ts
 /public/brand/marks/app-gallery.svg
@@ -391,15 +397,11 @@ components/ui/tooltip.tsx
 /public/team/onboarding/students/renders/04_role_choice_student/slide_1080x1920.webp
 /public/team/onboarding/students/renders/05_grade_capture/card_1080x1350.webp
 /public/team/onboarding/students/renders/05_grade_capture/slide_1080x1920.webp
-/public/team/tutors/CAPS/tutor_001/acknowledgements/01.m4a
-/public/team/tutors/CAPS/tutor_001/acknowledgements/02.m4a
 /public/team/tutors/CAPS/tutor_001/appearance/renders/avatar_168.webp
 /public/team/tutors/CAPS/tutor_001/appearance/renders/avatar_512.webp
 /public/team/tutors/CAPS/tutor_001/appearance/renders/card_1080x1440.webp
+/public/team/tutors/CAPS/tutor_001/samples/sample_line.animations.json
 /public/team/tutors/CAPS/tutor_001/samples/sample_line.m4a
-/public/team/tutors/CAPS/tutor_001/signoffs/01.m4a
-/public/team/tutors/CAPS/tutor_001/signoffs/02.m4a
-/public/team/tutors/CAPS/tutor_001/signoffs/03.m4a
 /public/team/tutors/CAPS/tutor_002/appearance/renders/avatar_168.webp
 /public/team/tutors/CAPS/tutor_002/appearance/renders/avatar_512.webp
 /public/team/tutors/CAPS/tutor_002/appearance/renders/card_1080x1440.webp
@@ -430,6 +432,7 @@ components/ui/tooltip.tsx
 /public/team/tutors/CAPS/tutor_011/appearance/renders/avatar_168.webp
 /public/team/tutors/CAPS/tutor_011/appearance/renders/avatar_512.webp
 /public/team/tutors/CAPS/tutor_011/appearance/renders/card_1080x1440.webp
+/public/team/tutors/CAPS/tutor_011/samples/sample_line.animations.json
 /public/team/tutors/CAPS/tutor_012/appearance/renders/avatar_168.webp
 /public/team/tutors/CAPS/tutor_012/appearance/renders/avatar_512.webp
 /public/team/tutors/CAPS/tutor_012/appearance/renders/card_1080x1440.webp

@@ -47,13 +47,19 @@ export const LMS_RELEASES_API =
  * <app>-windows-setup-v<version>.exe once the release lane ships it (Ray,
  * 2026-09-09: one installer instead of the zip), and until then - and for
  * any release that still carries only the archive - app-windows-v<version>.zip
- * (not update_package.zip, the in-app updater's bundle). iOS is absent on
+ * (not update_package.zip, the in-app updater's bundle). The Huawei build
+ * (1.39.0; Ray, 2026-10-31: the AppGallery badge must not serve the Android
+ * APK) is app-huawei-v<version>.apk in the same release; the Android
+ * pattern needs a digit straight after "app-v", so it never matches it, and
+ * the Huawei pattern is the only one /download/huawei tries, so a release
+ * without the Huawei file never hands out the Android one. iOS is absent on
  * purpose: no lane builds it and no listing exists, so there is nothing
  * to resolve and the route answers 404 rather than inventing a
  * destination.
  */
 export const LMS_DOWNLOAD_PLATFORMS = {
   android: { name: "Android", assets: [/^app-v\d[\w.-]*\.apk$/i] },
+  huawei: { name: "Huawei", assets: [/^app-huawei-v\d[\w.-]*\.apk$/i] },
   windows: {
     name: "Windows",
     assets: [
@@ -140,4 +146,44 @@ export function resolveDownload(
       ? (release as Release).html_url
       : undefined;
   return { url: isHttpsUrl(page) ? page : LMS_RELEASES_PAGE, direct: false };
+}
+
+/**
+ * The platforms the release carries a download for (1.39.0; Ray,
+ * 2026-10-31: show the AppGallery badge only when the release has a Huawei
+ * APK): every platform whose asset pickAssetUrl finds, in the table's
+ * order. A missing, unpublished or malformed release carries none, so a
+ * failed fetch hides every badge rather than offering a file that is not
+ * there.
+ */
+export function availablePlatforms(release: unknown): DownloadPlatform[] {
+  return (Object.keys(LMS_DOWNLOAD_PLATFORMS) as DownloadPlatform[]).filter(
+    (platform) => pickAssetUrl(release, platform) !== null,
+  );
+}
+
+/**
+ * The platform a landing link downloads through this route - "huawei" for
+ * "/download/huawei" - or null for any other link (a store listing, the
+ * releases page).
+ */
+export function downloadPlatformOfHref(href: string): DownloadPlatform | null {
+  const match = /^\/download\/([a-z]+)$/.exec(href);
+  return match && isDownloadPlatform(match[1]) ? match[1] : null;
+}
+
+/**
+ * Whether a landing app's link is worth showing: a link through this route
+ * only when its platform is among `available`; any other link (a store
+ * listing that replaced the direct download) always.
+ */
+export function isHrefAvailable(
+  href: string,
+  available: readonly DownloadPlatform[],
+): boolean {
+  if (href.startsWith("/download/")) {
+    const platform = downloadPlatformOfHref(href);
+    return platform !== null && available.includes(platform);
+  }
+  return true;
 }
