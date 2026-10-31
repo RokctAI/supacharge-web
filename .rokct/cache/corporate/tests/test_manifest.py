@@ -118,8 +118,15 @@ def code_of(path):
     return LINE_COMMENT_RE.sub("", BLOCK_COMMENT_RE.sub("", read(path)))
 
 
+# 1.4.2: the bundled site fonts (woff2 files and their OFL.txt) are assets,
+# not source - the code checks below skip them; the font test checks them.
+SITE_FONTS = os.path.join(TEMPLATES, "components", "custom", "site", "fonts")
+
+
 def template_files():
     for root, _, names in os.walk(TEMPLATES):
+        if root == SITE_FONTS or root.startswith(SITE_FONTS + os.sep):
+            continue
         for name in names:
             yield os.path.join(root, name)
 
@@ -133,7 +140,7 @@ class TestCorporateNextjs(unittest.TestCase):
     def test_identity_and_version(self):
         self.assertEqual(self.manifest["name"], "corporate_sdk")
         self.assertRegex(self.manifest["version"], r"^\d+\.\d+\.\d+$")
-        self.assertEqual(self.manifest["version"], "1.4.1")
+        self.assertEqual(self.manifest["version"], "1.4.2")
         self.assertIn("sdk_name = 'corporate_sdk'", read(INSTALL_PY))
         self.assertTrue(read(INSTALL_PY).startswith("# " + LICENSE_HEAD))
         # Same shape as the sibling halves: one flat installs list, no
@@ -690,6 +697,47 @@ class TestLocalSiteHome(unittest.TestCase):
             self.assertNotIn("site-source", src, name)
             self.assertNotIn("read-site-data", src, name)
             self.assertNotIn("site-data/generated", src, name)
+
+
+    def test_site_fonts_are_bundled_not_fetched_from_google(self):
+        """1.4.2: next/font/local over bundled woff2 files; the build makes no
+        request to Google Fonts. Same variables, and the weights and styles
+        the next/font/google calls they replace asked for."""
+        for root, _, files in os.walk(TEMPLATES):
+            for name in files:
+                if name.endswith((".ts", ".tsx", ".css")):
+                    path = os.path.join(root, name)
+                    self.assertNotRegex(read(path), r"""from\s+["']next/font/google["']""", path)
+        fonts = read(os.path.join(self.SITE, "site-fonts.ts"))
+        self.assertIn('import localFont from "next/font/local";', fonts)
+        for name in ("montserrat", "fraunces", "space-grotesk", "playfair-display", "figtree", "inter", "dm-sans"):
+            self.assertIn(f'variable: "--cs-font-{name}"', fonts)
+        self.assertEqual(fonts.count('display: "swap"'), 7)
+        self.assertEqual(fonts.count('adjustFontFallback: "Times New Roman"'), 2)
+        paths = re.findall(r'path: "\./(fonts/[^"]+\.woff2)", weight: "([^"]+)", style: "([^"]+)"', fonts)
+        self.assertEqual(
+            sorted((os.path.basename(p), w, s) for p, w, s in paths),
+            [
+                ("dm-sans-wght-100-1000.woff2", "100 1000", "normal"),
+                ("figtree-wght-400-700.woff2", "400 700", "normal"),
+                ("fraunces-wght-100-900-italic.woff2", "100 900", "italic"),
+                ("fraunces-wght-100-900.woff2", "100 900", "normal"),
+                ("inter-wght-100-900.woff2", "100 900", "normal"),
+                ("montserrat-wght-400-900-italic.woff2", "400 900", "italic"),
+                ("montserrat-wght-400-900.woff2", "400 900", "normal"),
+                ("playfair-display-wght-400-900-italic.woff2", "400 900", "italic"),
+                ("playfair-display-wght-400-900.woff2", "400 900", "normal"),
+                ("space-grotesk-wght-300-700.woff2", "300 700", "normal"),
+            ],
+        )
+        for rel, _, _ in paths:
+            with open(os.path.join(self.SITE, rel), "rb") as f:
+                self.assertEqual(f.read(4), b"wOF2", rel)
+        licence = read(os.path.join(self.SITE, "fonts", "OFL.txt"))
+        self.assertIn("SIL OPEN FONT LICENSE Version 1.1", licence)
+        self.assertIn('Reserved Font Name "Playfair Display"', licence)
+        for project in ("Montserrat", "Fraunces", "Space Grotesk", "Playfair Display", "Figtree", "Inter", "DM Sans"):
+            self.assertRegex(licence, rf"Copyright \d{{4}} The {re.escape(project)}(\.Git)? Project Authors")
 
 
 class TestSiteCredit(unittest.TestCase):

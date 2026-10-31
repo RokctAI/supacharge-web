@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.4.2
+
+* **Site fonts are bundled; the build no longer fetches Google Fonts.**
+  `components/custom/site/site-fonts.ts` loads the seven faces a
+  local-data site may choose through `next/font/local` from
+  `components/custom/site/fonts/` instead of `next/font/google`.
+  southriver-web's Vercel production build of main 46cf377 failed on the
+  Google Fonts fetch, the failure supacharge-web and polaris-web hit
+  (polaris_sdk 1.8.1): Google can answer with
+  `fonts.gstatic.com/l/font?kit=...` URLs that Turbopack's
+  `next/font/google` loader cannot resolve, and a failed font fetch fails
+  the build.
+  * Montserrat (400 to 900), Fraunces (100 to 900), Figtree (400 to 700)
+    and Space Grotesk (300 to 700), upright and, where the site may ask for
+    it, italic, and Inter (100 to 900) and DM Sans (100 to 1000) are the
+    google/fonts sources (the versions Google serves) cut to the latin and
+    latin-ext characters, with the wght axis limited to the weights the
+    old calls asked for and the other axes pinned where Google pins them
+    (opsz 14; Fraunces SOFT 0). Cyrillic, greek and vietnamese text, which
+    Google's extra faces covered, now draws in the fallback.
+  * Playfair Display ships whole (the variable TTFs as woff2): "Playfair
+    Display" is a Reserved Font Name, so the files are not subset.
+  * `OFL.txt` (SIL Open Font License 1.1) sits beside the fonts. The
+    `components/custom/site` directory install already carries them; the
+    manifest's installs do not change.
+  * The `--cs-font-*` variables, `display: swap`, the metric-matched
+    fallbacks (Times New Roman for Fraunces and Playfair Display, Arial for
+    the rest) and `siteFontClasses()` are unchanged, so a site looks the
+    same. No base_sdk floor moves.
+
 ## 1.4.1
 
 * A local-data site's footer ends with base_sdk 1.54.0's site credit,

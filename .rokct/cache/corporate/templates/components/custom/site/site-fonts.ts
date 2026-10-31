@@ -22,28 +22,79 @@
 // them are declared here; a page downloads only the files its two faces
 // use. Each face's CSS variable is `--cs-font-<name>`, which
 // site-theme.ts points `--cs-font-display` / `--cs-font-text` at.
-import { DM_Sans, Figtree, Fraunces, Inter, Montserrat, Playfair_Display, Space_Grotesk } from "next/font/google";
+
+// Since 1.4.2 every face is a bundled woff2 under ./fonts/, loaded through
+// next/font/local, so the build makes no request to Google Fonts. The same
+// next/font/google failure that hit supacharge-web and polaris-web
+// (polaris_sdk 1.8.1) failed southriver-web's Vercel production build on
+// main 46cf377: fonts.googleapis.com can answer with
+// fonts.gstatic.com/l/font?kit=... URLs that Turbopack's next/font/google
+// loader cannot resolve, and a font fetch that fails fails the build.
+//
+// The variable faces are the google/fonts OFL sources, the versions Google
+// Fonts serves, cut to the latin and latin-ext characters and the layout
+// features fonts.googleapis.com keeps, with the wght axis limited to the
+// weights the next/font/google calls asked for (Montserrat 400-900,
+// Figtree 400-700; the whole axis where no weight was named) and every
+// other axis pinned where Google pins it (opsz 14; Fraunces SOFT 0, WONK
+// default). Google also listed cyrillic, greek and vietnamese faces,
+// fetched only for those scripts; text in them now draws in the fallback.
+// Playfair Display carries the Reserved Font Name "Playfair Display", so
+// its two variable files ship whole (google/fonts' TTFs as woff2, not
+// subset or instanced). Licence: ./fonts/OFL.txt (SIL Open Font License
+// 1.1). The metric-matched fallback is the one next/font/google drew:
+// Times New Roman for the serifs (Fraunces, Playfair Display), Arial (the
+// next/font/local default) for the rest.
+import localFont from "next/font/local";
 
 import type { SiteDisplayFont, SiteTextFont, SiteTheme } from "@/lib/site-data/kinds";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "700", "800", "900"],
-  style: ["normal", "italic"],
+const montserrat = localFont({
+  src: [
+    { path: "./fonts/montserrat-wght-400-900.woff2", weight: "400 900", style: "normal" },
+    { path: "./fonts/montserrat-wght-400-900-italic.woff2", weight: "400 900", style: "italic" },
+  ],
   variable: "--cs-font-montserrat",
   display: "swap",
 });
-const fraunces = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], variable: "--cs-font-fraunces", display: "swap" });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--cs-font-space-grotesk", display: "swap" });
-const playfairDisplay = Playfair_Display({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--cs-font-playfair-display",
+const fraunces = localFont({
+  src: [
+    { path: "./fonts/fraunces-wght-100-900.woff2", weight: "100 900", style: "normal" },
+    { path: "./fonts/fraunces-wght-100-900-italic.woff2", weight: "100 900", style: "italic" },
+  ],
+  variable: "--cs-font-fraunces",
+  display: "swap",
+  adjustFontFallback: "Times New Roman",
+});
+const spaceGrotesk = localFont({
+  src: [{ path: "./fonts/space-grotesk-wght-300-700.woff2", weight: "300 700", style: "normal" }],
+  variable: "--cs-font-space-grotesk",
   display: "swap",
 });
-const figtree = Figtree({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--cs-font-figtree", display: "swap" });
-const inter = Inter({ subsets: ["latin"], variable: "--cs-font-inter", display: "swap" });
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--cs-font-dm-sans", display: "swap" });
+const playfairDisplay = localFont({
+  src: [
+    { path: "./fonts/playfair-display-wght-400-900.woff2", weight: "400 900", style: "normal" },
+    { path: "./fonts/playfair-display-wght-400-900-italic.woff2", weight: "400 900", style: "italic" },
+  ],
+  variable: "--cs-font-playfair-display",
+  display: "swap",
+  adjustFontFallback: "Times New Roman",
+});
+const figtree = localFont({
+  src: [{ path: "./fonts/figtree-wght-400-700.woff2", weight: "400 700", style: "normal" }],
+  variable: "--cs-font-figtree",
+  display: "swap",
+});
+const inter = localFont({
+  src: [{ path: "./fonts/inter-wght-100-900.woff2", weight: "100 900", style: "normal" }],
+  variable: "--cs-font-inter",
+  display: "swap",
+});
+const dmSans = localFont({
+  src: [{ path: "./fonts/dm-sans-wght-100-1000.woff2", weight: "100 1000", style: "normal" }],
+  variable: "--cs-font-dm-sans",
+  display: "swap",
+});
 
 const DISPLAY: Record<SiteDisplayFont, { variable: string }> = {
   montserrat,
