@@ -16,184 +16,30 @@
 
 "use client";
 
-// The flip: the web counterpart of lms/dart's CardDeck flip (an animated
-// rotateY with the back counter-rotated so it reads the right way round;
-// 420 ms there, the same here). One primitive for the tutor and plan cards
-// so both turn identically.
-//
-//   * Click (or Enter / Space on the focused card) turns it over; the
-//     whole card is the target, as the Dart front and back both are.
-//     Buttons and links inside stop the event so they act on their own.
-//   * On a device with a fine pointer that can hover (a mouse, a trackpad)
-//     hovering also turns it, and leaving turns it back - unless a click
-//     pinned it, so a reader can keep the back open. Touch devices only
-//     get the tap.
-//   * prefers-reduced-motion: no rotation at all; the faces crossfade.
-//
-// The hidden face is `inert` (and aria-hidden) so its links and buttons
-// drop out of the tab order and the accessibility tree until it shows.
+// The tutor and plan cards' flip (lms/dart's CardDeck flip on the web).
+// Since lms_sdk 1.41.0 the card itself is base_sdk's shared FlipCard
+// (base_sdk >= 1.58.0, components/custom/flip-card.tsx), moved there from
+// this file so every shell turns a card the same way (Ray, 2026-10-31).
+// This module keeps the names the deck, the tutor and plan cards and the
+// tutors section import, and dresses the shared card in Supacharge's focus
+// ring; its behaviour (click, Enter / Space, hover on a fine pointer,
+// Escape, the reduced-motion crossfade, the inert hidden face) is the
+// shared card's, unchanged.
 
-import React, {
-  useCallback,
-  useEffect,
-  useId,
-  useState,
-  type CSSProperties,
-  type KeyboardEvent,
-  type ReactNode,
-} from "react";
+import React from "react";
 
-/**
- * Whether a media query matches, false on the server and until the first
- * paint. Exported since 1.14.0 for lms-tutors-section.tsx's reduced-motion
- * check; the flip card's own use is unchanged.
- */
-export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mql = window.matchMedia(query);
-    const update = () => setMatches(mql.matches);
-    update();
-    mql.addEventListener("change", update);
-    return () => mql.removeEventListener("change", update);
-  }, [query]);
-  return matches;
-}
+import { FlipCard, stopFlip, useMediaQuery, type FlipCardProps } from "@/components/custom/flip-card";
 
-/** Stops a click inside a face's own control from also flipping the card. */
-export const stopFlip = (event: React.SyntheticEvent) => event.stopPropagation();
+export { stopFlip, useMediaQuery };
 
-export interface LmsFlipCardProps {
-  front: ReactNode;
-  back: ReactNode;
-  /** Accessible name of the flip control while the front shows. */
-  flipLabel: string;
-  /** Accessible name while the back shows. */
-  flipBackLabel: string;
-  /** Height and radius come from the caller so tutor and plan decks can differ. */
-  className?: string;
-  /** Extra classes on the flipping surface (a highlight ring, say). */
-  surfaceClassName?: string;
-  /** Controlled: the card's flipped state, when the caller wants to own it. */
-  flipped?: boolean;
-  onFlippedChange?: (flipped: boolean) => void;
-  /** Test/automation hook: the wrapper's data attribute. */
-  "data-card"?: string;
-}
+/** The Supacharge focus ring: the primary, offset from the app's surface. */
+export const LMS_FLIP_RING =
+  "focus-visible:ring-2 focus-visible:ring-[var(--sc-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sc-surface)]";
 
-export function LmsFlipCard({
-  front,
-  back,
-  flipLabel,
-  flipBackLabel,
-  className = "",
-  surfaceClassName = "",
-  flipped: controlled,
-  onFlippedChange,
-  "data-card": dataCard,
-}: LmsFlipCardProps) {
-  const [internal, setInternal] = useState(false);
-  const [pinned, setPinned] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const canHover = useMediaQuery("(hover: hover) and (pointer: fine)");
-  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
-  const id = useId();
+export type LmsFlipCardProps = Omit<FlipCardProps, "ringClassName">;
 
-  const isControlled = controlled !== undefined;
-  const flipped = isControlled ? controlled : internal || (canHover && hovered);
-
-  const set = useCallback(
-    (next: boolean) => {
-      if (!isControlled) setInternal(next);
-      onFlippedChange?.(next);
-    },
-    [isControlled, onFlippedChange],
-  );
-
-  const toggle = () => {
-    const next = !flipped;
-    set(next);
-    // A click is a deliberate choice, so it outlives the hover.
-    setPinned(next);
-  };
-
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return;
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      toggle();
-    } else if (event.key === "Escape" && flipped) {
-      set(false);
-      setPinned(false);
-    }
-  };
-
-  const onMouseLeave = () => {
-    setHovered(false);
-    if (!pinned && !isControlled) setInternal(false);
-  };
-
-  const duration = "420ms";
-  const surface: CSSProperties = reducedMotion
-    ? {}
-    : {
-        transformStyle: "preserve-3d",
-        transition: `transform ${duration} cubic-bezier(0.4, 0, 0.2, 1)`,
-        transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-      };
-  const face = (isBack: boolean): CSSProperties =>
-    reducedMotion
-      ? {
-          transition: `opacity ${duration} ease`,
-          opacity: (isBack ? flipped : !flipped) ? 1 : 0,
-        }
-      : {
-          backfaceVisibility: "hidden",
-          WebkitBackfaceVisibility: "hidden",
-          transform: isBack ? "rotateY(180deg)" : "rotateY(0deg)",
-        };
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-pressed={flipped}
-      aria-label={flipped ? flipBackLabel : flipLabel}
-      aria-describedby={`${id}-face`}
-      data-card={dataCard}
-      data-flipped={flipped ? "true" : "false"}
-      onClick={toggle}
-      onKeyDown={onKeyDown}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={onMouseLeave}
-      className={`group relative cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-[var(--sc-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sc-surface)] ${className}`}
-      style={reducedMotion ? undefined : { perspective: "1400px" }}
-    >
-      <div
-        className={`relative size-full ${surfaceClassName}`}
-        style={surface}
-      >
-        <div
-          id={`${id}-face`}
-          className="absolute inset-0"
-          style={face(false)}
-          aria-hidden={flipped}
-          inert={flipped}
-        >
-          {front}
-        </div>
-        <div
-          className="absolute inset-0"
-          style={face(true)}
-          aria-hidden={!flipped}
-          inert={!flipped}
-        >
-          {back}
-        </div>
-      </div>
-    </div>
-  );
+export function LmsFlipCard(props: LmsFlipCardProps) {
+  return <FlipCard {...props} ringClassName={LMS_FLIP_RING} />;
 }
 
 export default LmsFlipCard;

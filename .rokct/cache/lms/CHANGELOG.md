@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.41.0
+
+* The flip card moves to base_sdk (Ray, 2026-10-31: the studio portfolio
+  card flips "exactly like the Supacharge tutor card", so the card is
+  shared). base_sdk >= 1.58.0 installs `components/custom/flip-card.tsx`
+  (`FlipCard`); `landing/lms-flip-card.tsx` keeps its exports
+  (`LmsFlipCard`, `stopFlip`, `useMediaQuery`) and re-exports base's,
+  passing the Supacharge focus ring (`LMS_FLIP_RING`). The tutor and plan
+  cards, the deck and the tutors section import it as before and turn
+  exactly as they did.
+* The base_sdk floor moves to 1.58.0 (`requires` lists
+  `components/custom/flip-card.tsx`). `LMS_LANDING_VERSION` goes to
+  1.41.0. 1.40.0 is the line-arrow Back to top (agent#564), kept as it is.
+* test: `tests/test_flip_card_shared.py`.
+
 ## 1.40.0
 
 * Supacharge's own Back to top button (Ray, 2026-10-31: the button must
