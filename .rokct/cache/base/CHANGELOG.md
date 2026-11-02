@@ -1,5 +1,70 @@
 # Changelog
 
+## 1.60.0
+
+* feat(header): the Log in / Sign up pair moves to injection (Ray,
+  2026-11-01: "we just moving login and signup buttons to injection").
+  The header used to draw the pair itself for every visitor with no
+  session, so a shell composed without sign-in showed two links to a
+  `/login` route it does not have.
+  * New `components/custom/landing/header-auth.ts`: the `HEADER_AUTH`
+    registry at `// @rokct-sdk-header-auth-start` / `-end`, filled by the
+    SDK that owns sign-in through its manifest `integrations` (one line,
+    `{ id: "<sdk>-header-auth", load: () => import("@/components/custom/...") },`).
+    `HeaderAuthProps`: `variant` (`"bar"` | `"panel"`), `loginUrl`,
+    `signupUrl`, `openLoginPopup`, `openSignupPopup`, `onNavigate`,
+    `dataMode` and `classes` (`login`, `signup`). The first entry answers.
+    The marker is not home-only: the protocol installer takes any SDK's
+    line there.
+  * New `components/custom/header-auth-slot.tsx`: `HeaderAuthSlot`
+    renders nothing when nothing is registered (no loader, no fetch) and
+    otherwise the registered pair through `next/dynamic`, so the buttons
+    are server-rendered in the first HTML, as the header brand is.
+  * `header.tsx` renders the slot on the bar and in the burger panel in
+    place of its own pair, with the same URLs, popup handlers and data
+    mode, and the classes the pair had (`BAR_AUTH_CLASSES`,
+    `PANEL_AUTH_CLASSES`), so a shell that registers the pair looks
+    exactly as before. The burger counts the pair only when something is
+    registered. The signed-in Dashboard link is unchanged. Base never
+    names the SDK that fills the slot.
+  * auth_sdk >= 1.11.0 registers the pair. A header a home SDK owns
+    renders the slot with its own classes (hosting_sdk >= 1.16.0,
+    telephony_sdk >= 1.3.0).
+* test: `tests/test_manifest.py` "header auth slot (1.60.0)".
+
+## 1.59.0
+
+* feat(site-data): the schema behind the South River render Ray approved
+  (Ray, 2026-11-01: "south river site doesnt have what we discussed
+  yet"). Every field is optional, so existing data/ folders validate
+  unchanged; corporate_sdk >= 1.5.0 draws them.
+  * `data/site.json`: `header.wordmark` (`false` when the `header.logo`
+    image already spells the name, so the header draws the image alone)
+    and `footer.logo` (a public path the footer draws in place of the type
+    wordmark).
+  * A bottle art's `labels`: more labels the bottle rolls through after
+    `label`, one at a time.
+  * A label's `mark`: a monogram of one or two characters, drawn in a
+    ring above the name.
+  * `data/pricing.json`: `perCase` (units in one case, such as 24
+    bottles) and, per tier, `fine` (`{ strong?, text }`, a small line under
+    `detail`), `art` (a picture drawn in the card) and `slider`
+    (`{ min, max, step?, label, count?, total?, breakdown? }`, a quantity
+    range with a running total). The words are templates over `{n}`,
+    `{units}`, `{price}`, `{each}` and `{total}`; `{units}` or `{each}`
+    without `perCase` fails, and so does a slider on a price with no
+    number in it.
+  * `priceAmount(price)` (`validate-site.mjs`): the first number in a
+    price string, `"R1,500"` -> 1500.
+* test: `tests/site-data.test.mts` "render fields (1.59.0)".
+
+## 1.58.1
+
+* style: `components/custom/theme-provider.tsx` is prettier-formatted (the
+  `ThemeProvider` signature is wrapped). The fleet linter reformatted it in
+  every shell that tracks it, and the next compose put the long line back
+  (hosting#29). Formatting only, no logic change.
+
 ## 1.58.0
 
 * feat(flip-card): the flip card every shell shares. New
