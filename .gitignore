@@ -348,6 +348,8 @@ components/ui/tooltip.tsx
 /components/custom/site-shell.tsx
 /components/custom/site-theme.tsx
 /components/custom/submit-button.tsx
+/components/custom/supacharge-auth/supacharge-auth-copy.ts
+/components/custom/supacharge-auth/supacharge-auth.css
 /components/custom/theme-provider.client.tsx
 /components/ui/date-range-picker.tsx
 /db/index.ts
