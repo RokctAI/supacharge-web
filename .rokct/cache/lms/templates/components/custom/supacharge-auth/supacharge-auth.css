@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2026 ROKCT INTELLIGENCE (PTY) LTD
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/* lms_sdk 1.42.0: the Supacharge auth pages (../site-shell.tsx). Tokens
+   and faces are lms-theme.css's (.sc-landing: orange #ff6600 on near-black
+   #101010, the light set under html.light; Montserrat for the brand,
+   Inter for text). This file lays the brand panel beside auth_sdk's card
+   and maps the card's shadcn tokens (HSL triplets) to that palette, dark
+   by default and light under html.light. Scoped to .sa-root so no other
+   route changes. */
+
+.sa-root .sa{flex:1;padding:clamp(36px,6vw,88px) 0 clamp(48px,7vw,104px);background:var(--sc-surface);color:var(--sc-ink);font-family:var(--sc-font-sans)}
+.sa-root .sa-wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.sa-root .sa-g{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(32px,6vw,96px);align-items:center}
+.sa-root .sa-kick{font-family:var(--sc-font-brand);font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--sc-primary)}
+.sa-root .sa-h{margin-top:20px;font-family:var(--sc-font-brand);font-weight:900;font-size:clamp(44px,6vw,84px);line-height:1;letter-spacing:-.03em;color:var(--sc-ink)}
+.sa-root .sa-h span{display:block}
+.sa-root .sa-h span:last-child{color:var(--sc-primary)}
+.sa-root .sa-lede{margin-top:22px;max-width:34ch;font-size:clamp(17px,1.4vw,19px);line-height:1.5;color:var(--sc-ink-2)}
+.sa-root .sa-pts{list-style:none;margin:30px 0 0;padding:0;border-top:1px solid var(--sc-stroke);max-width:32em}
+.sa-root .sa-pts li{display:flex;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--sc-stroke);font-size:15px;font-weight:500;color:var(--sc-ink-2)}
+.sa-root .sa-pts li::before{content:"";flex:none;width:8px;height:8px;border-radius:2px;background:var(--sc-primary)}
+.sa-root .sa-mark{color:var(--sc-ink)}
+.sa-root .sa-foot{border-top:1px solid var(--sc-stroke);background:var(--sc-surface);color:var(--sc-ink-2);padding:32px 0 40px;font-size:14px}
+.sa-root .sa-foot-in{display:flex;flex-wrap:wrap;gap:20px 32px;align-items:center;justify-content:space-between}
+.sa-root .sa-foot-brand{color:var(--sc-ink)}
+.sa-root .sa-foot-nav{display:flex;gap:22px}
+.sa-root .sa-foot-nav a:hover{color:var(--sc-ink)}
+.sa-root .sa-credit{color:var(--sc-ink-3)}
+.sa-root .sa-heart{color:var(--sc-primary)}
+@media (max-width:900px){
+.sa-root .sa-g{grid-template-columns:minmax(0,1fr);gap:36px}
+.sa-root .sa-card{order:-1}
+.sa-root .sa-pts{display:none}
+.sa-root .sa-h{font-size:clamp(38px,11vw,60px)}
+}
+
+/* auth_sdk's page body: drop its own full-height centring and background */
+.sa-root .sa-card>div{min-height:0;background:transparent;padding:0}
+.sa-root .sa-card>div>div{max-width:none}
+.sa-root .sa-card{
+  --background:0 0% 6%;--foreground:0 0% 100%;--card:0 0% 11%;--card-foreground:0 0% 100%;
+  --popover:0 0% 11%;--popover-foreground:0 0% 100%;--primary:24 100% 50%;--primary-foreground:0 0% 100%;
+  --secondary:0 0% 9%;--secondary-foreground:0 0% 100%;--muted:0 0% 9%;--muted-foreground:0 0% 55%;
+  --accent:24 73% 17%;--accent-foreground:0 0% 100%;--border:0 0% 18%;--input:0 0% 18%;--ring:24 100% 50%;--radius:12px;
+  color:var(--sc-ink);font-family:var(--sc-font-sans)
+}
+html.light .sa-root .sa-card{
+  --background:240 9% 93%;--foreground:240 8% 12%;--card:240 20% 98%;--card-foreground:240 8% 12%;
+  --popover:240 20% 98%;--popover-foreground:240 8% 12%;--primary:24 100% 50%;--primary-foreground:0 0% 100%;
+  --secondary:240 12% 95%;--secondary-foreground:240 8% 12%;--muted:240 12% 95%;--muted-foreground:240 4% 37%;
+  --accent:25 100% 92%;--accent-foreground:240 8% 12%;--border:240 7% 86%;--input:240 7% 86%;--ring:24 100% 50%
+}
+.sa-root .sa-card h1{font-family:var(--sc-font-brand);font-weight:800;letter-spacing:-.02em;line-height:1.05;font-size:clamp(28px,2.8vw,38px);color:var(--sc-ink);text-wrap:balance}
+.sa-root .sa-card h1+p{font-size:15px;line-height:1.5;color:var(--sc-ink-2)}
+.sa-root .sa-card .bg-card{background:var(--sc-card);border:1px solid var(--sc-stroke);border-radius:var(--sc-radius-panel);box-shadow:0 30px 60px -30px rgba(0,0,0,.6);backdrop-filter:none}
+.sa-root .sa-card label{font-weight:600;font-size:13px;color:var(--sc-ink-2)}
+.sa-root .sa-card input:not([type="checkbox"]):not([type="hidden"]),.sa-root .sa-card [role="combobox"]{height:48px;border-radius:var(--sc-radius-btn);border:1px solid var(--sc-stroke);background:var(--sc-surface);color:var(--sc-ink);font-size:16px}
+.sa-root .sa-card input:focus-visible{outline:2px solid var(--sc-primary);outline-offset:1px;box-shadow:none}
+/* the submit: the landing's orange button */
+.sa-root .sa-card button[type="submit"]{display:inline-flex;justify-content:center;align-items:center;width:100%;height:52px;border-radius:var(--sc-radius-btn);border:0;background:var(--sc-primary);color:#fff;font-family:var(--sc-font-brand);font-weight:700;font-size:16px;box-shadow:0 12px 28px -14px var(--sc-primary);transform:none;transition:filter .15s,transform .15s}
+.sa-root .sa-card button[type="submit"]:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.sa-root .sa-card .text-primary{color:var(--sc-primary)}
+.sa-root .sa-card .text-primary:hover{color:var(--sc-ink)}

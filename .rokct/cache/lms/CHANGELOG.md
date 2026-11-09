@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.42.0
+
+* **Supacharge login and register.** Ray: every app shell gets its own
+  design for register and login (the pattern hosting_sdk 1.21.0 set for
+  Cortex). lms_sdk, the home SDK, installs its own
+  `components/custom/site-shell.tsx` over auth_sdk's default (auth_sdk >=
+  1.12.0's SiteShell seam): login, register and forgot-password mount
+  `LmsTheme` (orange on near-black, dark by default, light when picked;
+  Montserrat and Inter), draw base's header as the landing does, set a
+  brand panel beside the card and end with a footer carrying the
+  Supacharge wordmark. The mark above the card is `LmsWordmark`.
+* `components/custom/supacharge-auth/` holds the panel copy (only the
+  landing's own claims: two teaching styles, the CAPS plan, the linked
+  partner) and its scoped CSS, which maps the card's shadcn tokens to the
+  landing palette, light and dark. Presentation only: auth_sdk's views,
+  actions and fields are untouched.
+* `LMS_LANDING_VERSION` goes to 1.42.0. Tests: `tests/test_supacharge_auth.py`.
+* The card's heading reads `PLATFORM_NAME` (supacharge-web: "supacharge.school",
+  which auth_sdk folds to "Supacharge"); supacharge-web sets the display
+  name in its own PR.
+
 ## 1.41.0
 
 * The flip card moves to base_sdk (Ray, 2026-10-31: the studio portfolio
