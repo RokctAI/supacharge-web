@@ -14,7 +14,7 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://supacharge.school"
 ).replace(/\/+$/, "");
 
-export const SITE_NAME = "supacharge.school";
+export const SITE_NAME = "Supacharge";
 
 /** Where the Flutter app's builds are published. */
 export const APP_RELEASES_URL =
