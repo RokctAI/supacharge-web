@@ -183,5 +183,42 @@ class VersionTest(unittest.TestCase):
         self.assertIn("/partner/signup", head)
 
 
+class RedesignTest(unittest.TestCase):
+    """1.42.2: the page wears the Supacharge shell; the form is unchanged in behaviour."""
+
+    def test_page_uses_the_site_shell_pieces(self):
+        code = read(PAGE)
+        for piece in ("<LmsTheme />", "<Header />", "LMS_ROOT_CLASS", "ps-root", 'import "./partner-signup.css";'):
+            self.assertIn(piece, code)
+        self.assertIn("What happens next", code)
+        self.assertIn(HEADING, code)
+        self.assertNotIn("LmsWordmark", code)
+        self.assertNotRegex(code, r"(?i)\bPOS\b|point of sale")
+
+    def test_css_is_scoped_and_tokenised(self):
+        css = read(os.path.join(PAGE_DIR, "partner-signup.css"))
+        rules = [r for r in re.sub(r"/\*[\s\S]*?\*/", "", css).split("}") if "{" in r]
+        for rule in rules:
+            sel = rule.split("{")[-2 if rule.strip().startswith("@media") else 0].strip()
+            if sel.startswith("@media"):
+                continue
+            for part in sel.split(","):
+                self.assertTrue(part.strip().startswith(".ps-root"), part)
+        self.assertIn("var(--sc-primary)", css)
+        self.assertIn("@media (max-width:900px)", css)
+
+    def test_form_keeps_fields_and_submit(self):
+        code = read(FORM)
+        for field in ("partner-name", "partner-organisation", "partner-email", "partner-password"):
+            self.assertIn(f'id="{field}"', code)
+        self.assertIn('name="partner-interest"', code)
+        self.assertIn("const r = await partnerSignupAction(v);", code)
+        self.assertIn("minLength={8}", code)
+        self.assertEqual(code.count("maxLength={140}"), 2)
+        self.assertIn('aria-invalid', code)
+        for group in ("About you", "Your sign-in", "How you&apos;d like to help"):
+            self.assertIn(group, code)
+
+
 if __name__ == "__main__":
     unittest.main()

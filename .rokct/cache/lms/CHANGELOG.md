@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.42.2
+
+* **/partner/signup redesigned** to match the rest of supacharge.school
+  (Ray: "need redesign"). `LmsTheme` and base's `Header` as the landing
+  draws them; a hero that explains what a partner is; a short benefits
+  row (open a seat, follow progress, reports built for sponsors - the
+  landing's own claims); the form in a card with grouped fields (About
+  you, Your sign-in, How you'd like to help), hints, inline validation
+  once a field is left, selectable option tiles and the orange primary
+  button; a "What happens next" list; a slim footer with no wordmark.
+  `app/partner/signup/partner-signup.css` is scoped to `.ps-root` and
+  uses lms-theme.css's tokens, light and dark, down to 390px.
+* `LMS_LANDING_VERSION` goes to 1.42.2.
+* Presentation only: the fields, ids, names, limits, `partnerSignupAction`
+  and the submit behaviour are unchanged.
+
+## 1.42.1
+
+* The Back to top line arrow is smaller and lighter (Ray: "make the
+  scroll-to-top button smaller and lighter"). A 2px line (was 4px) into a
+  14x8 point (was 28x14), an 18px tail and 6px neck (were 30/12), a softer
+  halo (2px, 60% of `--sc-surface`), and 80% opacity at rest, full on hover
+  and focus. The label is 11px at weight 700 (was 13px at 900). Still every
+  colour from Supacharge's tokens, so it reads on the light and dark sets.
+  `LMS_LANDING_VERSION` goes to 1.42.1.
+* test: `tests/test_back_to_top_style.py` holds the lighter sizes.
+
 ## 1.42.0
 
 * **Supacharge login and register.** Ray: every app shell gets its own
