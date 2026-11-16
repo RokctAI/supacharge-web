@@ -38,13 +38,21 @@
  */
 
 button[data-back-to-top-shape="text-arrow"] {
-  --sc-btt-line: 4px;
-  --sc-btt-head-w: 28px;
-  --sc-btt-head-h: 14px;
-  --sc-btt-tail: 30px;
-  --sc-btt-neck: 12px;
-  --sc-btt-break: 7px;
+  --sc-btt-line: 2px;
+  --sc-btt-head-w: 14px;
+  --sc-btt-head-h: 8px;
+  --sc-btt-tail: 18px;
+  --sc-btt-neck: 6px;
+  --sc-btt-break: 5px;
   gap: 0;
+  opacity: 0.8;
+}
+
+/* 1.42.1 (Ray: smaller and lighter): a 2px line into a 14x8 point, a
+   shorter run, and the arrow at 80% ink until hovered or focused. */
+button[data-back-to-top-shape="text-arrow"]:hover,
+button[data-back-to-top-shape="text-arrow"]:focus-visible {
+  opacity: 1;
 }
 
 /* The point: the solid head, sized to the line (7 line-widths wide). */
@@ -68,7 +76,7 @@ button[data-back-to-top-shape="text-arrow"]::after {
   flex: none;
   width: var(--sc-btt-line);
   background: currentColor;
-  filter: drop-shadow(0 0 3px var(--back-to-top-halo, transparent));
+  filter: drop-shadow(0 0 2px var(--back-to-top-halo, transparent));
 }
 
 /* The short run after the label, up into the head's base (overlapping it

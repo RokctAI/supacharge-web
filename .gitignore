@@ -193,6 +193,7 @@ components/ui/tooltip.tsx
 /app/page.tsx
 /app/partner/signup/page.tsx
 /app/partner/signup/partner-signup-form.tsx
+/app/partner/signup/partner-signup.css
 /app/services/all/lms/ad-performance.ts
 /app/services/all/lms/assignments.ts
 /app/services/all/lms/batches.ts

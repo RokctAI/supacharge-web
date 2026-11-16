@@ -79,7 +79,7 @@ class BackToTopStyleTest(unittest.TestCase):
         # The wording is the config's label field, so data/theme.json can change it.
         self.assertEqual(field(code, "label"), "Scroll to top")
         self.assertEqual(field(code, "textTransform"), "uppercase")
-        self.assertEqual(field(code, "fontWeight"), 900)
+        self.assertEqual(field(code, "fontWeight"), 700)
         self.assertIn('import "./lms-back-to-top.css";', code)
 
     def test_line_arrow_sheet_draws_the_line_break_and_a_bold_point(self):
@@ -95,9 +95,12 @@ class BackToTopStyleTest(unittest.TestCase):
             return int(m.group(1))
 
         line, head_w, head_h = px("line"), px("head-w"), px("head-h")
-        self.assertGreaterEqual(line, 3, "the line is bold, not a hairline")
+        # 1.42.1 (Ray: smaller and lighter): a light line into a small point.
+        self.assertLessEqual(line, 2, "the line is light")
         self.assertGreaterEqual(head_w, 6 * line, "the point is weighted to the line")
-        self.assertGreater(head_h, 11, "larger than base's 22x11 head")
+        self.assertLessEqual(head_h, 8, "smaller than base's 22x11 head")
+        self.assertLessEqual(px("tail") + px("neck") + head_h, 40, "the arrow's ink stays small")
+        self.assertIn("opacity: 0.8;", css)
         self.assertGreater(px("tail"), px("neck"), "the line starts at the bottom; a short run after the label")
         # Top to bottom: head (0), neck (1), label (2), tail (3).
         for part, n in ((" > svg", 0), ("::before", 1), (" > span", 2), ("::after", 3)):
