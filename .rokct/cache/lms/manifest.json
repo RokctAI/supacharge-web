@@ -1,6 +1,7 @@
 {
   "name": "lms_sdk",
-  "version": "1.43.0",
+  "version": "1.43.1",
+  "_comment_version_1_43_1": "1.43.1: landing sections rise and fade in as they scroll into view (CSS scroll-driven, no JS, off under reduced motion; Ray 2026-11-20 motion pass). Nothing to install.",
   "_comment_version_1_42_3": "1.42.3: style only (motion pass, Ray 2026-11-14). milestone dots and floating nav animate named properties with ease-out and honour reduced motion. Nothing to install.",
   "_comment_version_1_42_2": "1.42.1 -> 1.42.2: /partner/signup redesigned to match supacharge.school (Ray: \"https://supacharge.school/partner/signup need redesign\"). The page mounts LmsTheme and base's Header, a hero saying what a partner is, a three-card benefits row (landing claims only), the form card with grouped fields (About you, Your sign-in, How you'd like to help), hints and inline validation, a What happens next list and a slim footer without the wordmark; partner-signup.css (beside the page, scoped to .ps-root) uses lms-theme.css tokens, light and dark, down to 390px. Presentation only: the fields, ids, names, limits, partnerSignupAction and submit are unchanged.",
   "_comment_version_1_42_1": "1.42.0 -> 1.42.1: the Back to top line arrow is smaller and lighter (Ray: make the scroll-to-top button smaller and lighter). lms-back-to-top.css: a 2px line (was 4px) into a 14x8 point (was 28x14), an 18px tail and 6px neck (were 30/12), a softer 2px halo, and 80% opacity at rest (full on hover and focus). lms-back-to-top.ts: the label at 11px, weight 700 (was 13px, 900), the halo at 60% of --sc-surface (was 80%). Same tokens, light and dark.",

@@ -309,6 +309,7 @@ components/ui/tooltip.tsx
 /components/custom/landing/site-shots.ts
 /components/custom/landing/team-assets.ts
 /components/custom/landing/testimonials-marquee.tsx
+/components/custom/language-toggle.tsx
 /components/custom/legal/legal-doc.tsx
 /components/custom/legal/legal-frame.tsx
 /components/custom/legal/load-legal-doc.ts
@@ -485,3 +486,6 @@ components/ui/tooltip.tsx
 /public/team/tutors/CAPS/tutor_018/appearance/renders/card_1080x1440.webp
 /types/next-auth.d.ts
 # @rokct-composed-end
+
+# Written by scripts/compose.sh on every compose (SDK copy registry).
+app/lib/i18n/sdk-registry.ts
