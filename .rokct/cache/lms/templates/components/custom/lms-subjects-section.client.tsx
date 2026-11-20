@@ -101,6 +101,7 @@ import type {
   Subject,
 } from "@/components/custom/landing/lms-landing-config";
 
+import t from "@/app/lib/i18n";
 /**
  * The Grades R-3 library's tile colours, in the app's order (lms/dart
  * r3_picture.dart kR3TileColors). Mirrored as `--sc-kids-tile-1..6` in
@@ -156,18 +157,18 @@ function SubjectCard({ subject }: { subject: Subject }) {
       {subject.tutors ? (
         <dl className="flex flex-col gap-1 text-sm">
           <div className="flex justify-between gap-4">
-            <dt className="text-[var(--sc-ink-2)]">Expert</dt>
+            <dt className="text-[var(--sc-ink-2)]">{t("lms.expert")}</dt>
             <dd className="font-semibold text-[var(--sc-ink)]">{subject.tutors[0]}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-[var(--sc-ink-2)]">Simplifier</dt>
+            <dt className="text-[var(--sc-ink-2)]">{t("lms.simplifier")}</dt>
             <dd className="font-semibold text-[var(--sc-ink)]">{subject.tutors[1]}</dd>
           </div>
         </dl>
       ) : subject.tutor ? (
         <dl className="flex flex-col gap-1 text-sm">
           <div className="flex justify-between gap-4">
-            <dt className="text-[var(--sc-ink-2)]">Tutor</dt>
+            <dt className="text-[var(--sc-ink-2)]">{t("lms.tutor")}</dt>
             <dd className="font-semibold text-[var(--sc-ink)]">{subject.tutor}</dd>
           </div>
         </dl>

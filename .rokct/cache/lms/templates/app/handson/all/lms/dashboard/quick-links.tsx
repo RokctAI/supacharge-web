@@ -17,10 +17,11 @@
 import Link from "next/link";
 import type { LmsNavLink } from "@/app/actions/handson/all/lms/user/actions";
 
+import t from "@/app/lib/i18n";
 export function QuickLinks({ links }: { links: LmsNavLink[] }) {
   if (links.length === 0) return null;
   return (
-    <nav aria-label="Learning links" className="flex flex-wrap gap-3">
+    <nav aria-label={t("lms.learning_links")} className="flex flex-wrap gap-3">
       {links.map((link) => (
         <Link
           key={link.href}

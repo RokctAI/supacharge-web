@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
+import t from "@/app/lib/i18n";
 interface DiscussionsProps {
   doctype: string;
   docname: string;
@@ -116,20 +117,20 @@ export function Discussions({
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="outline" className="gap-2">
-              <RiAddLine className="h-4 w-4" /> New Topic
+              <RiAddLine className="h-4 w-4" /> {t("lms.new_topic")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Start a Discussion</DialogTitle>
+              <DialogTitle>{t("lms.start_a_discussion")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Topic Title</Label>
+                <Label>{t("lms.topic_title")}</Label>
                 <Input
                   value={newTopicTitle}
                   onChange={(e) => setNewTopicTitle(e.target.value)}
-                  placeholder="What do you want to discuss?"
+                  placeholder={t("lms.what_do_you_want_to_discuss")}
                 />
               </div>
             </div>
@@ -144,11 +145,11 @@ export function Discussions({
 
       {loading ? (
         <div className="text-sm text-muted-foreground">
-          Loading discussions...
+          {t("lms.loading_discussions")}
         </div>
       ) : topics.length === 0 ? (
         <div className="text-center py-8 bg-muted/30 rounded-lg text-muted-foreground">
-          No discussions yet. Be the first to start one!
+          {t("lms.no_discussions_yet_be_the_first_to_start_one")}
         </div>
       ) : (
         <div className="space-y-4">
@@ -235,10 +236,10 @@ function DiscussionThread({ topic }: { topic: any }) {
           {showReplies && (
             <div className="space-y-4 pt-4 border-t mt-2">
               {loadingReplies ? (
-                <div className="text-xs text-muted-foreground">Loading...</div>
+                <div className="text-xs text-muted-foreground">{t("lms.loading")}</div>
               ) : replies.length === 0 ? (
                 <div className="text-xs text-muted-foreground">
-                  No replies yet.
+                  {t("lms.no_replies_yet")}
                 </div>
               ) : (
                 <div className="space-y-4 pl-4 border-l-2">
@@ -268,7 +269,7 @@ function DiscussionThread({ topic }: { topic: any }) {
 
               <div className="flex gap-2 items-start pt-2">
                 <Input
-                  placeholder="Write a reply..."
+                  placeholder={t("lms.write_a_reply")}
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   className="h-8 text-sm"
@@ -279,7 +280,7 @@ function DiscussionThread({ topic }: { topic: any }) {
                   onClick={handleReply}
                   className="h-8"
                 >
-                  Reply
+                  {t("lms.reply")}
                 </Button>
               </div>
             </div>

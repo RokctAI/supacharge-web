@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { RiBriefcaseLine, RiMapPinLine, RiBuilding2Line } from "@remixicon/react";
 import Link from "next/link";
 
+import t from "@/app/lib/i18n";
 export default function JobsPage() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,16 +67,16 @@ export default function JobsPage() {
   return (
     <div className="container max-w-5xl py-10 space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Career Opportunities</h1>
-        {/* <Button variant="outline">My Applications</Button> */}
+        <h1 className="text-3xl font-bold">{t("lms.career_opportunities")}</h1>
+        {/* <Button variant="outline">{t("lms.my_applications")}</Button> */}
       </div>
 
       {jobs.length === 0 ? (
         <div className="text-center py-20 bg-muted/30 rounded-lg">
           <RiBriefcaseLine className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-xl font-medium">No Open Positions</h3>
+          <h3 className="text-xl font-medium">{t("lms.no_open_positions")}</h3>
           <p className="text-muted-foreground">
-            Check back later for new opportunities.
+            {t("lms.check_back_later_for_new_opportunities")}
           </p>
         </div>
       ) : (
@@ -109,7 +110,7 @@ export default function JobsPage() {
               </CardContent>
               <CardFooter>
                 <Button className="w-full" asChild>
-                  <Link href={`./jobs/${job.name}`}>View Details</Link>
+                  <Link href={`./jobs/${job.name}`}>{t("lms.view_details")}</Link>
                 </Button>
               </CardFooter>
             </Card>

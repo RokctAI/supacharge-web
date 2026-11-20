@@ -44,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { RiCheckboxCircleLine, RiCloseCircleLine, RiTimeLine } from "@remixicon/react";
 
+import t from "@/app/lib/i18n";
 export default function QuizPage() {
   const params = useParams();
   const router = useRouter();
@@ -248,7 +249,7 @@ export default function QuizPage() {
       </div>
     );
 
-  if (!quiz) return <div className="p-10 text-center">Quiz not found</div>;
+  if (!quiz) return <div className="p-10 text-center">{t("lms.quiz_not_found")}</div>;
 
   // 1. Result Screen
   if (submitted && summary) {
@@ -256,11 +257,11 @@ export default function QuizPage() {
       <div className="container max-w-2xl py-10">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center text-3xl">Quiz Summary</CardTitle>
+            <CardTitle className="text-center text-3xl">{t("lms.quiz_summary")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 text-center">
             <div className="text-lg">
-              Score: <span className="font-bold">{summary.score}</span> /{" "}
+              {t("lms.score")} <span className="font-bold">{summary.score}</span> /{" "}
               {summary.score_out_of}
             </div>
             <div className="text-4xl font-bold text-primary">
@@ -273,9 +274,9 @@ export default function QuizPage() {
             </p>
           </CardContent>
           <CardFooter className="justify-center gap-4">
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <Button onClick={() => window.location.reload()}>{t("lms.try_again")}</Button>
             <Button variant="outline" onClick={() => router.back()}>
-              Back to Course
+              {t("lms.back_to_course")}
             </Button>
           </CardFooter>
         </Card>
@@ -300,7 +301,7 @@ export default function QuizPage() {
 
             {attempts.length > 0 && (
               <div className="pt-4 border-t">
-                <h4 className="font-semibold mb-2">Previous Attempts</h4>
+                <h4 className="font-semibold mb-2">{t("lms.previous_attempts")}</h4>
                 {attempts.map((att: any, i) => (
                   <div key={i} className="flex justify-between text-sm py-1">
                     <span>Attempt {att.idx}</span>
@@ -321,7 +322,7 @@ export default function QuizPage() {
           </CardContent>
           <CardFooter>
             <Button className="w-full" size="lg" onClick={startQuiz}>
-              Start Quiz
+              {t("lms.start_quiz")}
             </Button>
           </CardFooter>
         </Card>
@@ -440,13 +441,13 @@ export default function QuizPage() {
               loadQuestion(activeQuestionIndex - 1);
             }}
           >
-            Back
+            {t("lms.back")}
           </Button>
 
           <div className="flex gap-2">
             {quiz.show_answers && showAnswers.length === 0 && (
               <Button variant="secondary" onClick={handleCheckAnswer}>
-                Check Answer
+                {t("lms.check_answer")}
               </Button>
             )}
             <Button onClick={handleNext}>

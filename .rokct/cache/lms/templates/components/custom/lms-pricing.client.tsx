@@ -54,6 +54,7 @@ import { LANDING_CONFIG } from "@/components/custom/landing/landing-config";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import { LmsPlanCard } from "@/components/custom/landing/lms-plan-card";
 
+import t from "@/app/lib/i18n";
 const isYearly = (interval?: string) =>
   ["year", "yearly"].includes((interval ?? "").toLowerCase());
 
@@ -144,7 +145,7 @@ export function LmsPricing({
           </p>
           {hasYearly && (
             <label className="inline-flex items-center gap-3 text-sm font-medium text-[var(--sc-ink-2)] cursor-pointer">
-              <span>Monthly</span>
+              <span>{t("lms.monthly")}</span>
               <input
                 type="checkbox"
                 checked={isAnnual}
@@ -152,7 +153,7 @@ export function LmsPricing({
                 className="sr-only peer"
               />
               <span className="relative w-10 h-5 rounded-full bg-[var(--sc-stroke)] peer-checked:bg-[var(--sc-primary)] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:size-4 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-5" />
-              <span>Yearly</span>
+              <span>{t("lms.yearly")}</span>
             </label>
           )}
         </div>

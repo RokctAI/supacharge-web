@@ -55,6 +55,7 @@ const EditorContent = dynamic(() => import("./editor-content"), {
 import { Discussions } from "./discussions";
 import { LmsDownloadAppPrompt } from "@/components/custom/lms-download-app";
 
+import t from "@/app/lib/i18n";
 export default function LessonPlayback() {
   const params = useParams();
   const router = useRouter();
@@ -202,7 +203,7 @@ export default function LessonPlayback() {
   }
 
   if (!lesson) {
-    return <div className="p-8 text-center">Lesson not found.</div>;
+    return <div className="p-8 text-center">{t("lms.lesson_not_found")}</div>;
   }
 
   // Since lms_sdk 1.32.1 getLesson reads rlms get_lesson_session, which
@@ -242,11 +243,11 @@ export default function LessonPlayback() {
         >
           {lesson.is_complete ? (
             <>
-              <RiCheckboxCircleLine className="h-4 w-4" /> Completed
+              <RiCheckboxCircleLine className="h-4 w-4" /> {t("lms.completed")}
             </>
           ) : (
             <>
-              <RiCircleLine className="h-4 w-4" /> Mark Complete
+              <RiCircleLine className="h-4 w-4" /> {t("lms.mark_complete")}
             </>
           )}
         </Button>
@@ -317,7 +318,7 @@ export default function LessonPlayback() {
         <Discussions
           doctype="Course Lesson"
           docname={lesson.name}
-          title="Lesson Discussions"
+          title={t("lms.lesson_discussions")}
         />
       )}
     </div>

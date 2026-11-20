@@ -77,7 +77,7 @@ export function LmsFloatingNav({ items }: { items: LandingNavItem[] }) {
           >
             <motion.div
               animate={{ width: isActive ? 32 : 16 }}
-              className={`h-[2px] rounded-full transition-all duration-300 ${
+              className={`h-[2px] rounded-full transition-[width,background-color,opacity] duration-200 ease-out motion-reduce:transition-none ${
                 isActive
                   ? "bg-[var(--sc-primary)] opacity-100"
                   : "bg-[var(--sc-ink-3)] opacity-60 group-hover:opacity-100 group-hover:w-[24px]"

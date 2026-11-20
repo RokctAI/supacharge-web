@@ -26,17 +26,18 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+import t from "@/app/lib/i18n";
 export default async function CoursesPage() {
   const courses = await fetchCourses();
 
   return (
     <div className="container mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8">Subjects</h1>
+      <h1 className="text-3xl font-bold mb-8">{t("lms.subjects")}</h1>
 
       {courses.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 rounded-lg">
           <p className="text-xl text-gray-500">
-            No subjects published yet.
+            {t("lms.no_subjects_published_yet")}
           </p>
         </div>
       ) : (
@@ -84,7 +85,7 @@ export default async function CoursesPage() {
                   <Link
                     href={`/handson/all/lms/courses/${encodeURIComponent(course.name)}`}
                   >
-                    View Subject
+                    {t("lms.view_subject")}
                   </Link>
                 </Button>
               </CardFooter>

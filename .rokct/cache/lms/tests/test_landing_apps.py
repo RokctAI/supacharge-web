@@ -1976,7 +1976,7 @@ class TestSiteCredit(unittest.TestCase):
                 capture_output=True, text=True, timeout=60, cwd=tmp,
             )
         self.assertEqual(run.returncode, 0, run.stderr)
-        self.assertEqual(run.stdout.strip(), "\u00a9 2026 Supacharge \u00b7 Built with \u2665 by ROKCT")
+        self.assertEqual(run.stdout.strip(), "\u00a9 2026 Supacharge \u00b7 Built with \u2665 by Cortex Media")
 
 
 if __name__ == "__main__":
@@ -2740,7 +2740,7 @@ class TestPhaseTabs(unittest.TestCase):
             with self.subTest(subject=subject["name"]):
                 self.assertNotIn("tutors", subject)
                 self.assertEqual(subject["tutor"], names[r3_tutor])
-        self.assertIn('<dt className="text-[var(--sc-ink-2)]">Tutor</dt>', read(SUBJECTS_CLIENT))
+        self.assertIn('<dt className="text-[var(--sc-ink-2)]">{t("lms.tutor")}</dt>', read(SUBJECTS_CLIENT))
 
     def test_grades_7_to_9_are_the_rosters_senior_phase_duos(self):
         with open(ROSTER, encoding="utf-8") as f:
