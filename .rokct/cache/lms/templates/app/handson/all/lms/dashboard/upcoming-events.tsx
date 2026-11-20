@@ -17,6 +17,7 @@
 import { RiCalendarLine, RiTimeLine, RiVideoLine, RiGraduationCapLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 
+import t from "@/app/lib/i18n";
 interface UpcomingEventsProps {
   liveClasses: any[];
   evals: any[];
@@ -28,7 +29,7 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
       {/* Upcoming Live Classes */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Upcoming Live Classes
+          {t("lms.upcoming_live_classes")}
         </h2>
         {liveClasses && liveClasses.length > 0 ? (
           <div className="space-y-4">
@@ -64,7 +65,7 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <RiVideoLine className="w-4 h-4 mr-2" /> Join
+                        <RiVideoLine className="w-4 h-4 mr-2" /> {t("lms.join")}
                       </a>
                     </Button>
                   )}
@@ -74,7 +75,7 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
           </div>
         ) : (
           <div className="text-sm text-gray-500 italic">
-            No upcoming live classes.
+            {t("lms.no_upcoming_live_classes")}
           </div>
         )}
       </div>
@@ -82,7 +83,7 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
       {/* Upcoming Evaluations */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Evaluations
+          {t("lms.evaluations")}
         </h2>
         {evals && evals.length > 0 ? (
           <div className="space-y-4">
@@ -125,7 +126,7 @@ export function UpcomingEvents({ liveClasses, evals }: UpcomingEventsProps) {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        Join Call
+                        {t("lms.join_call")}
                       </a>
                     </Button>
                   </div>

@@ -38,6 +38,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { RiErrorWarningLine, RiCheckboxCircleLine, RiFileTextLine, RiLinksLine as LinkIcon } from "@remixicon/react";
 
+import t from "@/app/lib/i18n";
 export default function AssignmentPage() {
   const params = useParams();
   const router = useRouter();
@@ -107,7 +108,7 @@ export default function AssignmentPage() {
       </div>
     );
   if (!assignment)
-    return <div className="p-10 text-center">Assignment not found</div>;
+    return <div className="p-10 text-center">{t("lms.assignment_not_found")}</div>;
 
   const isGraded =
     submission?.status === "Pass" || submission?.status === "Fail";
@@ -140,7 +141,7 @@ export default function AssignmentPage() {
         {/* Left: Content */}
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Instructions</CardTitle>
+            <CardTitle>{t("lms.instructions")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div
@@ -154,7 +155,7 @@ export default function AssignmentPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Your Submission</CardTitle>
+              <CardTitle>{t("lms.your_submission")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {isGraded ? (
@@ -173,7 +174,7 @@ export default function AssignmentPage() {
                   )}
                   {submission.comments && (
                     <div className="text-sm text-muted-foreground pt-2 border-t mt-2">
-                      <p className="font-medium text-foreground">Feedback:</p>
+                      <p className="font-medium text-foreground">{t("lms.feedback")}</p>
                       <div
                         dangerouslySetInnerHTML={{
                           __html: submission.comments,
@@ -186,9 +187,9 @@ export default function AssignmentPage() {
                 <>
                   {assignment.type === "Text" && (
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Your Answer</label>
+                      <label className="text-sm font-medium">{t("lms.your_answer")}</label>
                       <Textarea
-                        placeholder="Type your answer here..."
+                        placeholder={t("lms.type_your_answer_here")}
                         className="min-h-[150px]"
                         value={answer}
                         onChange={(e) => setAnswer(e.target.value)}
@@ -199,7 +200,7 @@ export default function AssignmentPage() {
                   {assignment.type === "URL" && (
                     <div className="space-y-2">
                       <label className="text-sm font-medium">
-                        Submission URL
+                        {t("lms.submission_url")}
                       </label>
                       <div className="relative">
                         <LinkIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -218,7 +219,7 @@ export default function AssignmentPage() {
                     assignment.type === "PDF" ||
                     assignment.type === "Document") && (
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">File URL</label>
+                      <label className="text-sm font-medium">{t("lms.file_url")}</label>
                       <div className="text-xs text-muted-foreground mb-2">
                         Uploads not yet supported directly. Please provide a
                         link to your file.

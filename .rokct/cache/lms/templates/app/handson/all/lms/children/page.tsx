@@ -44,6 +44,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import t from "@/app/lib/i18n";
 const GRADES = ["R", "1", "2", "3"];
 const AVATARS = [
   "lion",
@@ -97,7 +98,7 @@ function ChildForm({
       }}
     >
       <div className="space-y-1">
-        <Label htmlFor="child-name">Name</Label>
+        <Label htmlFor="child-name">{t("lms.name")}</Label>
         <Input
           id="child-name"
           maxLength={40}
@@ -107,7 +108,7 @@ function ChildForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor="child-grade">Grade</Label>
+          <Label htmlFor="child-grade">{t("lms.grade")}</Label>
           <select
             id="child-grade"
             className="h-9 w-full rounded-md border bg-background px-2 text-sm"
@@ -122,7 +123,7 @@ function ChildForm({
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="child-avatar">Avatar</Label>
+          <Label htmlFor="child-avatar">{t("lms.avatar")}</Label>
           <select
             id="child-avatar"
             className="h-9 w-full rounded-md border bg-background px-2 text-sm capitalize"
@@ -138,7 +139,7 @@ function ChildForm({
         </div>
       </div>
       <div className="space-y-1">
-        <Label htmlFor="child-school">School (optional)</Label>
+        <Label htmlFor="child-school">{t("lms.school_optional")}</Label>
         <Input
           id="child-school"
           maxLength={140}
@@ -163,7 +164,7 @@ function ChildForm({
           {busy ? "Saving..." : submitLabel}
         </Button>
         <Button type="button" variant="ghost" onClick={onCancel}>
-          Cancel
+          {t("lms.cancel")}
         </Button>
       </div>
     </form>
@@ -179,7 +180,7 @@ function ChildProgress({ student }: { student: string }) {
     );
   }, [student]);
   if (error)
-    return <p className="text-sm text-muted-foreground">No report yet.</p>;
+    return <p className="text-sm text-muted-foreground">{t("lms.no_report_yet")}</p>;
   if (!week) return <Skeleton className="h-16 w-full" />;
   return (
     <div className="space-y-2 text-sm">
@@ -201,7 +202,7 @@ function ChildProgress({ student }: { student: string }) {
           ))}
         </ul>
       ) : (
-        <p className="text-muted-foreground">No sessions this week yet.</p>
+        <p className="text-muted-foreground">{t("lms.no_sessions_this_week_yet")}</p>
       )}
     </div>
   );
@@ -236,21 +237,21 @@ export default function ChildrenPage() {
     <div className="container max-w-4xl space-y-6 py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">My children</h1>
+          <h1 className="text-3xl font-bold">{t("lms.my_children")}</h1>
           <p className="text-sm text-muted-foreground">
             Grades R to 3. Your child learns in the app on your phone; manage
             their profiles and follow their progress here.
           </p>
         </div>
         {!adding && (
-          <Button onClick={() => setAdding(true)}>Add a child</Button>
+          <Button onClick={() => setAdding(true)}>{t("lms.add_a_child")}</Button>
         )}
       </div>
 
       {adding && (
         <Card>
           <CardHeader>
-            <CardTitle>Add a child</CardTitle>
+            <CardTitle>{t("lms.add_a_child")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ChildForm
@@ -272,7 +273,7 @@ export default function ChildrenPage() {
 
       {children.length === 0 && !adding && (
         <p className="rounded-lg bg-muted/30 py-16 text-center text-muted-foreground">
-          No child profiles yet.
+          {t("lms.no_child_profiles_yet")}
         </p>
       )}
 
@@ -334,7 +335,7 @@ export default function ChildrenPage() {
                       variant="outline"
                       onClick={() => setEditing(c.id)}
                     >
-                      Edit
+                      {t("lms.edit")}
                     </Button>
                     <Button
                       size="sm"
@@ -364,7 +365,7 @@ export default function ChildrenPage() {
                         load();
                       }}
                     >
-                      Remove
+                      {t("lms.remove")}
                     </Button>
                   </div>
                 )}

@@ -39,6 +39,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { formatDate } from "@/app/lib/format";
 
+import t from "@/app/lib/i18n";
 interface ReviewsProps {
   courseName: string;
   currentUser: string; // email or username to check if reviewed
@@ -98,20 +99,20 @@ export function Reviews({ courseName, currentUser }: ReviewsProps) {
     <div className="mt-12">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-2xl font-semibold text-gray-900">
-          Student Reviews
+          {t("lms.student_reviews")}
         </h3>
         {!hasReviewed && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button>Write a Review</Button>
+              <Button>{t("lms.write_a_review")}</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Rate this Course</DialogTitle>
+                <DialogTitle>{t("lms.rate_this_course")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 py-4">
                 <div className="space-y-2 flex flex-col items-center">
-                  <Label>Rating</Label>
+                  <Label>{t("lms.rating")}</Label>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -126,11 +127,11 @@ export function Reviews({ courseName, currentUser }: ReviewsProps) {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Review (Optional)</Label>
+                  <Label>{t("lms.review_optional")}</Label>
                   <Textarea
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
-                    placeholder="Share your experience..."
+                    placeholder={t("lms.share_your_experience")}
                   />
                 </div>
               </div>
@@ -145,10 +146,10 @@ export function Reviews({ courseName, currentUser }: ReviewsProps) {
       </div>
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading reviews...</div>
+        <div className="text-sm text-muted-foreground">{t("lms.loading_reviews")}</div>
       ) : reviews.length === 0 ? (
         <div className="text-center py-10 bg-gray-50 rounded-lg text-gray-500">
-          No reviews yet.
+          {t("lms.no_reviews_yet")}
         </div>
       ) : (
         <div className="grid gap-6">

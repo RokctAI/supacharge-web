@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { RiBriefcaseLine, RiMapPinLine, RiBuilding2Line, RiArrowLeftLine } from "@remixicon/react";
 import Link from "next/link";
 
+import t from "@/app/lib/i18n";
 export default function JobDetailPage() {
   const params = useParams();
   const jobName = decodeURIComponent(params.jobId as string);
@@ -55,20 +56,20 @@ export default function JobDetailPage() {
         <Skeleton className="h-96 w-full" />
       </div>
     );
-  if (!job) return <div className="p-10 text-center">Job not found</div>;
+  if (!job) return <div className="p-10 text-center">{t("lms.job_not_found")}</div>;
 
   return (
     <div className="container max-w-4xl py-10 space-y-8">
       <Button variant="ghost" asChild className="mb-4">
         <Link href="../jobs">
-          <RiArrowLeftLine className="mr-2 h-4 w-4" /> Back to Jobs
+          <RiArrowLeftLine className="mr-2 h-4 w-4" /> {t("lms.back_to_jobs")}
         </Link>
       </Button>
 
       <header className="space-y-4 border-b pb-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h1 className="text-4xl font-bold">{job.job_title}</h1>
-          <Button size="lg">Apply Now</Button>
+          <Button size="lg">{t("lms.apply_now")}</Button>
         </div>
         <div className="flex flex-wrap gap-4 text-muted-foreground">
           <span className="flex items-center gap-2">
@@ -85,7 +86,7 @@ export default function JobDetailPage() {
       </header>
 
       <div className="prose dark:prose-invert max-w-none">
-        <h3>Description</h3>
+        <h3>{t("lms.description")}</h3>
         <div dangerouslySetInnerHTML={{ __html: job.description }} />
       </div>
     </div>

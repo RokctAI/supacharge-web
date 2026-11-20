@@ -16,6 +16,7 @@
 
 import { RiFireLine } from "@remixicon/react";
 
+import t from "@/app/lib/i18n";
 interface DashboardHeaderProps {
   fullName?: string;
   streak: { current_streak: number } | null;
@@ -32,7 +33,7 @@ export function DashboardHeader({ fullName, streak }: DashboardHeaderProps) {
           </a>{" "}
           👋
         </h1>
-        <p className="text-gray-500 mt-1">Resume where you left off</p>
+        <p className="text-gray-500 mt-1">{t("lms.resume_where_you_left_off")}</p>
       </div>
       {streak && (
         <div className="bg-orange-100 flex items-center gap-2 px-3 py-1.5 rounded-full text-orange-700 font-medium">

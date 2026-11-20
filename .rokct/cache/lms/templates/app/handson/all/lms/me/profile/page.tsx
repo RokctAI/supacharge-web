@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { RiAwardLine, RiUserLine, RiDownloadLine } from "@remixicon/react";
 import { formatDate } from "@/app/lib/format";
 
+import t from "@/app/lib/i18n";
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [certificates, setCertificates] = useState<any[]>([]);
@@ -95,16 +96,16 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) return <div className="p-10 text-center">Loading...</div>;
+  if (loading) return <div className="p-10 text-center">{t("lms.loading")}</div>;
 
   return (
     <div className="container max-w-4xl py-10 space-y-8">
-      <h1 className="text-3xl font-bold">My Profile</h1>
+      <h1 className="text-3xl font-bold">{t("lms.my_profile")}</h1>
 
       <Tabs defaultValue="about" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="about">About Me</TabsTrigger>
-          <TabsTrigger value="certificates">Certificates</TabsTrigger>
+          <TabsTrigger value="about">{t("lms.about_me")}</TabsTrigger>
+          <TabsTrigger value="certificates">{t("lms.certificates")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="about" className="mt-6">
@@ -124,7 +125,7 @@ export default function ProfilePage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>First Name</Label>
+                  <Label>{t("lms.first_name")}</Label>
                   <Input
                     value={formData.first_name}
                     onChange={(e) =>
@@ -133,7 +134,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Last Name</Label>
+                  <Label>{t("lms.last_name")}</Label>
                   <Input
                     value={formData.last_name}
                     onChange={(e) =>
@@ -143,7 +144,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Location</Label>
+                <Label>{t("lms.location")}</Label>
                 <Input
                   value={formData.location}
                   onChange={(e) =>
@@ -152,7 +153,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Bio</Label>
+                <Label>{t("lms.bio")}</Label>
                 <Input
                   value={formData.bio}
                   onChange={(e) =>
@@ -174,13 +175,13 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <RiAwardLine className="h-6 w-6 text-yellow-500" />
-                My Certificates
+                {t("lms.my_certificates")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {certificates.length === 0 ? (
                 <div className="text-center py-10 text-muted-foreground">
-                  No certificates earned yet. Keep learning!
+                  {t("lms.no_certificates_earned_yet_keep_learning")}
                 </div>
               ) : (
                 <div className="grid gap-4">
@@ -204,7 +205,7 @@ export default function ProfilePage() {
                             target="_blank"
                             rel="noreferrer"
                           >
-                            <RiDownloadLine className="mr-2 h-4 w-4" /> Download
+                            <RiDownloadLine className="mr-2 h-4 w-4" /> {t("lms.download")}
                           </a>
                         </Button>
                       )}

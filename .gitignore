@@ -184,6 +184,10 @@ components/ui/tooltip.tsx
 /app/landing/page.tsx
 /app/legal/\[id\]/page.tsx
 /app/legal/page.tsx
+/app/lib/i18n/sdk/auth.json
+/app/lib/i18n/sdk/base.json
+/app/lib/i18n/sdk/lms.json
+/app/lib/i18n/sdk/telemetry.json
 /app/lib/session.ts
 /app/lib/site-metadata.ts
 /app/manager/layout.tsx
@@ -305,6 +309,7 @@ components/ui/tooltip.tsx
 /components/custom/landing/site-shots.ts
 /components/custom/landing/team-assets.ts
 /components/custom/landing/testimonials-marquee.tsx
+/components/custom/language-toggle.tsx
 /components/custom/legal/legal-doc.tsx
 /components/custom/legal/legal-frame.tsx
 /components/custom/legal/load-legal-doc.ts

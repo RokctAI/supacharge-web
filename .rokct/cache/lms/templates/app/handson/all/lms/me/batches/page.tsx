@@ -31,6 +31,7 @@ import { RiCalendarLine, RiGroupLine } from "@remixicon/react";
 import { toast } from "sonner";
 import { formatDate } from "@/app/lib/format";
 
+import t from "@/app/lib/i18n";
 export default function BatchesPage() {
   const [batches, setBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,14 +62,14 @@ export default function BatchesPage() {
 
   return (
     <div className="container max-w-5xl py-10 space-y-8">
-      <h1 className="text-3xl font-bold">My Batches</h1>
+      <h1 className="text-3xl font-bold">{t("lms.my_batches")}</h1>
 
       {batches.length === 0 ? (
         <div className="text-center py-20 bg-muted/30 rounded-lg">
           <RiGroupLine className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-xl font-medium">No Batches Found</h3>
+          <h3 className="text-xl font-medium">{t("lms.no_batches_found")}</h3>
           <p className="text-muted-foreground">
-            You are not enrolled in any batches yet.
+            {t("lms.you_are_not_enrolled_in_any_batches_yet")}
           </p>
         </div>
       ) : (

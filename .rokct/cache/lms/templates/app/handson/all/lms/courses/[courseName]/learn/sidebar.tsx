@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RiCheckboxCircleLine, RiCircleLine, RiPlayCircleLine, RiFileTextLine } from "@remixicon/react";
 
+import t from "@/app/lib/i18n";
 interface Lesson {
   name: string;
   title: string;
@@ -100,7 +101,7 @@ export function LearningSidebar({ course, className }: SidebarProps) {
                       href={`/handson/all/lms/courses/${params.courseName}/quiz/${lesson.name}`}
                       className="shrink-0 px-2 py-1 text-xs rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
-                      Quiz
+                      {t("lms.quiz")}
                     </Link>
                   </div>
                 ))}
@@ -110,7 +111,7 @@ export function LearningSidebar({ course, className }: SidebarProps) {
 
           {(!course.chapters || course.chapters.length === 0) && (
             <div className="text-center py-10 text-muted-foreground text-sm">
-              <p>No content available.</p>
+              <p>{t("lms.no_content_available")}</p>
             </div>
           )}
         </div>

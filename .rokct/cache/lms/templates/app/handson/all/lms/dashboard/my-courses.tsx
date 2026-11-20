@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+import t from "@/app/lib/i18n";
 interface MyCoursesProps {
   courses: any[];
 }
@@ -40,7 +41,7 @@ export function MyCourses({ courses }: MyCoursesProps) {
           href="/handson/all/lms/courses"
           className="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1"
         >
-          See all <RiArrowRightLine className="w-3 h-3" />
+          {t("lms.see_all")} <RiArrowRightLine className="w-3 h-3" />
         </Link>
       </div>
       {courses.length > 0 ? (
@@ -83,10 +84,10 @@ export function MyCourses({ courses }: MyCoursesProps) {
         </div>
       ) : (
         <div className="bg-gray-50 rounded-lg p-8 text-center text-gray-500">
-          You are not enrolled in any subjects yet.
+          {t("lms.you_are_not_enrolled_in_any_subjects_yet")}
           <div className="mt-4">
             <Button asChild>
-              <Link href="/handson/all/lms/courses">Browse your subjects</Link>
+              <Link href="/handson/all/lms/courses">{t("lms.browse_your_subjects")}</Link>
             </Button>
           </div>
         </div>

@@ -50,7 +50,7 @@ import type { LandingApp } from "@/components/custom/landing/lms-landing-config"
  * its version.json. A shell that tracks its own releases sets
  * `NEXT_PUBLIC_APP_VERSION` and that wins.
  */
-export const LMS_LANDING_VERSION = "1.42.2";
+export const LMS_LANDING_VERSION = "1.43.1";
 
 /**
  * The company behind Supacharge, which the founder section names under the

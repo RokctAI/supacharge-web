@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { Reviews } from "./_components/reviews";
 import { Discussions } from "./learn/[lessonId]/_components/discussions";
 
+import t from "@/app/lib/i18n";
 interface PageProps {
   // Next 15+: route params are a Promise; await them before reading.
   params: Promise<{
@@ -68,7 +69,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
             <div className="flex items-center gap-4 mt-4">
               <Button size="lg" className="px-8">
-                Start Learning
+                {t("lms.start_learning")}
               </Button>
               {/* Add wishlist or share buttons here if needed */}
             </div>
@@ -81,7 +82,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
       <div className="grid md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
           <section>
-            <h2 className="text-2xl font-semibold mb-4">About this Subject</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t("lms.about_this_subject")}</h2>
             <div
               className="prose max-w-none text-gray-700"
               dangerouslySetInnerHTML={{ __html: course.description }}
@@ -91,7 +92,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           {/* Instructors Section */}
           {course.instructors && course.instructors.length > 0 && (
             <section>
-              <h2 className="text-2xl font-semibold mb-4">Instructors</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t("lms.instructors")}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {course.instructors.map((inst: any) => (
                   <div
@@ -137,20 +138,20 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
         <div className="space-y-6">
           <div className="bg-gray-50 p-6 rounded-lg border">
-            <h3 className="font-semibold text-lg mb-4">Subject Features</h3>
+            <h3 className="font-semibold text-lg mb-4">{t("lms.subject_features")}</h3>
             <ul className="space-y-2 text-sm">
               <li className="flex justify-between">
-                <span className="text-gray-600">Duration</span>
+                <span className="text-gray-600">{t("lms.duration")}</span>
                 <span className="font-medium">
                   {course.duration || "Self-paced"}
                 </span>
               </li>
               <li className="flex justify-between">
-                <span className="text-gray-600">Lectures</span>
+                <span className="text-gray-600">{t("lms.lectures")}</span>
                 <span className="font-medium">{course.lesson_count || 0}</span>
               </li>
               <li className="flex justify-between">
-                <span className="text-gray-600">Level</span>
+                <span className="text-gray-600">{t("lms.level")}</span>
                 <span className="font-medium text-capitalize">
                   {course.level || "All Levels"}
                 </span>

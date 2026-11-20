@@ -57,6 +57,7 @@ import type {
   PageSectionProps,
 } from "@/components/custom/landing/page-sections";
 
+import t from "@/app/lib/i18n";
 /**
  * After the testimonials (90) and before the footer (95). The DOM id is
  * the anchor the pill at the top points at. Since 1.37.2 it is a
@@ -142,7 +143,7 @@ export function LmsMilestoneBand({ id = LMS_MILESTONE_ANCHOR }: { id?: string })
       className="w-full scroll-mt-20 bg-[var(--sc-primary)] text-[#111111]"
       {...(single ? { "aria-labelledby": `${id}-${LMS_MILESTONES[0].key}-heading` } : { "aria-label": "Supacharge milestones" })}
     >
-      <LmsMilestoneCarousel label="Supacharge milestones">
+      <LmsMilestoneCarousel label={t("lms.supacharge_milestones")}>
         {LMS_MILESTONES.map((m) => (
           <MilestoneSlide key={m.key} m={m} headingId={`${id}-${m.key}-heading`} />
         ))}

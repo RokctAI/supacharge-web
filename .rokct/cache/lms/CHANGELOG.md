@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.43.1
+
+* style: landing sections rise and fade in as they scroll into view (CSS
+  scroll-driven, no JS, off under reduced motion).
+
+## 1.43.0
+
+* feat(i18n): 107 hardcoded screen labels, headings, buttons,
+  placeholders and empty-state lines in 21 files now go through
+  `t("lms.<key>")` from `@/app/lib/i18n`. The copy ships in
+  `app/lib/i18n/sdk/lms.json` (English and Afrikaans), which the host's
+  compose step registers (RokctAI_frontend#229).
+
+## 1.42.3
+
+* style: milestone dots and floating nav animate named properties with ease-out and honour reduced motion (Ray, 2026-11-14). Style only.
+
 ## 1.42.2
 
 * **/partner/signup redesigned** to match the rest of supacharge.school

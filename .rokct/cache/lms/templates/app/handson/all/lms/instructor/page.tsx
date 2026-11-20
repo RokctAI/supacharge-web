@@ -30,6 +30,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import t from "@/app/lib/i18n";
 export const dynamic = "force-dynamic";
 
 function Empty({ text }: { text: string }) {
@@ -48,17 +49,17 @@ export default async function InstructorPage() {
   return (
     <div className="container mx-auto max-w-6xl space-y-8 px-4 py-10">
       <div>
-        <h1 className="text-3xl font-bold">Instructor</h1>
+        <h1 className="text-3xl font-bold">{t("lms.instructor")}</h1>
         {nothing && (
           <p className="mt-2 text-sm text-muted-foreground">
-            Nothing to show. These views are for platform administrators.
+            {t("lms.nothing_to_show_these_views_are_for_platform_adm")}
           </p>
         )}
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Created courses</CardTitle>
+          <CardTitle>{t("lms.created_courses")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {courses?.length ? (
@@ -92,7 +93,7 @@ export default async function InstructorPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Batches</CardTitle>
+          <CardTitle>{t("lms.batches")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {batches?.length ? (
@@ -118,7 +119,7 @@ export default async function InstructorPage() {
       <div className="grid gap-8 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Live classes (next two weeks)</CardTitle>
+            <CardTitle>{t("lms.live_classes_next_two_weeks")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {liveClasses?.length ? (
@@ -138,7 +139,7 @@ export default async function InstructorPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Evaluations waiting</CardTitle>
+            <CardTitle>{t("lms.evaluations_waiting")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {evals?.length ? (

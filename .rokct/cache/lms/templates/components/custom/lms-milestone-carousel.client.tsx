@@ -132,7 +132,7 @@ export function LmsMilestoneCarousel({ children, label, intervalMs = 7000 }: Lms
             onClick={() => goTo(i)}
             aria-label={`Show milestone ${i + 1} of ${count}`}
             aria-current={i === shown ? "true" : undefined}
-            className={`h-2.5 rounded-full bg-[#111111] transition-all ${i === shown ? "w-8" : "w-2.5 opacity-40"}`}
+            className={`h-2.5 rounded-full bg-[#111111] transition-[width,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${i === shown ? "w-8" : "w-2.5 opacity-40"}`}
           />
         ))}
       </div>
