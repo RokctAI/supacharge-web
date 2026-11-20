@@ -11,6 +11,7 @@ import { SITE_NAME, SITE_URL } from "@/app/site";
 import { loadSiteMetadata } from "@/components/custom/landing/site-metadata";
 import { SessionProvider } from "@/components/custom/session-provider";
 import { ThemeProvider } from "@/components/custom/theme-provider";
+import { getRequestLocale } from "@/app/lib/i18n/server";
 
 // The link preview (title, description, Open Graph and Twitter cards, the
 // 1200x630 image) comes from the copy the home SDK registered at
@@ -68,12 +69,13 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const lang = await getRequestLocale();
   const jsonLd = await structuredData();
   return (
     // suppressHydrationWarning: next-themes writes the theme class onto <html>
     // in a blocking script before hydration, so the server markup and the
     // first client render differ here by design.
-    <html lang="en" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <body
         // The ground is painted by globals.css's `body { @apply bg-background
         // text-foreground }` — NOT by an inline colour. The inline
