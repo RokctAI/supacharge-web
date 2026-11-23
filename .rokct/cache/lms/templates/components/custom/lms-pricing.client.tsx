@@ -55,6 +55,7 @@ import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-conf
 import { LmsPlanCard } from "@/components/custom/landing/lms-plan-card";
 
 import t from "@/app/lib/i18n";
+import { tx } from "@/app/lib/i18n/phrases";
 const isYearly = (interval?: string) =>
   ["year", "yearly"].includes((interval ?? "").toLowerCase());
 
@@ -138,10 +139,10 @@ export function LmsPricing({
       <div className="container mx-auto px-4 xl:px-0 max-w-6xl flex flex-col gap-12">
         <div className="flex flex-col items-center text-center gap-5">
           <h2 className="text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
-            {config.heading}
+            {tx(config.heading)}
           </h2>
           <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
-            {config.blurb}
+            {tx(config.blurb)}
           </p>
           {hasYearly && (
             <label className="inline-flex items-center gap-3 text-sm font-medium text-[var(--sc-ink-2)] cursor-pointer">
@@ -192,7 +193,7 @@ export function LmsPricing({
           })}
         </div>
 
-        <p className="text-center text-sm text-[var(--sc-ink-2)]">{config.partnerNote}</p>
+        <p className="text-center text-sm text-[var(--sc-ink-2)]">{tx(config.partnerNote)}</p>
       </div>
     </section>
   );

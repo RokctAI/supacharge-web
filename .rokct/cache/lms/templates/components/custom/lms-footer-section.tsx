@@ -93,6 +93,7 @@ import type {
   PageSectionProps,
 } from "@/components/custom/landing/page-sections";
 
+import { tx } from "@/app/lib/i18n/phrases";
 /** The wordmark's height in px; the traced glyphs set the width. */
 const WORDMARK_HEIGHT = 34;
 
@@ -124,11 +125,11 @@ export async function LmsFooterSection({
           <div className="flex flex-col gap-2">
             <LmsWordmark height={WORDMARK_HEIGHT} className="text-[var(--sc-ink)]" />
             <p className="text-xl font-semibold text-[var(--sc-primary)]">
-              {config.motto}
+              {tx(config.motto)}
             </p>
           </div>
           <nav
-            aria-label="Footer"
+            aria-label={tx("Footer")}
             className="grid grid-cols-2 sm:flex sm:flex-wrap gap-x-8 gap-y-3 text-sm"
           >
             {config.links.map((link) => (
@@ -137,14 +138,14 @@ export async function LmsFooterSection({
                 href={link.href}
                 className="hover:text-[var(--sc-ink)] transition-colors"
               >
-                {link.label}
+                {tx(link.label)}
               </Link>
             ))}
             <Link href={loginUrl} className="hover:text-[var(--sc-ink)] transition-colors">
-              Sign in
+              {tx("Sign in")}
             </Link>
             <Link href={signupUrl} className="hover:text-[var(--sc-ink)] transition-colors">
-              Create an account
+              {tx("Create an account")}
             </Link>
           </nav>
         </div>

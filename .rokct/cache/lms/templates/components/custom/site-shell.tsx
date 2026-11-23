@@ -45,6 +45,7 @@ import { LMS_ROOT_CLASS } from "@/components/custom/landing/lms-theme-classes";
 import { LmsWordmark } from "@/components/custom/landing/lms-wordmark";
 import { SUPACHARGE_AUTH_COPY, supachargeAuthPanel } from "@/components/custom/supacharge-auth/supacharge-auth-copy";
 
+import { tx } from "@/app/lib/i18n/phrases";
 export interface SiteShellProps {
   children: ReactNode;
   /** Header "Log in" handler from the auth page, passed to base's Header. */
@@ -62,16 +63,16 @@ export function SiteShell({ children, openLoginPopup, openSignupPopup }: SiteShe
       <main className="sa">
         <div className="sa-wrap sa-g">
           <aside className="sa-side" aria-label={SUPACHARGE_AUTH_COPY.sideLabel}>
-            <p className="sa-kick">{panel.kicker}</p>
+            <p className="sa-kick">{tx(panel.kicker)}</p>
             <p className="sa-h">
               {panel.title.map((line) => (
-                <span key={line}>{line}</span>
+                <span key={line}>{tx(line)}</span>
               ))}
             </p>
-            <p className="sa-lede">{panel.lede}</p>
+            <p className="sa-lede">{tx(panel.lede)}</p>
             <ul className="sa-pts">
               {SUPACHARGE_AUTH_COPY.points.map((p) => (
-                <li key={p}>{p}</li>
+                <li key={p}>{tx(p)}</li>
               ))}
             </ul>
           </aside>
@@ -80,12 +81,12 @@ export function SiteShell({ children, openLoginPopup, openSignupPopup }: SiteShe
       </main>
       <footer className="sa-foot">
         <div className="sa-wrap sa-foot-in">
-          <a href="/" className="sa-foot-brand" aria-label="Supacharge home">
-            <LmsWordmark height={24} title="Supacharge" />
+          <a href="/" className="sa-foot-brand" aria-label={tx("Supacharge home")}>
+            <LmsWordmark height={24} title={tx("Supacharge")} />
           </a>
-          <nav aria-label="Footer" className="sa-foot-nav">
-            <a href={LANDING_CONFIG.loginUrl}>Log in</a>
-            <a href={LANDING_CONFIG.signupUrl}>Sign up</a>
+          <nav aria-label={tx("Footer")} className="sa-foot-nav">
+            <a href={LANDING_CONFIG.loginUrl}>{tx("Log in")}</a>
+            <a href={LANDING_CONFIG.signupUrl}>{tx("Sign up")}</a>
           </nav>
           <SiteCredit as="p" siteName="Supacharge" className="sa-credit" heartClassName="sa-heart" />
         </div>
@@ -96,5 +97,5 @@ export function SiteShell({ children, openLoginPopup, openSignupPopup }: SiteShe
 
 /** The mark above the auth card: the Supacharge wordmark the app and the landing use. */
 export function SiteShellLogo({ size = 56 }: { size?: number }) {
-  return <LmsWordmark height={Math.round(size * 0.6)} title="Supacharge" className="sa-mark" />;
+  return <LmsWordmark height={Math.round(size * 0.6)} title={tx("Supacharge")} className="sa-mark" />;
 }

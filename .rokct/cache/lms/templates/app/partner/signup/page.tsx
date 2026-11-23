@@ -39,6 +39,7 @@ import { LmsTheme } from "@/components/custom/landing/lms-theme";
 import { LMS_ROOT_CLASS } from "@/components/custom/landing/lms-theme-classes";
 import { PartnerSignupForm } from "./partner-signup-form";
 
+import { tx } from "@/app/lib/i18n/phrases";
 export const metadata: Metadata = {
   title: "Become a Sponsor or Partner",
   description:
@@ -86,36 +87,33 @@ export default function PartnerSignupPage() {
         <div className="ps-wrap ps-g">
           <section className="ps-intro" aria-labelledby="ps-title">
             <a href="/" className="ps-back">
-              Back to the home page
+              {tx("Back to the home page")}
             </a>
-            <p className="ps-kick">Sponsors and partners</p>
+            <p className="ps-kick">{tx("Sponsors and partners")}</p>
             <h1 id="ps-title" className="ps-h">
-              Become a Sponsor or Partner
+              {tx("Become a Sponsor or Partner")}
             </h1>
             <p className="ps-lede">
-              A partner is a person, company or organisation that helps more
-              children learn with Supacharge. Fund a learner, sponsor a school
-              programme, or partner with us to expand reach. Every
-              contribution opens a seat for a child who needs it.
+              {tx("A partner is a person, company or organisation that helps more children learn with Supacharge. Fund a learner, sponsor a school programme, or partner with us to expand reach. Every contribution opens a seat for a child who needs it.")}
             </p>
-            <ul className="ps-benefits" aria-label="Why partner with us">
+            <ul className="ps-benefits" aria-label={tx("Why partner with us")}>
               {PARTNER_BENEFITS.map((b) => (
                 <li key={b.title}>
                   <span className="ps-b-dot" aria-hidden="true" />
                   <span>
-                    <strong>{b.title}</strong>
-                    <span>{b.text}</span>
+                    <strong>{tx(b.title)}</strong>
+                    <span>{tx(b.text)}</span>
                   </span>
                 </li>
               ))}
             </ul>
             <section className="ps-next" aria-labelledby="ps-next-title">
-              <h2 id="ps-next-title">What happens next</h2>
+              <h2 id="ps-next-title">{tx("What happens next")}</h2>
               <ol>
                 {PARTNER_NEXT_STEPS.map((s) => (
                   <li key={s.title}>
-                    <strong>{s.title}</strong>
-                    <span>{s.text}</span>
+                    <strong>{tx(s.title)}</strong>
+                    <span>{tx(s.text)}</span>
                   </li>
                 ))}
               </ol>
@@ -123,10 +121,10 @@ export default function PartnerSignupPage() {
           </section>
           <section className="ps-card" aria-labelledby="ps-form-title">
             <h2 id="ps-form-title" className="ps-card-h">
-              Create your partner account
+              {tx("Create your partner account")}
             </h2>
             <p className="ps-card-sub">
-              Takes a minute. You can change how you help at any time.
+              {tx("Takes a minute. You can change how you help at any time.")}
             </p>
             <PartnerSignupForm />
           </section>
@@ -134,10 +132,10 @@ export default function PartnerSignupPage() {
       </main>
       <footer className="ps-foot">
         <div className="ps-wrap ps-foot-in">
-          <nav aria-label="Footer" className="ps-foot-nav">
-            <a href="/">Home</a>
-            <a href={LANDING_CONFIG.loginUrl}>Log in</a>
-            <a href={LANDING_CONFIG.signupUrl}>Sign up</a>
+          <nav aria-label={tx("Footer")} className="ps-foot-nav">
+            <a href="/">{tx("Home")}</a>
+            <a href={LANDING_CONFIG.loginUrl}>{tx("Log in")}</a>
+            <a href={LANDING_CONFIG.signupUrl}>{tx("Sign up")}</a>
           </nav>
           <SiteCredit as="p" siteName="Supacharge" className="ps-credit" heartClassName="ps-heart" />
         </div>

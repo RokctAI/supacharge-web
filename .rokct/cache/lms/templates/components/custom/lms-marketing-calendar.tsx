@@ -57,6 +57,7 @@ import {
 } from "@/components/custom/landing/lms-calendar-rules";
 import { LmsCopyLinkButton } from "@/components/custom/lms-marketing-calendar.client";
 
+import { tx } from "@/app/lib/i18n/phrases";
 /** `t(key)`, or `fallback` (with its {{params}} filled) when the dictionary has no such key. */
 function word(key: string, fallback: string, params?: Record<string, string>): string {
   const value = t(key, params);
@@ -155,7 +156,7 @@ function NextCard({ calendar }: { calendar: MarketingCalendar }) {
         <CardContent className="space-y-2 text-sm">
           <p className="text-3xl font-semibold">{say(countdown(next))}</p>
           <p className="text-muted-foreground">{formatRange(next.start, next.end)}</p>
-          {next.theme ? <p>{next.theme}</p> : null}
+          {next.theme ? <p>{tx(next.theme)}</p> : null}
           <div className="pt-2">
             <StatusBadge status={next.status} />
           </div>
@@ -172,9 +173,9 @@ function WindowRow({ event }: { event: CalendarEvent }) {
         <p className="text-xs uppercase tracking-wide text-muted-foreground">
           {say(KIND_LABELS[event.kind])}
         </p>
-        <p className="font-medium">{event.label}</p>
+        <p className="font-medium">{tx(event.label)}</p>
         <p className="text-sm text-muted-foreground">{formatRange(event.start, event.end)}</p>
-        {event.theme ? <p className="text-sm">{event.theme}</p> : null}
+        {event.theme ? <p className="text-sm">{tx(event.theme)}</p> : null}
         {event.source?.url ? (
           <a
             className="inline-flex items-center gap-1 text-xs text-muted-foreground underline-offset-4 hover:underline"
@@ -200,7 +201,7 @@ function SubscribeCard({ calendar }: { calendar: MarketingCalendar }) {
     <Card>
       <CardHeader>
         <CardDescription>{L("subscribe_eyebrow", "Subscribe")}</CardDescription>
-        <CardTitle className="text-xl">{calendar.calendar_name}</CardTitle>
+        <CardTitle className="text-xl">{tx(calendar.calendar_name)}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <p className="text-muted-foreground">
@@ -224,7 +225,7 @@ function SubscribeCard({ calendar }: { calendar: MarketingCalendar }) {
           />
         </div>
         <code className="block break-all rounded-md bg-muted px-3 py-2 text-xs">
-          {calendar.feed_url}
+          {tx(calendar.feed_url)}
         </code>
         {!calendar.feed_token_configured ? (
           <p className="text-xs text-muted-foreground">

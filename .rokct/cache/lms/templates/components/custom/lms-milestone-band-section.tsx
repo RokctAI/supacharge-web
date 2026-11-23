@@ -58,6 +58,7 @@ import type {
 } from "@/components/custom/landing/page-sections";
 
 import t from "@/app/lib/i18n";
+import { tx } from "@/app/lib/i18n/phrases";
 /**
  * After the testimonials (90) and before the footer (95). The DOM id is
  * the anchor the pill at the top points at. Since 1.37.2 it is a
@@ -78,14 +79,14 @@ function MilestoneSlide({ m, headingId }: { m: Milestone; headingId: string }) {
   return (
     <div className="container mx-auto grid max-w-6xl grid-cols-1 items-center gap-8 px-4 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] md:gap-12 md:py-16 xl:px-0">
       <div className="flex flex-col items-start gap-5 text-left">
-        <p className="text-xs font-extrabold uppercase tracking-[0.18em]">{m.eyebrow}</p>
+        <p className="text-xs font-extrabold uppercase tracking-[0.18em]">{tx(m.eyebrow)}</p>
         <h2
           id={headingId}
           className="text-[28px] md:text-[44px] font-extrabold leading-[1.1] tracking-tight text-balance"
         >
-          {m.heading}
+          {tx(m.heading)}
         </h2>
-        <p className="text-lg font-medium max-w-xl">{m.line}</p>
+        <p className="text-lg font-medium max-w-xl">{tx(m.line)}</p>
         <div className="flex flex-wrap gap-3">
           {/* "Read our story" (filled white) goes first here once
               the milestone's story has a public page to point at. */}
@@ -94,7 +95,7 @@ function MilestoneSlide({ m, headingId }: { m: Milestone; headingId: string }) {
               href={story.href}
               className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 font-bold text-[#111111] transition-opacity hover:opacity-90"
             >
-              {story.label}
+              {tx(story.label)}
               <RiArrowRightLine className="size-4" aria-hidden="true" />
             </a>
           )}
@@ -104,9 +105,9 @@ function MilestoneSlide({ m, headingId }: { m: Milestone; headingId: string }) {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full border-2 border-[#111111] px-5 py-2.5 font-bold transition-colors hover:bg-[#111111] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111111]"
           >
-            {m.announcement.label}
+            {tx(m.announcement.label)}
             <RiArrowRightUpLine className="size-4" aria-hidden="true" />
-            <span className="sr-only">(opens in a new tab)</span>
+            <span className="sr-only">{tx("(opens in a new tab)")}</span>
           </a>
         </div>
       </div>
@@ -124,11 +125,11 @@ function MilestoneSlide({ m, headingId }: { m: Milestone; headingId: string }) {
           <circle cx="100" cy="100" r="90" stroke="currentColor" />
         </svg>
         <div className="relative flex min-h-[14rem] flex-col justify-between gap-8">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/70">{m.card.top}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/70">{tx(m.card.top)}</p>
           <p className="text-[40px] md:text-[52px] font-extrabold leading-none tracking-tight">
-            {m.card.big}
+            {tx(m.card.big)}
           </p>
-          <p className="border-t border-white/15 pt-4 font-semibold text-white/85">{m.card.bottom}</p>
+          <p className="border-t border-white/15 pt-4 font-semibold text-white/85">{tx(m.card.bottom)}</p>
         </div>
       </div>
     </div>

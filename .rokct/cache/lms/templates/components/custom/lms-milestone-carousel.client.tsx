@@ -30,6 +30,7 @@
 
 import React, { Children, useCallback, useEffect, useState, type ReactNode } from "react";
 
+import { tx } from "@/app/lib/i18n/phrases";
 export interface LmsMilestoneCarouselProps {
   /** One slide per child, newest first. */
   children: ReactNode;
@@ -82,7 +83,7 @@ export function LmsMilestoneCarousel({ children, label, intervalMs = 7000 }: Lms
     setIndex(i);
   }, []);
 
-  if (count < 2) return <>{slides}</>;
+  if (count < 2) return <>{tx(slides)}</>;
 
   const shown = index % count;
   const track = [...slides, slides[0]];
@@ -118,7 +119,7 @@ export function LmsMilestoneCarousel({ children, label, intervalMs = 7000 }: Lms
                 aria-hidden={active ? undefined : true}
                 inert={!active}
               >
-                {slide}
+                {tx(slide)}
               </div>
             );
           })}

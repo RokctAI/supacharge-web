@@ -77,6 +77,7 @@ import type { PageSectionMeta } from "@/components/custom/landing/page-sections"
 
 import "@/components/custom/landing/lms-features.css";
 
+import { tx } from "@/app/lib/i18n/phrases";
 function FeatureCard({ feature }: { feature: Feature }) {
   const Icon = feature.icon;
   const { treatment } = feature;
@@ -102,7 +103,7 @@ function FeatureCard({ feature }: { feature: Feature }) {
     >
       {treatment === "numeral" && feature.figure ? (
         <span className="sc-feature-figure" aria-hidden="true">
-          {feature.figure}
+          {tx(feature.figure)}
         </span>
       ) : null}
 
@@ -121,10 +122,10 @@ function FeatureCard({ feature }: { feature: Feature }) {
               <Icon className="size-5" aria-hidden="true" />
             </span>
           ) : null}
-          {feature.name}
+          {tx(feature.name)}
         </h3>
         <p className="text-sm text-[var(--sc-ink-2)] leading-relaxed">
-          {feature.text}
+          {tx(feature.text)}
         </p>
       </div>
 
@@ -160,7 +161,7 @@ function FeatureCard({ feature }: { feature: Feature }) {
           ))}
           {(feature.lines ?? []).map((line) => (
             <li key={line} className="sc-feature-line">
-              {line}
+              {tx(line)}
             </li>
           ))}
         </ul>
@@ -178,10 +179,10 @@ export function LmsFeaturesSection({ id }: { id?: string }) {
       <div className="container mx-auto px-4 xl:px-0 max-w-6xl flex flex-col gap-12">
         <div className="flex flex-col items-center text-center gap-5">
           <h2 className="text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
-            {config.heading}
+            {tx(config.heading)}
           </h2>
           <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
-            {config.blurb}
+            {tx(config.blurb)}
           </p>
         </div>
 

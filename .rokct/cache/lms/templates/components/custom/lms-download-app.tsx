@@ -56,6 +56,7 @@ import {
 } from "@/components/custom/landing/lms-landing-config";
 import { cn } from "@/lib/utils";
 
+import { tx } from "@/app/lib/i18n/phrases";
 /** The words on the prompt, in one place so a test can read them. */
 export const LMS_DOWNLOAD_APP_COPY = {
   heading: LMS_LANDING_CONFIG.app.label,
@@ -104,9 +105,9 @@ export function LmsDownloadAppPrompt({
       )}
     >
       <h2 id="lms-download-app-heading" className="text-2xl font-bold">
-        {LMS_DOWNLOAD_APP_COPY.heading}
+        {tx(LMS_DOWNLOAD_APP_COPY.heading)}
       </h2>
-      <p className="mt-2 text-muted-foreground">{LMS_DOWNLOAD_APP_COPY.body}</p>
+      <p className="mt-2 text-muted-foreground">{tx(LMS_DOWNLOAD_APP_COPY.body)}</p>
 
       <ul className="mt-6 flex flex-col items-stretch gap-4 sm:flex-row sm:justify-center">
         {apps.map((app, index) => {
@@ -136,10 +137,10 @@ export function LmsDownloadAppPrompt({
                   ) : (
                     <Glyph aria-hidden="true" className="h-4 w-4" />
                   )}
-                  {app.label}
+                  {tx(app.label)}
                 </a>
               </Button>
-              <span className="text-xs text-muted-foreground">{app.description}</span>
+              <span className="text-xs text-muted-foreground">{tx(app.description)}</span>
             </li>
           );
         })}
@@ -150,7 +151,7 @@ export function LmsDownloadAppPrompt({
           href={backHref}
           className="mt-8 inline-block text-sm text-muted-foreground underline-offset-4 hover:underline"
         >
-          {backLabel}
+          {tx(backLabel)}
         </Link>
       )}
     </section>

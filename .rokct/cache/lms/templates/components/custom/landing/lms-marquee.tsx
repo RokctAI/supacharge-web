@@ -69,6 +69,7 @@ import React, {
 
 import "@/app/styles/rokct-marquee.css";
 
+import { tx } from "@/app/lib/i18n/phrases";
 export interface LmsMarqueeProps {
   /** One card per child, in row order. */
   children: ReactNode;
@@ -173,7 +174,7 @@ export function LmsMarquee({
           >
             {cards.map((card, i) => (
               <li key={i} className={itemClassName}>
-                {card}
+                {tx(card)}
               </li>
             ))}
           </ul>

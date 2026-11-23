@@ -43,6 +43,7 @@ import type {
   PageSectionProps,
 } from "@/components/custom/landing/page-sections";
 
+import { tx } from "@/app/lib/i18n/phrases";
 export function LmsSessionsSection({
   id,
   signupUrl,
@@ -61,13 +62,13 @@ export function LmsSessionsSection({
       <div className="container mx-auto px-4 xl:px-0 max-w-6xl flex flex-col gap-12">
         <div className="flex flex-col items-center text-center gap-5">
           <p className="sc-eyebrow">
-            {config.eyebrow}
+            {tx(config.eyebrow)}
           </p>
           <h2 className="text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-balance">
-            {config.heading}
+            {tx(config.heading)}
           </h2>
           <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
-            {config.blurb}
+            {tx(config.blurb)}
           </p>
         </div>
 
@@ -83,11 +84,11 @@ export function LmsSessionsSection({
                   {index + 1}
                 </span>
                 <span className="sc-chip text-xs uppercase tracking-wider">
-                  {step.length}
+                  {tx(step.length)}
                 </span>
               </div>
-              <h3 className="text-xl font-bold">{step.who}</h3>
-              <p className="text-[var(--sc-ink-2)] leading-relaxed">{step.text}</p>
+              <h3 className="text-xl font-bold">{tx(step.who)}</h3>
+              <p className="text-[var(--sc-ink-2)] leading-relaxed">{tx(step.text)}</p>
             </li>
           ))}
         </ol>
@@ -95,9 +96,9 @@ export function LmsSessionsSection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-[var(--sc-stroke-subtle)] pt-10">
           {config.facts.map((fact) => (
             <div key={fact.title} className="flex flex-col gap-2">
-              <h4 className="font-bold text-lg">{fact.title}</h4>
+              <h4 className="font-bold text-lg">{tx(fact.title)}</h4>
               <p className="text-[var(--sc-ink-2)] leading-relaxed text-[15px]">
-                {fact.text}
+                {tx(fact.text)}
               </p>
             </div>
           ))}
@@ -108,7 +109,7 @@ export function LmsSessionsSection({
             href={signupUrl}
             className="group sc-btn sc-btn-primary"
           >
-            {LMS_SIGNUP_LABEL}
+            {tx(LMS_SIGNUP_LABEL)}
             <RiArrowRightLine className="size-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>

@@ -49,9 +49,23 @@ BODY = (
 OFF_SITE = re.compile(r"(?i)whats\s*app|wa\.me|api\.whatsapp|tel:|\+27\s?\d")
 
 
+def untx(src):
+    """The source as written before the AF phrase pass (1.44.0) wrapped
+    display text in tx(): tx(expr) reads as expr and a {tx("words")} child
+    as the words, so assertions about the markup keep reading it."""
+    src = src.replace('import { tx } from "@/app/lib/i18n/phrases";\n', "")
+    src = re.sub(r'\{" "\}\{tx\((".*?")\)\}\{" "\}', lambda m: " " + json.loads(m.group(1)) + " ", src)
+    src = re.sub(r'\{" "\}\{tx\((".*?")\)\}', lambda m: " " + json.loads(m.group(1)), src)
+    src = re.sub(r'\{tx\((".*?")\)\}\{" "\}', lambda m: json.loads(m.group(1)) + " ", src)
+    src = re.sub(r'=\{tx\((".*?")\)\}', lambda m: "=" + m.group(1), src)
+    src = re.sub(r'\{tx\((".*?")\)\}', lambda m: json.loads(m.group(1)), src)
+    src = re.sub(r'\btx\(([\w.\[\]"\']+)\)', r"\1", src)
+    return src
+
+
 def read(path):
     with open(path, encoding="utf-8") as f:
-        return f.read()
+        return untx(f.read())
 
 
 def load_manifest():

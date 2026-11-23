@@ -37,6 +37,7 @@ import { motion } from "framer-motion";
 import type { LandingNavItem } from "@/components/custom/landing/landing-config";
 import { MenuLabel } from "@/components/custom/menu-label";
 
+import { tx } from "@/app/lib/i18n/phrases";
 export function LmsFloatingNav({ items }: { items: LandingNavItem[] }) {
   const [activeSection, setActiveSection] = useState<string>(
     items[0]?.id ?? "",
@@ -84,7 +85,7 @@ export function LmsFloatingNav({ items }: { items: LandingNavItem[] }) {
               }`}
             />
             <span className="absolute left-full ml-4 inline-flex items-center gap-1.5 px-2 py-1 bg-[var(--sc-card)] border border-[var(--sc-stroke)] text-[var(--sc-ink)] text-[10px] rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none font-medium">
-              {item.label}
+              {tx(item.label)}
               {item.badge ? (
                 <MenuLabel badge={item.badge} />
               ) : null}

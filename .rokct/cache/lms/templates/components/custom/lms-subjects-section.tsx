@@ -57,6 +57,7 @@ import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-conf
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
 import { LmsSubjectsPhases } from "@/components/custom/lms-subjects-section.client";
 
+import { tx } from "@/app/lib/i18n/phrases";
 export function LmsSubjectsSection({ id }: { id?: string }) {
   const config = LMS_LANDING_CONFIG.subjects;
   if (!config || config.phases.length === 0) return null;
@@ -69,10 +70,10 @@ export function LmsSubjectsSection({ id }: { id?: string }) {
             <LmsCurricula />
           </p>
           <h2 className="text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
-            {config.heading}
+            {tx(config.heading)}
           </h2>
           <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
-            {config.blurb}
+            {tx(config.blurb)}
           </p>
         </div>
 

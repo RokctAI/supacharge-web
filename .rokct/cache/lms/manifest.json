@@ -1,6 +1,7 @@
 {
   "name": "lms_sdk",
-  "version": "1.43.1",
+  "version": "1.44.0",
+  "_comment_version_1_44_0": "1.44.0: landing copy reads in Afrikaans when the visitor picks AF (tx() phrase book in lms.json af.__phrases; needs base_sdk >= 1.66.0 for app/lib/i18n/phrases.ts). Afrikaans is machine-drafted and needs a fluent skim.",
   "_comment_version_1_43_1": "1.43.1: landing sections rise and fade in as they scroll into view (CSS scroll-driven, no JS, off under reduced motion; Ray 2026-11-20 motion pass). Nothing to install.",
   "_comment_version_1_42_3": "1.42.3: style only (motion pass, Ray 2026-11-14). milestone dots and floating nav animate named properties with ease-out and honour reduced motion. Nothing to install.",
   "_comment_version_1_42_2": "1.42.1 -> 1.42.2: /partner/signup redesigned to match supacharge.school (Ray: \"https://supacharge.school/partner/signup need redesign\"). The page mounts LmsTheme and base's Header, a hero saying what a partner is, a three-card benefits row (landing claims only), the form card with grouped fields (About you, Your sign-in, How you'd like to help), hints and inline validation, a What happens next list and a slim footer without the wordmark; partner-signup.css (beside the page, scoped to .ps-root) uses lms-theme.css tokens, light and dark, down to 390px. Presentation only: the fields, ids, names, limits, partnerSignupAction and submit are unchanged.",
@@ -507,6 +508,7 @@
     "app/config/platform.ts",
     "app/lib/format.ts",
     "app/lib/i18n/index.ts",
+    "app/lib/i18n/phrases.ts",
     "app/lib/roles.ts",
     "app/services/base/session.ts",
     "app/services/base/platform-gateway.ts",
