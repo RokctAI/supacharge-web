@@ -181,15 +181,19 @@ components/ui/tooltip.tsx
 /app/handson/all/lms/me/batches/page.tsx
 /app/handson/all/lms/me/profile/page.tsx
 /app/handson/all/lms/page.tsx
+/app/indexnow-key.txt/route.ts
 /app/landing/page.tsx
 /app/legal/\[id\]/page.tsx
 /app/legal/page.tsx
+/app/lib/ai-discovery.ts
+/app/lib/i18n/phrases.ts
 /app/lib/i18n/sdk/auth.json
 /app/lib/i18n/sdk/base.json
 /app/lib/i18n/sdk/lms.json
 /app/lib/i18n/sdk/telemetry.json
 /app/lib/session.ts
 /app/lib/site-metadata.ts
+/app/llms.txt/route.ts
 /app/manager/layout.tsx
 /app/manager/page.tsx
 /app/manager/reports/page.tsx
@@ -221,6 +225,7 @@ components/ui/tooltip.tsx
 /app/services/control/global_settings.ts
 /app/site-shots/\[file\]/route.ts
 /app/styles/rokct-marquee.css
+/app/styles/rokct-rise.css
 /app/styles/rokct-scroll.css
 /app/team/page.tsx
 /app/twitter-image.tsx

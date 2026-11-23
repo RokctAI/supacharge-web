@@ -59,6 +59,7 @@ import {
   RiUserStarLine,
 } from "@remixicon/react";
 
+import { tx } from "@/app/lib/i18n/phrases";
 // 1.36.8 (Ray, 2026-10-03: "about is not about the founder. i wanted a
 // founder to be there but the page is about the platform or the company
 // behind"): the page is about Supacharge and ROKCT Intelligence, in the
@@ -103,9 +104,9 @@ const HOW_CARDS = [
 function SectionHeader({ eyebrow, heading, blurb }: { eyebrow: string; heading?: string; blurb?: string }) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
-      <p className="sc-eyebrow">{eyebrow}</p>
-      {heading && <h2 className={H2}>{heading}</h2>}
-      {blurb && <p className={BLURB}>{blurb}</p>}
+      <p className="sc-eyebrow">{tx(eyebrow)}</p>
+      {heading && <h2 className={H2}>{tx(heading)}</h2>}
+      {blurb && <p className={BLURB}>{tx(blurb)}</p>}
     </div>
   );
 }
@@ -128,12 +129,12 @@ export function LmsFounderSection({
       data-lms-about=""
     >
       <div className={`${CONTAINER} flex flex-col items-center gap-5 text-center`}>
-        <p className="sc-eyebrow">{ABOUT_COPY.eyebrow}</p>
+        <p className="sc-eyebrow">{tx(ABOUT_COPY.eyebrow)}</p>
         <h1 className="text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
-          {ABOUT_COPY.heading}
+          {tx(ABOUT_COPY.heading)}
         </h1>
         <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
-          {ABOUT_COPY.blurb}
+          {tx(ABOUT_COPY.blurb)}
         </p>
       </div>
 
@@ -145,19 +146,19 @@ export function LmsFounderSection({
           heading={ABOUT_COPY.platform.heading}
           blurb={LMS_SITE_METADATA.description}
         />
-        <p className="mx-auto max-w-2xl text-center text-[var(--sc-ink-2)]">{subjects.blurb}</p>
+        <p className="mx-auto max-w-2xl text-center text-[var(--sc-ink-2)]">{tx(subjects.blurb)}</p>
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {subjects.phases.map((phase) => (
             <li key={phase.name} className="sc-card flex flex-col gap-2 p-5 text-left">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-bold text-[var(--sc-ink)]">{phase.name}</span>
-                {phase.badge && <span className="sc-badge-primary">{phase.badge}</span>}
+                <span className="font-bold text-[var(--sc-ink)]">{tx(phase.name)}</span>
+                {phase.badge && <span className="sc-badge-primary">{tx(phase.badge)}</span>}
               </div>
               <span className="text-sm font-semibold text-[var(--sc-primary)]">
-                {phase.grades}
+                {tx(phase.grades)}
                 {phase.pending && (
                   <span className="ml-2 text-[var(--sc-ink-3)]">
-                    {phase.pending.grades} {phase.pending.badge}
+                    {tx(phase.pending.grades)} {tx(phase.pending.badge)}
                   </span>
                 )}
               </span>
@@ -180,8 +181,8 @@ export function LmsFounderSection({
               <span className="flex size-10 items-center justify-center rounded-full bg-[var(--sc-primary-tint)]">
                 <Icon className="size-5 text-[var(--sc-primary)]" aria-hidden="true" />
               </span>
-              <span className="font-bold text-[var(--sc-ink)]">{title}</span>
-              <span className="text-sm text-[var(--sc-ink-2)]">{text}</span>
+              <span className="font-bold text-[var(--sc-ink)]">{tx(title)}</span>
+              <span className="text-sm text-[var(--sc-ink-2)]">{tx(text)}</span>
             </li>
           ))}
         </ul>
@@ -194,11 +195,11 @@ export function LmsFounderSection({
           <span className="flex size-12 items-center justify-center rounded-full bg-[var(--sc-primary-tint)]">
             <RiBuilding2Line className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
           </span>
-          <p className="sc-eyebrow">{ABOUT_COPY.company.eyebrow}</p>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--sc-ink)]">{LMS_COPYRIGHT_HOLDER}</h2>
-          <p className={BLURB}>{ABOUT_COPY.company.text}</p>
+          <p className="sc-eyebrow">{tx(ABOUT_COPY.company.eyebrow)}</p>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--sc-ink)]">{tx(LMS_COPYRIGHT_HOLDER)}</h2>
+          <p className={BLURB}>{tx(ABOUT_COPY.company.text)}</p>
           <a href={ABOUT_COPY.company.teamHref} className="sc-btn sc-btn-outline inline-flex items-center gap-2">
-            {ABOUT_COPY.company.teamLabel}
+            {tx(ABOUT_COPY.company.teamLabel)}
             <RiArrowRightLine className="size-4" aria-hidden="true" />
           </a>
         </article>
@@ -211,10 +212,10 @@ export function LmsFounderSection({
       <div className={`${CONTAINER} mt-10 md:mt-12`} data-about="programmes">
         <div className="sc-card mx-auto flex max-w-3xl flex-col items-center gap-3 px-5 py-4 text-center sm:flex-row sm:justify-between sm:text-left">
           <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-3">
-            <p className="sc-eyebrow">{LMS_MILESTONE.about.eyebrow}</p>
+            <p className="sc-eyebrow">{tx(LMS_MILESTONE.about.eyebrow)}</p>
             <span className="sc-badge-primary inline-flex items-center gap-1.5">
               <RiRocket2Line className="size-4" aria-hidden="true" />
-              {LMS_MILESTONE.about.badge}
+              {tx(LMS_MILESTONE.about.badge)}
             </span>
           </div>
           <a
@@ -223,9 +224,9 @@ export function LmsFounderSection({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--sc-primary)] hover:underline"
           >
-            {LMS_MILESTONE.announcement.label}
+            {tx(LMS_MILESTONE.announcement.label)}
             <RiArrowRightUpLine className="size-4" aria-hidden="true" />
-            <span className="sr-only">(opens in a new tab)</span>
+            <span className="sr-only">{tx("(opens in a new tab)")}</span>
           </a>
         </div>
       </div>
@@ -257,16 +258,16 @@ export function LmsFounderSection({
                 <article className="sc-card flex flex-col gap-4 p-6 md:p-8 text-left">
                   <RiDoubleQuotesL className="size-7 text-[var(--sc-primary)]" aria-hidden="true" />
                   <p className="text-base md:text-lg font-medium leading-relaxed text-[var(--sc-ink)]">
-                    {founder.bio}
+                    {tx(founder.bio)}
                   </p>
                   <div className="flex items-center gap-3 border-t border-[var(--sc-stroke-subtle)] pt-4">
                     <span className="flex size-10 items-center justify-center rounded-full bg-[var(--sc-primary-tint)]">
                       <RiUserStarLine className="size-5 text-[var(--sc-primary)]" aria-hidden="true" />
                     </span>
                     <div className="flex flex-col">
-                      <span className="font-bold text-[var(--sc-ink)]">{founder.name}</span>
+                      <span className="font-bold text-[var(--sc-ink)]">{tx(founder.name)}</span>
                       <span className="text-sm text-[var(--sc-ink-2)]">
-                        {ABOUT_COPY.roleLine} · {founder.subject}
+                        {tx(ABOUT_COPY.roleLine)} · {tx(founder.subject)}
                       </span>
                     </div>
                   </div>

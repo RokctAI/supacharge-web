@@ -59,6 +59,7 @@ import type {
   PageSectionProps,
 } from "@/components/custom/landing/page-sections";
 
+import { tx } from "@/app/lib/i18n/phrases";
 const WAY_ICONS = [RiHandHeartLine, RiSchoolLine, RiTeamLine];
 
 /** Only a same-site path is a valid button target: "/x", never "//x" or a scheme. */
@@ -75,12 +76,12 @@ export function LmsSponsorCard({ join }: { join: PartnersJoinConfig }) {
     >
       <RiHeart3Fill className="sc-sponsor-heart" aria-hidden="true" />
       <div className="flex flex-col gap-3 max-w-2xl">
-        <p className="sc-sponsor-eyebrow">{join.eyebrow}</p>
+        <p className="sc-sponsor-eyebrow">{tx(join.eyebrow)}</p>
         <h3 className="text-[32px] md:text-[44px] font-extrabold leading-[1.1] tracking-tight text-balance">
-          {join.heading}
+          {tx(join.heading)}
         </h3>
         <p className="sc-sponsor-text text-base md:text-lg leading-relaxed">
-          {join.text}
+          {tx(join.text)}
         </p>
       </div>
       <ul className="grid gap-4 md:grid-cols-3">
@@ -90,8 +91,8 @@ export function LmsSponsorCard({ join }: { join: PartnersJoinConfig }) {
             <li key={way.title} className="sc-sponsor-way flex gap-3 p-4">
               <Icon className="sc-sponsor-icon size-6 shrink-0" aria-hidden="true" />
               <div className="flex flex-col gap-1">
-                <span className="font-bold">{way.title}</span>
-                <span className="sc-sponsor-text text-sm leading-relaxed">{way.text}</span>
+                <span className="font-bold">{tx(way.title)}</span>
+                <span className="sc-sponsor-text text-sm leading-relaxed">{tx(way.text)}</span>
               </div>
             </li>
           );
@@ -100,7 +101,7 @@ export function LmsSponsorCard({ join }: { join: PartnersJoinConfig }) {
       <div>
         <Link href={href} className="sc-btn sc-sponsor-btn">
           <RiHandHeartLine className="size-5" aria-hidden="true" />
-          {join.button.label}
+          {tx(join.button.label)}
         </Link>
       </div>
     </div>
@@ -125,13 +126,13 @@ export function LmsPartnersSection({
       <div className="container mx-auto px-4 xl:px-0 max-w-6xl flex flex-col gap-12">
         <div className="flex flex-col items-center text-center gap-5">
           <p className="sc-eyebrow">
-            {config.eyebrow}
+            {tx(config.eyebrow)}
           </p>
           <h2 className="text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
-            {config.heading}
+            {tx(config.heading)}
           </h2>
           <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
-            {config.blurb}
+            {tx(config.blurb)}
           </p>
           <ul className="flex flex-wrap justify-center gap-2">
             {config.who.map((who) => (
@@ -139,7 +140,7 @@ export function LmsPartnersSection({
                 key={who}
                 className="sc-chip text-sm"
               >
-                {who}
+                {tx(who)}
               </li>
             ))}
           </ul>
@@ -149,11 +150,11 @@ export function LmsPartnersSection({
           <div className="flex flex-col gap-4 sc-card p-6 md:p-8">
             <RiCalendarCheckLine className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
             <h3 className="text-xl font-bold text-[var(--sc-ink)]">
-              {config.weeklyHeading}
+              {tx(config.weeklyHeading)}
             </h3>
             <ul className="flex flex-col gap-2 text-sm text-[var(--sc-ink-2)] leading-relaxed list-disc pl-4">
               {config.weekly.map((line) => (
-                <li key={line}>{line}</li>
+                <li key={line}>{tx(line)}</li>
               ))}
             </ul>
           </div>
@@ -161,22 +162,22 @@ export function LmsPartnersSection({
           <div className="flex flex-col gap-4 sc-card p-6 md:p-8">
             <RiNotification4Line className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
             <h3 className="text-xl font-bold text-[var(--sc-ink)]">
-              {config.alertsHeading}
+              {tx(config.alertsHeading)}
             </h3>
             <ul className="flex flex-col gap-2 text-sm text-[var(--sc-ink-2)] leading-relaxed list-disc pl-4">
               {config.alerts.map((line) => (
-                <li key={line}>{line}</li>
+                <li key={line}>{tx(line)}</li>
               ))}
             </ul>
           </div>
 
           <div className="flex flex-col gap-4 sc-card sc-card-primary p-6 md:p-8">
             <RiShieldCheckLine className="size-6 text-[var(--sc-primary)]" aria-hidden="true" />
-            <p className="text-lg leading-relaxed">{config.boundary}</p>
+            <p className="text-lg leading-relaxed">{tx(config.boundary)}</p>
             <div className="mt-auto border-t border-[var(--sc-primary)] pt-4">
-              <h4 className="font-bold">{config.sponsors.heading}</h4>
+              <h4 className="font-bold">{tx(config.sponsors.heading)}</h4>
               <p className="text-sm text-[var(--sc-ink-2)] leading-relaxed">
-                {config.sponsors.text}
+                {tx(config.sponsors.text)}
               </p>
             </div>
           </div>
@@ -198,9 +199,9 @@ export function LmsPartnersSection({
               href={signupUrl}
               className="sc-btn sc-btn-primary"
             >
-              {config.cta.label}
+              {tx(config.cta.label)}
             </Link>
-            <p className="text-sm text-[var(--sc-ink-2)]">{config.cta.sub}</p>
+            <p className="text-sm text-[var(--sc-ink-2)]">{tx(config.cta.sub)}</p>
           </div>
         )}
       </div>

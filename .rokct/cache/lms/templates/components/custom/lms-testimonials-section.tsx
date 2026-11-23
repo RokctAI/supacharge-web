@@ -52,6 +52,7 @@ import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-conf
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
 import { TestimonialsMarquee } from "@/components/custom/landing/testimonials-marquee";
 
+import { tx } from "@/app/lib/i18n/phrases";
 const isPlaceholder = (text: string) => /^\[\[.*\]\]$/.test(text.trim());
 
 /**
@@ -75,7 +76,7 @@ export function LmsTestimonialsSection({ id }: { id?: string }) {
     >
       <div className="container mx-auto px-4 xl:px-0 max-w-6xl flex flex-col gap-12">
         <h2 className="text-center text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
-          {config.heading}
+          {tx(config.heading)}
         </h2>
       </div>
       <div className="mt-12">

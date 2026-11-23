@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LANDING_CONFIG } from "@/components/custom/landing/landing-config";
 
+import { tx } from "@/app/lib/i18n/phrases";
 const EMPTY: PartnerSignupInput = {
   name: "",
   organisation: "",
@@ -64,11 +65,10 @@ export function PartnerSignupForm() {
     return (
       <div className="ps-done space-y-2" role="status">
         <p className="font-semibold">
-          Thank you - your partner account is ready.
+          {tx("Thank you - your partner account is ready.")}
         </p>
         <p className="text-sm text-muted-foreground">
-          Sign in with {done} in the app to link learners and follow their
-          progress. We will be in touch about how you would like to help.
+          {tx("Sign in with")}{" "}{tx(done)} {tx("in the app to link learners and follow their progress. We will be in touch about how you would like to help.")}
         </p>
       </div>
     );
@@ -87,15 +87,15 @@ export function PartnerSignupForm() {
       }}
     >
       <fieldset className="ps-group">
-        <legend className="ps-group-t">About you</legend>
+        <legend className="ps-group-t">{tx("About you")}</legend>
         <div className="ps-field">
-          <Label htmlFor="partner-name">Name</Label>
+          <Label htmlFor="partner-name">{tx("Name")}</Label>
           <Input
             id="partner-name"
             autoComplete="name"
             required
             maxLength={140}
-            placeholder="Your full name"
+            placeholder={tx("Your full name")}
             aria-invalid={err("name") ? true : undefined}
             aria-describedby={err("name") ? "partner-name-err" : undefined}
             value={v.name}
@@ -106,32 +106,32 @@ export function PartnerSignupForm() {
         </div>
         <div className="ps-field">
           <Label htmlFor="partner-organisation">
-            Organisation <em>(optional)</em>
+            {tx("Organisation")}{" "}<em>{tx("(optional)")}</em>
           </Label>
           <Input
             id="partner-organisation"
             autoComplete="organization"
             maxLength={140}
-            placeholder="Company, school or foundation"
+            placeholder={tx("Company, school or foundation")}
             aria-describedby="partner-organisation-hint"
             value={v.organisation}
             onChange={(e) => setV({ ...v, organisation: e.target.value })}
           />
           <p id="partner-organisation-hint" className="ps-hint">
-            Leave blank if you are giving as an individual.
+            {tx("Leave blank if you are giving as an individual.")}
           </p>
         </div>
       </fieldset>
       <fieldset className="ps-group">
-        <legend className="ps-group-t">Your sign-in</legend>
+        <legend className="ps-group-t">{tx("Your sign-in")}</legend>
         <div className="ps-field">
-          <Label htmlFor="partner-email">Email</Label>
+          <Label htmlFor="partner-email">{tx("Email")}</Label>
           <Input
             id="partner-email"
             type="email"
             autoComplete="email"
             required
-            placeholder="you@example.com"
+            placeholder={tx("you@example.com")}
             aria-invalid={err("email") ? true : undefined}
             aria-describedby={err("email") ? "partner-email-err" : "partner-email-hint"}
             value={v.email}
@@ -142,12 +142,12 @@ export function PartnerSignupForm() {
             <p id="partner-email-err" className="ps-err">{err("email")}</p>
           ) : (
             <p id="partner-email-hint" className="ps-hint">
-              You will sign in to the app with this email.
+              {tx("You will sign in to the app with this email.")}
             </p>
           )}
         </div>
         <div className="ps-field">
-          <Label htmlFor="partner-password">Password</Label>
+          <Label htmlFor="partner-password">{tx("Password")}</Label>
           <Input
             id="partner-password"
             type="password"
@@ -163,13 +163,13 @@ export function PartnerSignupForm() {
           {err("password") ? (
             <p id="partner-password-err" className="ps-err">{err("password")}</p>
           ) : (
-            <p id="partner-password-hint" className="ps-hint">At least 8 characters.</p>
+            <p id="partner-password-hint" className="ps-hint">{tx("At least 8 characters.")}</p>
           )}
         </div>
       </fieldset>
       <fieldset className="ps-group">
         <legend className="ps-group-t">
-          How you&apos;d like to help
+          {tx("How you&apos;d like to help")}
         </legend>
         <div className="ps-opts">
           {PARTNER_INTERESTS.map((option) => (
@@ -183,7 +183,7 @@ export function PartnerSignupForm() {
                   setV({ ...v, interest: option.value as PartnerInterest })
                 }
               />
-              {option.label}
+              {tx(option.label)}
             </label>
           ))}
         </div>
@@ -192,7 +192,7 @@ export function PartnerSignupForm() {
         {busy ? "Creating your account..." : "Become a partner"}
       </Button>
       <p className="ps-fine">
-        Already have an account? <a href={LANDING_CONFIG.loginUrl}>Log in</a>
+        {tx("Already have an account?")}{" "}<a href={LANDING_CONFIG.loginUrl}>{tx("Log in")}</a>
       </p>
     </form>
   );

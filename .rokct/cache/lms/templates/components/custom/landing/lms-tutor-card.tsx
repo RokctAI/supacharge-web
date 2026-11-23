@@ -64,6 +64,7 @@ import {
 import { LmsFlipCard, stopFlip } from "@/components/custom/landing/lms-flip-card";
 import { teamImageFor } from "@/components/custom/landing/team-assets";
 
+import { tx } from "@/app/lib/i18n/phrases";
 export function initials(name: string): string {
   return name
     .split(/\s+/)
@@ -94,8 +95,8 @@ function Badge({ children }: { children: React.ReactNode }) {
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-3 text-[13px]">
-      <span className="w-20 shrink-0 text-[var(--sc-ink-2)]">{label}</span>
-      <span className="text-[var(--sc-ink)]">{value}</span>
+      <span className="w-20 shrink-0 text-[var(--sc-ink-2)]">{tx(label)}</span>
+      <span className="text-[var(--sc-ink)]">{tx(value)}</span>
     </div>
   );
 }
@@ -180,23 +181,23 @@ export function LmsTutorCard({
         </div>
       )}
       <div className="absolute left-3 top-3">
-        <Badge>{whoBadge}</Badge>
+        <Badge>{tx(whoBadge)}</Badge>
       </div>
       {grade && (
         <div className="absolute right-3 top-3">
-          <Badge>{grade}</Badge>
+          <Badge>{tx(grade)}</Badge>
         </div>
       )}
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-black via-black/80 to-transparent px-5 pb-5 pt-16 text-left">
-        <h3 className="text-xl font-semibold leading-tight text-white">{name}</h3>
+        <h3 className="text-xl font-semibold leading-tight text-white">{tx(name)}</h3>
         <p className="text-xs text-[var(--sc-primary)]">
           {title ? `${title} · ${subject}` : subject}
         </p>
         {bio && (
-          <p className="mt-2 line-clamp-3 text-[13px] leading-relaxed text-white/90">{bio}</p>
+          <p className="mt-2 line-clamp-3 text-[13px] leading-relaxed text-white/90">{tx(bio)}</p>
         )}
         <span className="mt-4 block w-full rounded-xl bg-[var(--sc-primary)] py-2.5 text-center text-[13px] font-medium text-white">
-          {labels.know} {name}
+          {tx(labels.know)} {tx(name)}
         </span>
       </div>
     </div>
@@ -206,7 +207,7 @@ export function LmsTutorCard({
     <div className="flex size-full flex-col gap-4 overflow-hidden rounded-3xl border border-[var(--sc-stroke-subtle)] bg-[var(--sc-card)] p-5 text-left shadow-lg">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-lg font-medium text-[var(--sc-ink)]">{name}</h3>
+          <h3 className="truncate text-lg font-medium text-[var(--sc-ink)]">{tx(name)}</h3>
           <p className="text-xs text-[var(--sc-ink-2)]">
             {grade ? `${subject} — ${grade}` : subject}
           </p>
@@ -240,7 +241,7 @@ export function LmsTutorCard({
         ) : (
           <>
             {bio && (
-              <p className="text-sm leading-relaxed text-[var(--sc-ink-2)]">{bio}</p>
+              <p className="text-sm leading-relaxed text-[var(--sc-ink-2)]">{tx(bio)}</p>
             )}
             {isTutor && (
               <div className="flex flex-col gap-2">
@@ -266,7 +267,7 @@ export function LmsTutorCard({
             <circle cx="12" cy="12" r="10" />
             <path d="m10 8 6 4-6 4z" />
           </svg>
-          {labels.hearMore}
+          {tx(labels.hearMore)}
         </button>
       )}
       {isTutor && (
@@ -275,7 +276,7 @@ export function LmsTutorCard({
           onClick={stopFlip}
           className="block w-full rounded-xl bg-[var(--sc-primary)] py-3 text-center text-[13px] font-medium text-white transition-opacity hover:opacity-90"
         >
-          {labels.startWith} {name}
+          {tx(labels.startWith)} {tx(name)}
         </Link>
       )}
     </div>

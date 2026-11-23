@@ -67,6 +67,7 @@ import React, {
   type ReactNode,
 } from "react";
 
+import { tx } from "@/app/lib/i18n/phrases";
 /** The deck's words. They live with the section's copy, never in here. */
 export interface DeckLabels {
   /** Accessible name of the row itself. */
@@ -292,7 +293,7 @@ export function LmsCardDeck({
         onClickCapture={onClickCapture}
       >
         {cards.map((card, i) => (
-          <li key={i}>{card}</li>
+          <li key={i}>{tx(card)}</li>
         ))}
       </ul>
 
@@ -330,7 +331,7 @@ export function LmsCardDeck({
         </div>
       )}
 
-      {scrollable && labels.hint && <p className="sc-deck-hint">{labels.hint}</p>}
+      {scrollable && labels.hint && <p className="sc-deck-hint">{tx(labels.hint)}</p>}
     </div>
   );
 }

@@ -55,6 +55,7 @@ import { RiFlashlightFill } from "@remixicon/react";
 import { LMS_MILESTONE } from "@/components/custom/landing/lms-milestone";
 import type { PageSectionMeta } from "@/components/custom/landing/page-sections";
 
+import { tx } from "@/app/lib/i18n/phrases";
 /**
  * Before the hero (negative order) and after the theme (-2) and the
  * floating nav (-1); no floating-nav tick of its own: it sits in the
@@ -80,10 +81,10 @@ export function LmsMilestonePill() {
         <span className="sc-milestone-text" data-milestone-text="">
           <span className="sc-milestone-words">
             <span className="sc-milestone-label font-extrabold uppercase tracking-wider">
-              {m.pill.label}
+              {tx(m.pill.label)}
               <span aria-hidden="true"> · </span>
             </span>
-            <span className="font-semibold">{m.pill.text}</span>
+            <span className="font-semibold">{tx(m.pill.text)}</span>
           </span>
         </span>
       </a>

@@ -67,6 +67,7 @@ import type { Curriculum } from "@/components/custom/landing/lms-landing-config"
 import type { GradesChip } from "@/components/custom/landing/lms-landing-config";
 import { MenuLabel } from "@/components/custom/menu-label";
 
+import { tx } from "@/app/lib/i18n/phrases";
 /**
  * The separator before item `index` of `count`: none first, ", " between,
  * " and " before the last - "CAPS, IEB and Cambridge".
@@ -83,13 +84,13 @@ export function curriculumSeparator(index: number, count: number): string {
  * adds a pill.
  */
 function CurriculumName({ item, outlined }: { item: Curriculum; outlined?: boolean }) {
-  if (!item.badge && !outlined) return <>{item.name}</>;
+  if (!item.badge && !outlined) return <>{tx(item.name)}</>;
   return (
     <span
       className="sc-curriculum-outlined inline-flex items-center gap-1.5 whitespace-nowrap align-baseline"
       data-curriculum-outlined=""
     >
-      {item.name}
+      {tx(item.name)}
       {item.badge ? <MenuLabel badge={item.badge} /> : null}
     </span>
   );
@@ -105,7 +106,7 @@ export function LmsCurricula() {
   const count = config.curricula.length;
   return (
     <>
-      {config.eyebrow}{" "}
+      {tx(config.eyebrow)}{" "}
       {config.curricula.map((item, index) => (
         <React.Fragment key={item.name}>
           {curriculumSeparator(index, count)}

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.44.0
+
+- Landing copy translates to Afrikaans through tx() and the lms.json phrase book (machine-drafted, needs a fluent skim). Needs base_sdk >= 1.66.0.
+
 ## 1.43.1
 
 * style: landing sections rise and fade in as they scroll into view (CSS

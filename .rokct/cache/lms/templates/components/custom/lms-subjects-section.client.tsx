@@ -102,6 +102,7 @@ import type {
 } from "@/components/custom/landing/lms-landing-config";
 
 import t from "@/app/lib/i18n";
+import { tx } from "@/app/lib/i18n/phrases";
 /**
  * The Grades R-3 library's tile colours, in the app's order (lms/dart
  * r3_picture.dart kR3TileColors). Mirrored as `--sc-kids-tile-1..6` in
@@ -145,31 +146,31 @@ function SubjectCard({ subject }: { subject: Subject }) {
     <div className="flex flex-col gap-4 sc-card p-6 transition-colors hover:border-[var(--sc-primary)]">
       <div className="flex flex-col gap-1">
         <h3 className="text-2xl font-black tracking-tight text-[var(--sc-ink)]">
-          {subject.name}
+          {tx(subject.name)}
         </h3>
         {subject.grades ? (
-          <span className="text-sm font-medium text-[var(--sc-ink-2)]">{subject.grades}</span>
+          <span className="text-sm font-medium text-[var(--sc-ink-2)]">{tx(subject.grades)}</span>
         ) : null}
         {subject.skills ? (
-          <span className="text-sm text-[var(--sc-ink-2)]">{subject.skills}</span>
+          <span className="text-sm text-[var(--sc-ink-2)]">{tx(subject.skills)}</span>
         ) : null}
       </div>
       {subject.tutors ? (
         <dl className="flex flex-col gap-1 text-sm">
           <div className="flex justify-between gap-4">
             <dt className="text-[var(--sc-ink-2)]">{t("lms.expert")}</dt>
-            <dd className="font-semibold text-[var(--sc-ink)]">{subject.tutors[0]}</dd>
+            <dd className="font-semibold text-[var(--sc-ink)]">{tx(subject.tutors[0])}</dd>
           </div>
           <div className="flex justify-between gap-4">
             <dt className="text-[var(--sc-ink-2)]">{t("lms.simplifier")}</dt>
-            <dd className="font-semibold text-[var(--sc-ink)]">{subject.tutors[1]}</dd>
+            <dd className="font-semibold text-[var(--sc-ink)]">{tx(subject.tutors[1])}</dd>
           </div>
         </dl>
       ) : subject.tutor ? (
         <dl className="flex flex-col gap-1 text-sm">
           <div className="flex justify-between gap-4">
             <dt className="text-[var(--sc-ink-2)]">{t("lms.tutor")}</dt>
-            <dd className="font-semibold text-[var(--sc-ink)]">{subject.tutor}</dd>
+            <dd className="font-semibold text-[var(--sc-ink)]">{tx(subject.tutor)}</dd>
           </div>
         </dl>
       ) : null}
@@ -188,10 +189,10 @@ export function KidsDaySection({ day }: { day: KidsDay }) {
     <div className="flex flex-col gap-6 pt-4" data-kids-day="">
       <div className="flex flex-col items-center text-center gap-2">
         <h3 className="text-2xl md:text-3xl font-black tracking-tight text-[var(--sc-ink)]">
-          {day.heading}
+          {tx(day.heading)}
         </h3>
         <p className="text-sm md:text-base text-[var(--sc-ink-2)] leading-relaxed max-w-2xl">
-          {day.blurb}
+          {tx(day.blurb)}
         </p>
       </div>
       <ol className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -206,8 +207,8 @@ export function KidsDaySection({ day }: { day: KidsDay }) {
               <span aria-hidden="true" className={`sc-kids-step sc-kids-tile-${tile}`}>
                 {index + 1}
               </span>
-              <h4 className="sc-kids-ink text-xl font-black tracking-tight">{item.name}</h4>
-              <p className="sc-kids-ink-2 text-sm leading-relaxed">{item.text}</p>
+              <h4 className="sc-kids-ink text-xl font-black tracking-tight">{tx(item.name)}</h4>
+              <p className="sc-kids-ink-2 text-sm leading-relaxed">{tx(item.text)}</p>
             </li>
           );
         })}
@@ -245,28 +246,28 @@ function KidsSubjectCard({
           ))}
         </span>
         <span className="flex flex-wrap justify-end gap-1.5">
-          <span className="sc-kids-badge">{labels.badge}</span>
+          <span className="sc-kids-badge">{tx(labels.badge)}</span>
           {soon ? (
             <span className="sc-kids-badge sc-kids-badge-upcoming" data-kids-soon="">
-              {labels.soonLabel}
+              {tx(labels.soonLabel)}
             </span>
           ) : null}
         </span>
       </div>
       <div className="flex flex-col gap-1">
-        <h3 className="sc-kids-ink text-2xl font-black tracking-tight">{subject.name}</h3>
+        <h3 className="sc-kids-ink text-2xl font-black tracking-tight">{tx(subject.name)}</h3>
         {subject.grades ? (
-          <span className="sc-kids-ink text-sm font-semibold">{subject.grades}</span>
+          <span className="sc-kids-ink text-sm font-semibold">{tx(subject.grades)}</span>
         ) : null}
         {subject.skills ? (
-          <span className="sc-kids-ink-2 text-sm leading-relaxed">{subject.skills}</span>
+          <span className="sc-kids-ink-2 text-sm leading-relaxed">{tx(subject.skills)}</span>
         ) : null}
       </div>
       {subject.tutor ? (
         <dl className="mt-auto flex flex-col gap-1 text-sm">
           <div className="flex justify-between gap-4">
-            <dt className="sc-kids-ink-2">{labels.tutorLabel}</dt>
-            <dd className="sc-kids-ink font-bold">{subject.tutor}</dd>
+            <dt className="sc-kids-ink-2">{tx(labels.tutorLabel)}</dt>
+            <dd className="sc-kids-ink font-bold">{tx(subject.tutor)}</dd>
           </div>
         </dl>
       ) : null}
@@ -309,10 +310,10 @@ export function LmsSubjectsPhases({ id }: { id?: string }) {
       >
         <div className="flex flex-col items-center text-center gap-2">
           <h3 className="text-2xl font-black tracking-tight text-[var(--sc-ink)]">
-            {selected.name}
+            {tx(selected.name)}
           </h3>
           <p className="text-sm md:text-base text-[var(--sc-ink-2)] leading-relaxed max-w-2xl">
-            {selected.text}
+            {tx(selected.text)}
           </p>
           {selected.pending ? (
             <span className="text-sm font-medium text-[var(--sc-ink)]">

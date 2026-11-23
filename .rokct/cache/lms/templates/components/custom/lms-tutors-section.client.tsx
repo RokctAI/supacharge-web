@@ -87,6 +87,7 @@ import {
 import { LmsMarquee } from "@/components/custom/landing/lms-marquee";
 import { LmsTutorCard } from "@/components/custom/landing/lms-tutor-card";
 
+import { tx } from "@/app/lib/i18n/phrases";
 /** The section's own column: the deck sits in it, the marquee bleeds past it. */
 const CONTAINER = "container mx-auto px-4 xl:px-0 max-w-6xl";
 
@@ -126,7 +127,7 @@ function Roster({
 
   return (
     <>
-      <div className="w-full sm:hidden">{deck}</div>
+      <div className="w-full sm:hidden">{tx(deck)}</div>
       <div className="hidden w-full sm:block">
         <LmsMarquee label={labels.label} itemClassName="sc-marquee-slot">
           {children}
@@ -258,13 +259,13 @@ export function LmsTutorsSection({
     >
       <div className={`${CONTAINER} flex flex-col items-center text-center gap-5`}>
         <p className="sc-eyebrow">
-          {config.eyebrow}
+          {tx(config.eyebrow)}
         </p>
         <h2 className="text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
-          {config.heading}
+          {tx(config.heading)}
         </h2>
         <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
-          {config.blurb}
+          {tx(config.blurb)}
         </p>
       </div>
 
@@ -296,7 +297,7 @@ export function LmsTutorsSection({
         <div className="mt-12 flex flex-col items-center gap-6">
           <div className={`${CONTAINER} flex flex-col items-center border-t border-[var(--sc-stroke-subtle)] pt-10`}>
             <h3 className="text-lg font-bold text-[var(--sc-ink)]">
-              {config.assistantsHeading}
+              {tx(config.assistantsHeading)}
             </h3>
           </div>
           <GradeFiltered

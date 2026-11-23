@@ -24,6 +24,7 @@ import { RiSubtractLine, RiAddLine } from "@remixicon/react";
 
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 
+import { tx } from "@/app/lib/i18n/phrases";
 export function LmsFaqSection({ id }: { id?: string }) {
   const config = LMS_LANDING_CONFIG.faq;
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -37,10 +38,10 @@ export function LmsFaqSection({ id }: { id?: string }) {
       <div className="container mx-auto px-4 xl:px-0 max-w-6xl flex flex-col gap-12">
         <div className="flex flex-col items-center text-center gap-5">
           <h2 className="text-[32px] md:text-[48px] font-extrabold leading-[1.1] tracking-tight text-[var(--sc-ink)] text-balance">
-            {config.heading}
+            {tx(config.heading)}
           </h2>
           <p className="text-lg md:text-xl font-medium text-[var(--sc-ink-2)] max-w-2xl">
-            {config.blurb}
+            {tx(config.blurb)}
           </p>
         </div>
 
@@ -60,7 +61,7 @@ export function LmsFaqSection({ id }: { id?: string }) {
                   className="flex w-full items-center justify-between gap-4 p-4 md:p-5 text-left"
                 >
                   <span className="text-base md:text-lg font-bold text-[var(--sc-ink)]">
-                    {faq.question}
+                    {tx(faq.question)}
                   </span>
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--sc-card-alt)] text-[var(--sc-ink-2)]">
                     {open ? (
@@ -80,7 +81,7 @@ export function LmsFaqSection({ id }: { id?: string }) {
                       className="overflow-hidden"
                     >
                       <p className="px-4 md:px-5 pb-5 text-[var(--sc-ink-2)] leading-relaxed">
-                        {faq.answer}
+                        {tx(faq.answer)}
                       </p>
                     </motion.div>
                   )}

@@ -49,6 +49,7 @@ import { LmsTutorCard } from "@/components/custom/landing/lms-tutor-card";
 import { LMS_LANDING_CONFIG } from "@/components/custom/landing/lms-landing-config";
 import { LmsTutorsSection } from "@/components/custom/lms-tutors-section.client";
 
+import { tx } from "@/app/lib/i18n/phrases";
 const CONTAINER = "container mx-auto px-4 xl:px-0 max-w-6xl";
 const TEAM_COPY = {
   founder: { eyebrow: "Founder" },
@@ -85,7 +86,7 @@ export function LmsTeamSection({
 
       {founders.length > 0 && (
         <div className={`${CONTAINER} py-16 md:py-24 flex flex-col items-center gap-8`} data-lms-team-founders="">
-          <p className="sc-eyebrow">{TEAM_COPY.founder.eyebrow}</p>
+          <p className="sc-eyebrow">{tx(TEAM_COPY.founder.eyebrow)}</p>
           <div className="flex w-full flex-wrap justify-center gap-6">
             {founders.map((founder) => {
               const video = founderIntroVideo(founder);

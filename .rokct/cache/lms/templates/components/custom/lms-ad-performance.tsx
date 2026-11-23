@@ -69,6 +69,7 @@ import {
   type LabelSpec,
 } from "@/components/custom/landing/lms-ad-performance-rules";
 
+import { tx } from "@/app/lib/i18n/phrases";
 /** `t(key)`, or `fallback` (with its {{params}} filled) when the dictionary has no such key. */
 function word(key: string, fallback: string, params?: Record<string, string>): string {
   const value = t(key, params);
@@ -101,7 +102,7 @@ function MetricCell({ value, delta }: { value: string; delta: string }) {
     <td className="whitespace-nowrap px-3 py-2 text-right">
       <Figure value={value} />
       {delta ? (
-        <span className="block text-xs text-muted-foreground tabular-nums">{delta}</span>
+        <span className="block text-xs text-muted-foreground tabular-nums">{tx(delta)}</span>
       ) : null}
     </td>
   );
@@ -114,8 +115,8 @@ function FlagRow({ flag }: { flag: AdFlag }) {
         <p className="text-xs uppercase tracking-wide text-muted-foreground">
           {say(FLAG_LABELS[flag.code])}
         </p>
-        <p className="font-medium">{flag.headline}</p>
-        <p className="text-sm text-muted-foreground">{flag.detail}</p>
+        <p className="font-medium">{tx(flag.headline)}</p>
+        <p className="text-sm text-muted-foreground">{tx(flag.detail)}</p>
         {flag.ad_name || flag.ad_id ? (
           <p className="text-sm">
             {L("flag_ad", "Ad: {{ad}}", { ad: flag.ad_name || flag.ad_id })}
@@ -138,7 +139,7 @@ function AdRow({ ad, currency }: { ad: AdSignal; currency: string | null }) {
       <td className="px-3 py-2">
         <span className="block font-medium">{ad.ad_name || ad.ad_id}</span>
         {ad.campaign_name ? (
-          <span className="block text-xs text-muted-foreground">{ad.campaign_name}</span>
+          <span className="block text-xs text-muted-foreground">{tx(ad.campaign_name)}</span>
         ) : null}
       </td>
       <td className="whitespace-nowrap px-3 py-2 text-right">
